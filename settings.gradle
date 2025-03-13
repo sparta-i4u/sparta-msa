@@ -1,0 +1,12 @@
+rootProject.name = 'sparta-msa'
+
+include 'common'
+include 'company'
+include 'delivery'
+include 'eureka-server'
+include 'gateway'
+include 'hub'
+include 'message'
+include 'order'
+include 'product'
+include 'user'
