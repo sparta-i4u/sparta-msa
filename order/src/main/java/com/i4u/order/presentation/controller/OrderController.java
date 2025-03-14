@@ -1,6 +1,5 @@
 package com.i4u.order.presentation.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,31 +15,39 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.i4u.common.utils.CommonResponse;
-import com.i4u.order.application.dto.OrderCreateRequestDto;
-import com.i4u.order.application.dto.OrderResponseDto;
-import com.i4u.order.application.dto.OrderStatusUpdateRequestDto;
-import com.i4u.order.application.dto.OrderUpdateRequestDto;
+import com.i4u.order.application.dtos.request.OrderCreateRequest;
+import com.i4u.order.application.dtos.request.OrderStatusUpdateRequest;
+import com.i4u.order.application.dtos.request.OrderUpdateRequest;
+import com.i4u.order.application.dtos.response.OrderCreateResponse;
+import com.i4u.order.application.dtos.response.OrderGetListResponse;
+import com.i4u.order.application.dtos.response.OrderGetOneResponse;
+import com.i4u.order.application.dtos.response.OrderStatusUpdateResponse;
+import com.i4u.order.application.dtos.response.OrderUpdateResponse;
+import com.i4u.order.application.service.OrderService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
 @Slf4j
-@RequestMapping("/orders")
+@RequestMapping("/api/v1/orders")
 @RestController
 @RequiredArgsConstructor
 public class OrderController {
+	
+	private final OrderService orderService;
+	
+	// TODO : 사용자 정보 받아오는 로직 전부 추가
 
 	/**
 	 * 주문 생성
-	 * @param orderCreateRequestDto : 생성할 주문의 정보
+	 * @param request : 생성할 주문의 정보
 	 * @return : 생성된 주문 내용
 	 */
 	@PostMapping
-	public ResponseEntity<CommonResponse<OrderResponseDto>> createOrder(@RequestBody OrderCreateRequestDto orderCreateRequestDto){
-		// gateway로부터 사용자의 정보를 어떻게 받아올 것인지 생각해보기 (역할은 필수로 필요)
-		// order에서는 필요 없지만, 여기서 받아서 바로 배송 쪽으로 정보가 넘어가야 하므로 수령인에 대한 정보가 필요 (id, slackid)
-		return ResponseEntity.ok(CommonResponse.success(OrderResponseDto.createSampleDto(orderCreateRequestDto), "생성 성공"));
+	public ResponseEntity<CommonResponse<OrderCreateResponse>> createOrder(@RequestBody OrderCreateRequest request){
+		log.info("주문 생성 요청");
+		OrderCreateResponse response = orderService.createOrder(request);
+		return ResponseEntity.ok(CommonResponse.success(response, "주문 생성 성공"));
 	}
 
 	/**
@@ -48,9 +55,11 @@ public class OrderController {
 	 * @return : 조회된 전체 주문 내용
 	 */
 	@GetMapping
-	public ResponseEntity<CommonResponse<List<OrderResponseDto>>> getAllOrders() {
+	public ResponseEntity<CommonResponse<List<OrderGetListResponse>>> getAllOrders() {
 		// 검색 기능 적용 예정으로 Pagination 내용으로 변경하기
-		return ResponseEntity.ok(CommonResponse.success(List.of(OrderResponseDto.getSampleDto()), "전체 조회 성공"));
+		log.info("주문 전체 조회 요청");
+		List<OrderGetListResponse> orders = orderService.getAllOrders();
+		return ResponseEntity.ok(CommonResponse.success(orders, "주문 전체 조회 성공"));
 	}
 
 	/**
@@ -59,31 +68,37 @@ public class OrderController {
 	 * @return : 조회된 주문 내용
 	 */
 	@GetMapping("/{orderId}")
-	public ResponseEntity<CommonResponse<OrderResponseDto>> getOneOrder(@PathVariable UUID orderId) {
-		return ResponseEntity.ok(CommonResponse.success(OrderResponseDto.getSampleDto(), "단건 조회 성공"));
+	public ResponseEntity<CommonResponse<OrderGetOneResponse>> getOneOrder(@PathVariable UUID orderId) {
+		log.info("주문 단건 조회 요청");
+		OrderGetOneResponse response = orderService.getOneOrder(orderId);
+		return ResponseEntity.ok(CommonResponse.success(response, "주문 단건 조회 성공"));
 	}
 
 	/**
 	 * 주문 수정
 	 * @param orderId : 수정할 주문의 ID
-	 * @param orderUpdateRequestDto : 수정할 주문 정보
+	 * @param request : 수정할 주문 정보
 	 * @return : 수정된 주문 내용
 	 */
 	@PutMapping("/{orderId}")
-	public ResponseEntity<CommonResponse<OrderResponseDto>> putOrder(@PathVariable UUID orderId, @RequestBody OrderUpdateRequestDto orderUpdateRequestDto) {
+	public ResponseEntity<CommonResponse<OrderUpdateResponse>> putOrder(@PathVariable UUID orderId, @RequestBody OrderUpdateRequest request) {
 		// 주문 상태 확인 필수
-		return ResponseEntity.ok(CommonResponse.success(OrderResponseDto.updateSampleDto(orderUpdateRequestDto), "수정 성공"));
+		log.info("주문 수정 요청");
+		OrderUpdateResponse response = orderService.updateOrder(orderId, request);
+		return ResponseEntity.ok(CommonResponse.success(response, "주문 수정 성공"));
 	}
 
 	/**
 	 * 주문 상태 수정
 	 * @param orderId : 상태를 수정할 주문의 ID
-	 * @param orderStatusUpdateRequestDto : 수정할 주문 상태 정보
+	 * @param request : 수정할 주문 상태 정보
 	 * @return : 상태가 수정된 주문 내용
 	 */
 	@PatchMapping("/{orderId}")
-	public ResponseEntity<CommonResponse<OrderResponseDto>> patchOrder(@PathVariable UUID orderId, @RequestBody OrderStatusUpdateRequestDto orderStatusUpdateRequestDto) {
-		return ResponseEntity.ok(CommonResponse.success(OrderResponseDto.updateStatusSampleDto(orderStatusUpdateRequestDto), "상태 수정 성공"));
+	public ResponseEntity<CommonResponse<OrderStatusUpdateResponse>> patchOrder(@PathVariable UUID orderId, @RequestBody OrderStatusUpdateRequest request) {
+		log.info("주문 상태 수정 요청");
+		OrderStatusUpdateResponse response = orderService.updateOrderStatus(orderId, request);
+		return ResponseEntity.ok(CommonResponse.success(response, "주문 수정 성공"));
 	}
 
 	/**
@@ -93,14 +108,9 @@ public class OrderController {
 	 */
 	@DeleteMapping("/{orderId}")
 	public ResponseEntity<CommonResponse> deleteOrder(@PathVariable UUID orderId) {
-		return ResponseEntity.ok(CommonResponse.success(null, "삭제 성공"));
+		log.info("주문 삭제 요청");
+		orderService.deleteOrder(orderId);
+		return ResponseEntity.ok(CommonResponse.success(orderId, "주문 삭제 성공"));
 	}
-
-	/*
-	* 주문 상태
-	* 결제 완료, 배송 확인 (?), 출고 전, 배송 전, 배송 중, 배송 완료, 주문 취소
-	*
-	* Order와 OrderItem을 하나의 Aggregate로 가져간다고 생각하기 (일단 스코프가 크지 않으니까)
-	*/
 
 }
