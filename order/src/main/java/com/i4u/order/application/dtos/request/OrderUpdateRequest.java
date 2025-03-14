@@ -1,6 +1,8 @@
-package com.i4u.order.application.dto;
+package com.i4u.order.application.dtos.request;
 
 import java.util.UUID;
+
+import com.i4u.order.domain.entity.Order;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +11,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-public class OrderUpdateRequestDto {
+public class OrderUpdateRequest {
 
 	// 수령 업체 ID (companyId) - 타 업체의 상품 주문으로 수정하고 싶을 때
 	public UUID recipientId;
@@ -25,13 +27,13 @@ public class OrderUpdateRequestDto {
 	// 배송지
 	public String address;
 
-	public static OrderUpdateRequestDto createSampleDto() {
-		return OrderUpdateRequestDto.builder()
-			.recipientId(UUID.randomUUID())
-			.productId(UUID.randomUUID())
-			.productQuantity(20)
-			.requirement("2025년 3월 20일까지는 보내주세요.")
-			.address("인천시 서구")
+	public Order toOrder() {
+		return Order.builder()
+			.recipientId(this.recipientId)
+			.productId(this.productId)
+			.productQuantity(this.productQuantity)
+			.requirement(this.requirement)
+			.address(this.address)
 			.build();
 	}
 
