@@ -19,31 +19,30 @@ repositories {
 
 ext {
     set('springCloudVersion', "2024.0.0")
-    set('querydslVersion', "5.0.0")  // QueryDSL 버전 명시적으로 설정
+    set('querydslVersion', "5.0.0")  // QueryDSL 버전 관리
 }
 
-bootJar { enabled = false }
+bootJar { enabled = true }
 jar { enabled = true }
 
 dependencies {
-    // common 추가
+    // 공통 모듈 추가
     implementation project(':common')
 
     // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
     // Zipkin
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     implementation 'io.github.openfeign:feign-micrometer'
     implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 
-    // JPA
+    // JPA & QueryDSL
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-    // QueryDSL
-    implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
-    annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
-    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+    annotationProcessor("com.querydsl:querydsl-apt:5.0.0:jakarta")
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api:3.1.0")
+    annotationProcessor("jakarta.annotation:jakarta.annotation-api:2.1.1")
 
     // Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -61,22 +60,36 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // H2
-    runtimeOnly 'com.h2database:h2'
-
-    // PostgreSQL
+    // Database (H2는 테스트 환경에서만 실행)
+    testRuntimeOnly 'com.h2database:h2'
     runtimeOnly 'org.postgresql:postgresql'
 
     // JWT
-    compileOnly group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.12.6'
-    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.12.6'
-    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.12.6'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
     // JSON
     implementation 'org.json:json:20230227'
 
+    // Spring Security (Auth 모듈과 연동 시 필요)
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Test Containers (PostgreSQL 테스트 환경 구축)
+    testImplementation 'org.testcontainers:testcontainers:1.19.1'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.1'
+    testImplementation 'org.testcontainers:postgresql:1.19.1'
+
+    // Spring Boot DevTools (개발 편의성)
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // MapStruct (DTO ↔ Entity 변환 간결화) ?? 함 써볼끼 자동으로 처리해준대 오오...
+//    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+//    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 }
 
 dependencyManagement {
@@ -85,7 +98,22 @@ dependencyManagement {
     }
 }
 
+// QueryDSL 자동 생성 설정
 def querydslSrcDir = 'src/main/generated'
+
+tasks.withType(JavaCompile).configureEach {
+    options.annotationProcessorGeneratedSourcesDirectory = file(querydslSrcDir)
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java', querydslSrcDir]
+        }
+    }
+}
+
+// Clean 시 QueryDSL 생성 코드 삭제
 clean {
     delete file(querydslSrcDir)
 }
