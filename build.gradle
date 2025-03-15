@@ -20,7 +20,7 @@ subprojects {
     apply plugin: 'io.spring.dependency-management'
 
     // 이것도 안에다가 선언
-    bootJar { enabled = false }
+    bootJar { enabled = true }
     jar { enabled = true }
 
     repositories {
