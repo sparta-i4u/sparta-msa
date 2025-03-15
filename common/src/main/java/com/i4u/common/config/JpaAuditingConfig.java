@@ -16,5 +16,4 @@ public class JpaAuditingConfig {
 	public AuditorAware<UUID> userAuditorAware() {
 		return new UserAuditorAware();
 	}
-
 }
