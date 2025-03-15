@@ -99,25 +99,26 @@ dependencyManagement {
 }
 
 // QueryDSL 자동 생성 설정
-def querydslSrcDir = 'src/main/generated'
 
-tasks.withType(JavaCompile).configureEach {
-    options.annotationProcessorGeneratedSourcesDirectory = file(querydslSrcDir)
-}
+def querydslSrcDir = file("src/main/generated") // 변수를 먼저 선언
 
 sourceSets {
     main {
         java {
-            srcDirs = ['src/main/java', querydslSrcDir]
+            srcDirs += querydslSrcDir // `=` 대신 `+=` 사용
         }
     }
 }
 
+
 // Clean 시 QueryDSL 생성 코드 삭제
 clean {
-    delete file(querydslSrcDir)
+    delete querydslSrcDir
 }
+
 
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+tasks.register("prepareKotlinBuildScriptModel"){}

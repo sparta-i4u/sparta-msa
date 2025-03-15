@@ -34,10 +34,10 @@ public class UserRequestDto {
     private final String role;
 
     // 정적 팩토리 메서드 - DTO를 User 엔티티로 변환
-    public User toEntity() {
+    public User toEntity(String encodedPassword) {
         return User.createUser(
                 this.username,
-                this.password,
+                encodedPassword,
                 this.nickname,
                 this.email,
                 this.slackId,
