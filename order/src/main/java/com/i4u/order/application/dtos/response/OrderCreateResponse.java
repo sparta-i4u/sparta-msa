@@ -35,7 +35,7 @@ public class OrderCreateResponse {
 	// 주문 상태
 	public String orderState;
 
-	public static OrderCreateResponse toDto(Order order) {
+	public static OrderCreateResponse fromOrder(Order order) {
 		// 생성 직후에는 Delivery ID 없이 반환
 		return OrderCreateResponse.builder()
 			.orderId(order.getOrderId())

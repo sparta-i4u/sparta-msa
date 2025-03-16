@@ -38,7 +38,7 @@ public class OrderStatusUpdateResponse {
 	// 주문 상태
 	public String deliveryState;
 
-	public static OrderStatusUpdateResponse toDto(Order order) {
+	public static OrderStatusUpdateResponse fromOrder(Order order) {
 		return OrderStatusUpdateResponse.builder()
 			.orderId(UUID.randomUUID())
 			.supplierId(UUID.randomUUID())

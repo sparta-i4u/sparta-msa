@@ -39,7 +39,7 @@ public class OrderGetListResponse {
 	// 주문 상태
 	public OrderStatus orderStatus;
 
-	public static OrderGetListResponse toDto(Order order) {
+	public static OrderGetListResponse fromOrder(Order order) {
 		return OrderGetListResponse.builder()
 			.orderId(order.getOrderId())
 			.supplierId(order.getSupplierId())
