@@ -1,11 +1,13 @@
 package com.i4u.order.presentation.controller;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.i4u.common.utils.CommonResponse;
 import com.i4u.order.application.dtos.request.OrderCreateRequest;
+import com.i4u.order.application.dtos.request.OrderSearchRequest;
 import com.i4u.order.application.dtos.request.OrderStatusUpdateRequest;
 import com.i4u.order.application.dtos.request.OrderUpdateRequest;
 import com.i4u.order.application.dtos.response.OrderCreateResponse;
@@ -55,10 +58,11 @@ public class OrderController {
 	 * @return : 조회된 전체 주문 내용
 	 */
 	@GetMapping
-	public ResponseEntity<CommonResponse<List<OrderGetListResponse>>> getAllOrders() {
+	public ResponseEntity<CommonResponse<List<OrderGetListResponse>>> getAllOrders(
+		Pageable pageable, @ModelAttribute OrderSearchRequest request) {
 		// 검색 기능 적용 예정으로 Pagination 내용으로 변경하기
 		log.info("주문 전체 조회 요청");
-		List<OrderGetListResponse> orders = orderService.getAllOrders();
+		List<OrderGetListResponse> orders = orderService.getAllOrders(pageable, request);
 		return ResponseEntity.ok(CommonResponse.success(orders, "주문 전체 조회 성공"));
 	}
 
