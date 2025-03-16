@@ -1,16 +1,18 @@
 package com.i4u.user.application.dtos.request;
 
+import com.i4u.user.domain.UserRole;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@NoArgsConstructor // 기본 생성자
+@NoArgsConstructor
 @AllArgsConstructor
 public class UserCreateRequestDto { // 회원가입 요청 DTO
 
@@ -32,6 +34,6 @@ public class UserCreateRequestDto { // 회원가입 요청 DTO
     @NotBlank(message = "Slack ID는 필수 입력값입니다.")
     private String slackId;
 
-    @NotBlank(message = "역할(Role)은 필수 입력값입니다.")
-    private String role;
+    @NotNull(message = "역할(Role)은 필수 입력값입니다.") // `@NotNull` 적용
+    private UserRole role; // String → UserRole 변경하여 문제 해결
 }

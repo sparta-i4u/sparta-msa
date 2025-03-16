@@ -1,34 +1,38 @@
 package com.i4u.user.infrastructure.security;
 
+import com.i4u.common.security.CustomUserDetails;
 import com.i4u.user.domain.User;
-import com.i4u.user.domain.UserRole;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 import java.util.UUID;
 
-public class UserDetailsImpl implements UserDetails {
-    private UUID userId;
-    private String username;
-    private String password;
-    private UserRole role;
+@Getter
+public class UserDetailsImpl implements CustomUserDetails { // CustomUserDetails 구현
+
+    private final UUID userId;
+    private final String username;
+    private final String password;
+    private final Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImpl(User user) {
         this.userId = user.getUserId();
         this.username = user.getUsername();
         this.password = user.getPassword();
-        this.role = user.getRole();
+        this.authorities = Collections.emptyList();
     }
 
+    @Override
     public UUID getUserId() {
         return userId;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(() -> role.name()); // 사용자 역할 반환 (Spring Security 권한 처리)
+        return authorities;
     }
 
     @Override

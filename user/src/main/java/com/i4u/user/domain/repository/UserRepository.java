@@ -9,12 +9,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom {
+public interface UserRepository extends JpaRepository<User, UUID>, UserRepositoryCustom {
 
     // 특정 ID의 활성 사용자 조회 (Soft Delete 제외)
-    Optional<User> findByUserIdAndIsDeletedFalse(Long userId);
+    Optional<User> findByUserIdAndIsDeletedFalse(UUID userId); // Long → UUID 변경
 
     // 특정 Slack ID를 가진 사용자 조회
     Optional<User> findBySlackIdAndIsDeletedFalse(String slackId);

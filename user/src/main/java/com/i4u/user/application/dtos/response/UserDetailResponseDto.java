@@ -4,17 +4,15 @@ import com.i4u.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Builder
-
 @AllArgsConstructor
 public class UserDetailResponseDto {
 
-    private final Long userId;
+    private final UUID userId; // ✅ UUID 타입 적용
     private final String username;
     private final String nickname;
     private final String email;
@@ -26,12 +24,12 @@ public class UserDetailResponseDto {
 
     public static UserDetailResponseDto from(User user) {
         return UserDetailResponseDto.builder()
-                .userId(user.getUserId())
+                .userId(user.getUserId()) // UUID 타입 유지
                 .username(user.getUsername())
                 .nickname(user.getNickname())
                 .email(user.getEmail())
                 .slackId(user.getSlackId())
-                .role(user.getRole().name())
+                .role(user.getRole().name()) // String 변환 유지
                 .isDeleted(user.getIsDeleted())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

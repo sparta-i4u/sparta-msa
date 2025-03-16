@@ -27,7 +27,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    // UserRole직 변환 헬퍼 메서드 (예외 처리 개선)
+    // UserRole 변환 헬퍼 메서드
     private UserRole convertToUserRole(String role) {
         if (role == null || role.isBlank()) {
             throw new UserException(UserException.UserErrorType.INVALID_ROLE);
@@ -39,7 +39,7 @@ public class UserService {
         }
     }
 
-    // 회원가입 (User 생성)
+    // 회원가입 요청 저장
     public UserDetailResponseDto createUser(UserCreateRequestDto requestDTO) {
         if (userRepository.findBySlackIdAndIsDeletedFalse(requestDTO.getSlackId()).isPresent()) {
             throw new UserException(UserException.UserErrorType.DUPLICATE_USERNAME);
@@ -47,10 +47,9 @@ public class UserService {
 
         String encodedPassword = passwordEncoder.encode(requestDTO.getPassword());
 
-        // 역할 변환 (convertToUserRole() 활용)
-        UserRole userRole = convertToUserRole(requestDTO.getRole());
+        // 역할 변환 (UserRole Enum으로 정상적으로 호출 가능)
+        UserRole userRole = requestDTO.getRole();
 
-        // User 엔티티 생성 (DTO에서 변환하지 않고 User에서 처리)
         User newUser = User.createUser(
                 requestDTO.getUsername(),
                 encodedPassword,
@@ -65,7 +64,7 @@ public class UserService {
     }
 
     // 특정 사용자 조회 - ID 기반
-    public Optional<UserDetailResponseDto> getUserById(Long userId) {
+    public Optional<UserDetailResponseDto> getUserById(UUID userId) {
         return userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .map(UserDetailResponseDto::from);
     }
@@ -88,7 +87,7 @@ public class UserService {
     }
 
     // 사용자 정보 업데이트 (닉네임, 이메일 변경 가능, ROLE 변경 불가)
-    public UserDetailResponseDto updateUser(Long adminUserId, Long userId, UserUpdateRequestDto requestDto) {
+    public UserDetailResponseDto updateUser(UUID adminUserId, UUID userId, UserUpdateRequestDto requestDto) {
         User adminUser = userRepository.findByUserIdAndIsDeletedFalse(adminUserId)
                 .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
 
@@ -107,33 +106,20 @@ public class UserService {
     }
 
     // MASTER만 사용자의 ROLE을 변경 가능
-    public UserDetailResponseDto updateUserRole(Long adminUserId, Long targetUserId, String newRole) {
-        User adminUser = userRepository.findByUserIdAndIsDeletedFalse(adminUserId)
-                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
-
-        if (!adminUser.getRole().isMaster()) {
-            throw new UserException(UserException.UserErrorType.PERMISSION_DENIED);
-        }
-
+    @RequiresMasterRole
+    public UserDetailResponseDto updateUserRole(UUID adminUserId, UUID targetUserId, String newRole) {
         User targetUser = userRepository.findByUserIdAndIsDeletedFalse(targetUserId)
                 .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
 
-        targetUser.updateRole(UserRole.valueOf(newRole.toUpperCase()), adminUser.getRole());
+        targetUser.updateRole(UserRole.valueOf(newRole.toUpperCase()), UserRole.MASTER);
         userRepository.save(targetUser);
 
         return UserDetailResponseDto.from(targetUser);
     }
 
     // 사용자 논리 삭제 (Soft Delete)
-    public UserDetailResponseDto deleteUser(Long adminUserId, Long userId, UUID deletedBy) {
-        User adminUser = userRepository.findByUserIdAndIsDeletedFalse(adminUserId)
-                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
-
-        // MASTER 권한 확인
-        if (!adminUser.getRole().isMaster()) {
-            throw new UserException(UserException.UserErrorType.PERMISSION_DENIED);
-        }
-
+    @RequiresMasterRole
+    public UserDetailResponseDto deleteUser(UUID adminUserId, UUID userId, UUID deletedBy) {
         User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
 
@@ -142,7 +128,7 @@ public class UserService {
 
         return UserDetailResponseDto.from(user);
     }
-
+}
 //    @RequiresMasterRole
 //    public UserDetailResponseDto updateUserRole(UUID adminUserId, UUID targetUserId, String newRole) {
 //        User adminUser = userRepository.findByUserIdAndIsDeletedFalse(adminUserId)
@@ -167,4 +153,3 @@ public class UserService {
 //
 //        return UserDetailResponseDto.from(user);
 //    }
-}

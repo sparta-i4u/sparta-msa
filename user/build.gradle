@@ -22,7 +22,7 @@ ext {
     set('querydslVersion', "5.0.0")  // QueryDSL 버전 관리
 }
 
-bootJar { enabled = true }
+bootJar { enabled = false }
 jar { enabled = true }
 
 dependencies {
