@@ -3,6 +3,8 @@ package com.i4u.order.domain.entity;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.i4u.common.entity.Basic;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Order {
+public class Order extends Basic {
 
 	// 주문 ID
 	@Id

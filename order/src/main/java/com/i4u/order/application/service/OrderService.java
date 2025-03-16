@@ -1,28 +1,24 @@
 package com.i4u.order.application.service;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-
 import com.i4u.order.application.dtos.request.OrderCreateRequest;
+import com.i4u.order.application.dtos.request.OrderSearchRequest;
 import com.i4u.order.application.dtos.request.OrderStatusUpdateRequest;
 import com.i4u.order.application.dtos.request.OrderUpdateRequest;
-import com.i4u.order.application.dtos.response.OrderCreateResponse;
-import com.i4u.order.application.dtos.response.OrderGetListResponse;
-import com.i4u.order.application.dtos.response.OrderGetOneResponse;
-import com.i4u.order.application.dtos.response.OrderStatusUpdateResponse;
-import com.i4u.order.application.dtos.response.OrderUpdateResponse;
+import com.i4u.order.application.dtos.response.*;
 import com.i4u.order.domain.entity.Order;
 import com.i4u.order.domain.repository.OrderRepository;
 import com.i4u.order.presentation.exception.OrderException;
-
-import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -64,7 +60,9 @@ public class OrderService {
 	 *
 	 * @return : 조회한 주문 전체 내용
 	 */
-	public List<OrderGetListResponse> getAllOrders() {
+	public List<OrderGetListResponse> getAllOrders(Pageable pageable, OrderSearchRequest request) {
+		PagedModel<OrderGetListResponse> orderPage = orderRepository.searchOrder(pageable, request);
+
 		List<Order> orders = orderRepository.findAll();
 		return orders.stream()
 			.map(OrderGetListResponse::toDto)
