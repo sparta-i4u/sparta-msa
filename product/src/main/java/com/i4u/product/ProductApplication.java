@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ProductApplication {
 
+	//product branch test
 	public static void main(String[] args) {
 		SpringApplication.run(ProductApplication.class, args);
 	}
