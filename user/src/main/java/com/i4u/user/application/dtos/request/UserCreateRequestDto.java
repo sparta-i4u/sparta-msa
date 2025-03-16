@@ -1,47 +1,37 @@
 package com.i4u.user.application.dtos.request;
 
-import com.i4u.user.domain.User;
-import com.i4u.user.domain.UserRole;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-public class UserRequestDto {
+@NoArgsConstructor // 기본 생성자
+@AllArgsConstructor
+public class UserCreateRequestDto { // 회원가입 요청 DTO
 
     @NotBlank(message = "Username은 필수 입력값입니다.")
     @Size(min = 4, max = 10, message = "Username은 4자 이상 10자 이하로 입력해야 합니다.")
-    private final String username;
+    private String username;
 
     @NotBlank(message = "비밀번호는 필수 입력값입니다.")
     @Size(min = 8, max = 15, message = "비밀번호는 8자 이상 15자 이하로 입력해야 합니다.")
-    private final String password;
+    private String password;
 
     @NotBlank(message = "닉네임은 필수 입력값입니다.")
-    private final String nickname;
+    private String nickname;
 
     @Email(message = "올바른 이메일 형식이 아닙니다.")
     @NotBlank(message = "이메일은 필수 입력값입니다.")
-    private final String email;
+    private String email;
 
     @NotBlank(message = "Slack ID는 필수 입력값입니다.")
-    private final String slackId;
+    private String slackId;
 
-    @NotBlank(message = "User Role은 필수 입력값입니다.")
-    private final String role;
-
-    // 정적 팩토리 메서드 - DTO를 User 엔티티로 변환
-    public User toEntity(String encodedPassword) {
-        return User.createUser(
-                this.username,
-                encodedPassword,
-                this.nickname,
-                this.email,
-                this.slackId,
-                UserRole.valueOf(this.role.toUpperCase()) // Enum 변환
-        );
-    }
+    @NotBlank(message = "역할(Role)은 필수 입력값입니다.")
+    private String role;
 }
