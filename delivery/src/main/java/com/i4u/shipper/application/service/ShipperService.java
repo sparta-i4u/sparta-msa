@@ -1,14 +1,17 @@
 package com.i4u.shipper.application.service;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.i4u.shipper.application.dtos.request.ShipperCreateRequest;
+import com.i4u.shipper.application.dtos.request.ShipperSearchRequest;
 import com.i4u.shipper.application.dtos.request.ShipperUpdateRequest;
 import com.i4u.shipper.application.dtos.response.ShipperCreateResponse;
 import com.i4u.shipper.application.dtos.response.ShipperGetOneResponse;
@@ -59,8 +62,10 @@ public class ShipperService {
 	 *
 	 * @return : 조회된 배송 담당자들의 내용
 	 */
-	public List<ShipperListResponse> getAllShippers() {
+	public List<ShipperListResponse> getAllShippers(Pageable pageable, ShipperSearchRequest request) {
 		// TODO : CustomRepo에서 Pagination적용하는 코드로 변경하기 (+검색기능 구현 필수)
+		PagedModel<ShipperListResponse> shippers = shipperRepository.searchShippers(pageable, request);
+
 		List<Shipper> shipperList = shipperRepository.findAll();
 		return shipperList.stream().map(ShipperListResponse::toDto)
 			              .collect(Collectors.toList());
@@ -112,7 +117,7 @@ public class ShipperService {
 		Shipper shipper = findShipper(shipperId);
 
 		// TODO : 변경된 Basic에서 받아가서 softDelete 적용하기
-		// shipper.delete();
+		// shipper.softDelete(/*지금 요청한 사용자의 ID*/);
 	}
 
 	// TODO : 배송 담당자 타입에 따른 배송 순서 지정하는 메서드 추가
