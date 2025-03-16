@@ -16,36 +16,36 @@ import java.util.UUID;
 public class User extends Basic {
 
     @Id
-    @GeneratedValue(generator = "UUID") //(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name="user_id", columnDefinition = "Long", updatable = false, nullable = false)
+    @Column(name="user_id", columnDefinition = "UUID", updatable = false, nullable = false) // ✅ PostgreSQL의 UUID 타입 적용
     private UUID userId;
 
     @Column(name="username", nullable = false, length = 100, unique = true)
-    private String username; // 사용자 ID (최소 4자, 최대 10자)
+    private String username;
 
     @Column(name="password", nullable = false, length = 255)
-    private String password; // 비밀번호 (BCrypt 암호화 필요)
+    private String password;
 
     @Column(name="nickname", nullable = false, length = 255)
-    private String nickname; // 사용자 닉네임
+    private String nickname;
 
     @Column(name="email", nullable = false, length = 255, unique = true)
-    private String email; // 사용자 이메일 (Unique)
+    private String email;
 
     @Column(name="slack_id", nullable = false, length = 100, unique = true)
-    private String slackId; // Slack ID 관리
+    private String slackId;
 
     @Enumerated(EnumType.STRING)
     @Column(name="role", nullable = false)
-    private UserRole role; // 사용자 역할 (CUSTOMER 제거)
+    private UserRole role;
 
     // 정적 팩토리 메서드 - User 생성 (회원가입 시 역할 선택 가능)
     public static User createUser(String username, String password, String nickname, String email, String slackId, UserRole role) {
         return User.builder()
-                .userId(UUID.randomUUID())
+                .userId(UUID.randomUUID()) // UUID 자동 생성
                 .username(username)
-                .password(password) // Service에서 암호화 후 주입
+                .password(password)
                 .nickname(nickname)
                 .email(email)
                 .slackId(slackId)
@@ -54,7 +54,7 @@ public class User extends Basic {
     }
 
     // 사용자 정보 수정 (본인 또는 관리자만 가능)
-    public void updateUser(String nickname, String email, Long requesterId, boolean isAdmin) {
+    public void updateUser(String nickname, String email, UUID requesterId, boolean isAdmin) { // ✅ UUID로 변경
         if (!this.userId.equals(requesterId) && !isAdmin) {
             throw new IllegalStateException("본인 또는 관리자만 수정할 수 있습니다.");
         }
