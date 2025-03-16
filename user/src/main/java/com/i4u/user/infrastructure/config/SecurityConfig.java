@@ -26,7 +26,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // CSRF 보호 비활성화
                 .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)) // 세션 비활성화
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/users/register", "/users/slack/**", "/users/**").permitAll() // 회원가입 및 사용자 조회는 인증 없이 접근 가능
+                        .requestMatchers("api/v1/users/sign-up", "api/v1/users/slack/**", "api/v1/users/**").permitAll() // 회원가입 및 사용자 조회는 인증 없이 접근 가능
                         .anyRequest().authenticated() // 나머지 요청은 인증 필요
                 );
 
