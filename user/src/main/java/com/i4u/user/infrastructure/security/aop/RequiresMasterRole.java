@@ -4,9 +4,10 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.springframework.security.access.prepost.PreAuthorize;
 
-// MASTER 권한이 필요한 메서드에 적용할 어노테이션
-@Target(ElementType.METHOD)
+@Target(ElementType.METHOD) // 메서드에만 적용 가능
 @Retention(RetentionPolicy.RUNTIME)
+@PreAuthorize("hasRole('MASTER')") // MASTER 역할을 가진 사용자만 실행 가능
 public @interface RequiresMasterRole {
 }
