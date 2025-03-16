@@ -28,7 +28,7 @@ public class ShipperGetOneResponse {
 	// 배송 담당자의 사용자 ID
 	public UUID userId;
 
-	public static ShipperGetOneResponse toDto(Shipper shipper) {
+	public static ShipperGetOneResponse fromShipper(Shipper shipper) {
 		return ShipperGetOneResponse.builder()
 			.shipperId(shipper.getShipperId())
 			.hubId(shipper.getHubId())

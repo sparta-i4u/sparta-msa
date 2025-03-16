@@ -54,7 +54,7 @@ public class ShipperService {
 		Shipper shipper = request.toShipper(shipperOrder);
 
 		Shipper savedShipper = shipperRepository.save(shipper);
-		return ShipperCreateResponse.toDto(savedShipper);
+		return ShipperCreateResponse.fromShipper(savedShipper);
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class ShipperService {
 		PagedModel<ShipperListResponse> shippers = shipperRepository.searchShippers(pageable, request);
 
 		List<Shipper> shipperList = shipperRepository.findAll();
-		return shipperList.stream().map(ShipperListResponse::toDto)
+		return shipperList.stream().map(ShipperListResponse::fromShipper)
 			              .collect(Collectors.toList());
 	}
 
@@ -81,7 +81,7 @@ public class ShipperService {
 		Shipper shipper = findShipper(shipperId);
 
 		// response로 반환
-		return ShipperGetOneResponse.toDto(shipper);
+		return ShipperGetOneResponse.fromShipper(shipper);
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class ShipperService {
 		Shipper updateingShipper = request.toShipper(shipperOrder);
 		beforeShipper.updateShipper(updateingShipper);
 
-		return ShipperUpdateResponse.toDto(beforeShipper);
+		return ShipperUpdateResponse.fromShipper(beforeShipper);
 	}
 
 	/**
