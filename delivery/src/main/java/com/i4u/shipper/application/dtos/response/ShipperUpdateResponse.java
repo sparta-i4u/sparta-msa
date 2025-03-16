@@ -2,8 +2,6 @@ package com.i4u.shipper.application.dtos.response;
 
 import java.util.UUID;
 
-import com.i4u.shipper.application.dtos.request.ShipperCreateRequest;
-import com.i4u.shipper.application.dtos.request.ShipperUpdateRequest;
 import com.i4u.shipper.domain.entity.Shipper;
 
 import lombok.AllArgsConstructor;
@@ -30,7 +28,7 @@ public class ShipperUpdateResponse {
 	// 배송 담당자의 사용자 ID
 	public UUID userId;
 
-	public static ShipperUpdateResponse toDto(Shipper shipper) {
+	public static ShipperUpdateResponse fromShipper(Shipper shipper) {
 		return ShipperUpdateResponse.builder()
 			.shipperId(shipper.getShipperId())
 			.hubId(shipper.getHubId())

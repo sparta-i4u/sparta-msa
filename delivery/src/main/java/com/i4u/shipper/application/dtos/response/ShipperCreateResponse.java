@@ -29,17 +29,7 @@ public class ShipperCreateResponse {
 	// 배송 담당자의 사용자 ID
 	public UUID userId;
 
-	public static ShipperCreateResponse createDto(ShipperCreateRequest shipperCreateRequest) {
-		return ShipperCreateResponse.builder()
-			.shipperId(UUID.randomUUID())
-			.hubId(shipperCreateRequest.getHubId())
-			.shipperType(shipperCreateRequest.getShipperType().toString())
-			.shipperOrder(1)
-			.userId(shipperCreateRequest.getUserId())
-			.build();
-	}
-
-	public static ShipperCreateResponse toDto(Shipper shipper) {
+	public static ShipperCreateResponse fromShipper(Shipper shipper) {
 		return ShipperCreateResponse.builder()
 			.shipperId(shipper.getShipperId())
 			.hubId(shipper.getHubId())
