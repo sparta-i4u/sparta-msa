@@ -52,7 +52,7 @@ public class OrderService {
 		// TODO : delivery 쪽으로 요청 전송 필요 (생성한 order의 정보와, 지금 주문을 요청한 사용자의 정보)
 		// delivery 가서 생성 후 받아온 deliveryID를 저장해야 함
 		// 그걸 저장하면서 orderStatus 변경하기
-		return OrderCreateResponse.toDto(order);
+		return OrderCreateResponse.fromOrder(order);
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class OrderService {
 
 		List<Order> orders = orderRepository.findAll();
 		return orders.stream()
-			.map(OrderGetListResponse::toDto)
+			.map(OrderGetListResponse::fromOrder)
 			.collect(Collectors.toList());
 	}
 
@@ -78,7 +78,7 @@ public class OrderService {
 	public OrderGetOneResponse getOneOrder(UUID orderId) {
 		Order order = findOrder(orderId);
 
-		return OrderGetOneResponse.toDto(order);
+		return OrderGetOneResponse.fromOrder(order);
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class OrderService {
 		Order updateOrder = request.toOrder();
 		order.updateOrder(updateOrder);
 
-		return OrderUpdateResponse.toDto(order);
+		return OrderUpdateResponse.fromOrder(order);
 	}
 
 	/**
@@ -122,7 +122,7 @@ public class OrderService {
 		Order updateOrder = request.toOrder();
 		order.updateOrderState(updateOrder);
 		
-		return OrderStatusUpdateResponse.toDto(order);
+		return OrderStatusUpdateResponse.fromOrder(order);
 	}
 
 	/**

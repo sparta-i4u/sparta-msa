@@ -35,7 +35,7 @@ public class OrderUpdateResponse {
 	// 주문 상태
 	public String orderState;
 
-	public static OrderUpdateResponse toDto(Order order) {
+	public static OrderUpdateResponse fromOrder(Order order) {
 		// 배송이 시작되면 주문 내용 수정이 불가능
 		return OrderUpdateResponse.builder()
 			.orderId(order.getOrderId())
