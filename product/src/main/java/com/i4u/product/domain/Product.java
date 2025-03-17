@@ -1,6 +1,7 @@
 package com.i4u.product.domain;
 
 
+import com.i4u.common.entity.Basic;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,7 @@ import com.i4u.product.application.dto.request.ProductUpdateRequest;
 @NoArgsConstructor
 @Table(name="p_product")
 @Entity
-public class Product {
+public class Product extends Basic {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

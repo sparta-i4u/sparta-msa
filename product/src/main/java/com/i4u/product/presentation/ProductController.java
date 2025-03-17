@@ -9,7 +9,7 @@ import com.i4u.product.application.dto.response.ProductResponse;
 import com.i4u.product.application.dto.response.ProductSearchKeywordResponse;
 import com.i4u.product.application.dto.response.ProductSearchResponse;
 import com.i4u.product.application.service.ProductService;
-import com.i4u.product.common.CommonResponse;
+import com.i4u.common.utils.CommonResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,20 +29,20 @@ public class ProductController {
 
     //상품 등록
     //담당허브와 본인업체만 가능하게
-    @Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+//  @Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @PostMapping("")
     public ResponseEntity<CommonResponse> createProduct(
             @Valid @RequestBody final ProductCreateRequest request
     ){
 
         ProductResponse response = productService.createProduct(request);
-        return new ResponseEntity<>(ResponseVOUtils.getSuccessResponse(response),
+        return new ResponseEntity<>(CommonResponse.success(response, ""),
                 HttpStatus.CREATED);
     }
 
     //상품 목록 전체 조회
     //누구나 다 조회 가능
-    @Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+//    @Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @GetMapping("/search")
     public ResponseEntity<CommonResponse> getProducts(
             @RequestBody final ProductSearchCond cond,
@@ -50,42 +50,43 @@ public class ProductController {
             @RequestParam final int size,
             @RequestParam(required = false) final String sort) {
         ProductSearchResponse response = productService.search(cond, page, size, sort);
-        return new ResponseEntity<>(ResponseVOUtils.getSuccessResponse(response), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.success(response, ""), HttpStatus.OK);
     }
 
     //상품 키워드 검색 기능
     //누구나 다 검색 가능
-    @Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+//   @Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @GetMapping("/search/keyword")
     public ResponseEntity<CommonResponse> getProductsKeyword(
             @RequestBody final ProductSearchKeywordCond cond,
             @RequestParam final int page,
             @RequestParam final int size,
             @RequestParam(required = false) final String sort) {
-        ProductSearchKeywordResponse response = productService.searchKeyword(cond, page, size, sort);
-        return new ResponseEntity<>(ResponseVOUtils.getSuccessResponse(response), HttpStatus.OK);
+//        ProductSearchKeywordResponse response = productService.searchKeyword(cond, page, size, sort);
+//        return new ResponseEntity<>(CommonResponse.success(response, ""), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.success("", ""), HttpStatus.OK);
     }
 
     //상품 전체 정보 수정
     //본인 업체와 담당 허브만
-    @Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+//    @Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @PutMapping("/{productId}")
     public ResponseEntity<CommonResponse> updateProduct(
             @PathVariable final UUID productId,
             @Valid @RequestBody final ProductUpdateRequest request) {
         ProductResponse response = productService.updateProduct(productId, request);
-        return new ResponseEntity<>(ResponseVOUtils.getSuccessResponse(response),
-                HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.success(response, ""), HttpStatus.OK);
     }
 
     //상품 삭제 - 여러상품도 가능
     //담당허브만 가능
-    @Secured({Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+   // @Secured({Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @DeleteMapping("")
     public ResponseEntity<CommonResponse> softDeleteProducts(
             @RequestBody final List<UUID> productIds
     ){
         productService.softDeleteProducts(productIds);
-        return new ResponseEntity<>(ResponseVOUtils.getSuccessResponse(), HttpStatus.OK);
+        // CommonResposen
+        return new ResponseEntity<>(CommonResponse.success("", "메세지"), HttpStatus.OK);
     }
 }
