@@ -3,7 +3,7 @@ package com.i4u.product;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.i4u.common", "com.i4u.product"})
 public class ProductApplication {
 
 	//product branch test
