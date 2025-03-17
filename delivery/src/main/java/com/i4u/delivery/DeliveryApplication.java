@@ -1,13 +1,19 @@
 package com.i4u.delivery;
 
-import com.i4u.common.TestBean;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+	SecurityAutoConfiguration.class,
+	ManagementWebSecurityAutoConfiguration.class
+})
+@EnableFeignClients
+@EnableJpaAuditing
 public class DeliveryApplication {
-
-	TestBean testBean;
 
 	public static void main(String[] args) {
 		SpringApplication.run(DeliveryApplication.class, args);
