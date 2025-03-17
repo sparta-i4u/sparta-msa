@@ -28,7 +28,7 @@ public class ProductController {
 
     //상품 등록
     //담당허브와 본인업체만 가능하게
-  //@Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    //@Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @PostMapping("")
     public ResponseEntity<CommonResponse> createProduct(
             @Valid @RequestBody final ProductCreateRequest request

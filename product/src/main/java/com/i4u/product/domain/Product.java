@@ -12,6 +12,8 @@ import com.i4u.product.application.dto.request.ProductUpdateRequest;
 @NoArgsConstructor
 @Table(name="p_product")
 @Entity
+
+//Basic을 extends 받아서 is_deleted 상속받음
 public class Product extends Basic {
 
     @Id
@@ -25,12 +27,10 @@ public class Product extends Basic {
     @Column(name = "company_id")
     private UUID companyId;
 
-    @Embedded
     private String name;
 
     private Integer price;
 
-    @Embedded
     private String content;
 
     public Product(final UUID hubId, final UUID companyId, final String name, final Integer price , final String content) {

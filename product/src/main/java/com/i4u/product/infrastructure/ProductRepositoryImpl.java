@@ -50,15 +50,18 @@ public class ProductRepositoryImpl implements ProductRepository {
     public Page<Product> findAll(Pageable pageable) {
         List<Product> products = queryFactory
                 .selectFrom(product)
+                .where(product.deletedAt.isNull()) // deleted_at이 null인 데이터만 조회
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long total = queryFactory
-                .select(product.count())
+        long total = queryFactory   //전체 데이터 개수
+                .select(product.count())        //전체 개수 조회
                 .from(product)
-                .fetchOne();
+                .where(product.deletedAt.isNull()) // deleted_at이 null인 데이터만 조회
+                .fetchFirst();  //fetchOne 대신 fetchFirst 사용 -> null이어도 예외 발생하지 않게
 
+        //products : 현재 페이지 상품 목록, pageable 페이징 정보, total 전체상품개수 - deletedAt null인 상품만
         return new PageImpl<>(products, pageable, total);
     }
 
@@ -84,12 +87,12 @@ public class ProductRepositoryImpl implements ProductRepository {
     private BooleanBuilder getBooleanBuilder(ProductSearchCond cond) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (cond.hubId() != null) {
-            builder.and(product.hub.id.eq(cond.hubId()));
-        }
-        if (cond.companyId() != null) {
-            builder.and(product.company.id.eq(cond.companyId()));
-        }
+//        if (cond.hubId() != null) {
+//            builder.and(product.hub.id.eq(cond.hubId()));
+//        }
+//        if (cond.companyId() != null) {
+//            builder.and(product.company.id.eq(cond.companyId()));
+//       }
         if (cond.name() != null) {
             builder.and(product.name.containsIgnoreCase(cond.name()));
         }
@@ -99,23 +102,21 @@ public class ProductRepositoryImpl implements ProductRepository {
         return builder;
     }
 
-    private List<Product> fetchProducts(ProductSearchCond cond, BooleanBuilder builder,
-                                        Pageable pageable) {
-        return queryFactory.selectFrom(product)  //select
-                .where(builder)        //조건 추가
-                .orderBy(getOrderSpecifiers(pageable))   //정렬
-                .offset(pageable.getOffset())   //페이지 시작 위치
-                .limit(pageable.getPageSize())  //조회할 데이터의 최대 개수
-                .fetch();   //쿼리 실행 후 결과 반환
-    }
-
-    private Long fetchTotalCount(BooleanBuilder builder) {
-        Long total = queryFactory.select(product.count())
-                .from(product)
-                .where(builder)
-                .fetchOne();
-        return total == null ? 0L : total;
-    }
-
-
+//    private List<Product> fetchProducts(ProductSearchCond cond, BooleanBuilder builder,
+//                                        Pageable pageable) {
+//        return queryFactory.selectFrom(product)  //select
+//                .where(builder)        //조건 추가
+//                .orderBy(getOrderSpecifiers(pageable))   //정렬
+//                .offset(pageable.getOffset())   //페이지 시작 위치
+//                .limit(pageable.getPageSize())  //조회할 데이터의 최대 개수
+//                .fetch();   //쿼리 실행 후 결과 반환
+//    }
+//
+//    private Long fetchTotalCount(BooleanBuilder builder) {
+//        Long total = queryFactory.select(product.count())
+//                .from(product)
+//                .where(builder)
+//                .fetchOne();
+//        return total == null ? 0L : total;
+//    }
 }

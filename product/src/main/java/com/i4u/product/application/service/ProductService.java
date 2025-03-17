@@ -25,8 +25,8 @@ import java.util.UUID;
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final HubRepository hubRepository;
-    private final CompanyRepository companyRepository;
+//    private final HubRepository hubRepository;
+//    private final CompanyRepository companyRepository;
 
     //상품 생성
     @Transactional
@@ -36,14 +36,14 @@ public class ProductService {
         final UUID companyId = request.companyId();
 
         //상품 관리 허브 id 확인해 존재하는지 확인
-        if (!hubRepository.existsById(hubId)) {
-            throw new IllegalArgumentException("허브가 존재하지 않습니다: " + hubId);
-        }
+//        if (!hubRepository.existsById(hubId)) {
+//            throw new IllegalArgumentException("허브가 존재하지 않습니다: " + hubId);
+//        }
 
         //상품 company가 존재하는지 확인
-        if (!companyRepository.existsById(companyId)) {
-            throw new IllegalArgumentException("업체가 존재하지 않습니다: " + companyId);
-        }
+//        if (!companyRepository.existsById(companyId)) {
+//            throw new IllegalArgumentException("업체가 존재하지 않습니다: " + companyId);
+//        }
         final Product product = new Product(hubId, companyId, request.name(), request.price(), request.content());
         Product saved = productRepository.save(product);
         return ProductResponse.of(saved);
