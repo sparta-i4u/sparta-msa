@@ -14,8 +14,10 @@ import org.springframework.data.web.PagedModel;
 
 import com.i4u.shipper.application.dtos.request.ShipperSearchRequest;
 import com.i4u.shipper.application.dtos.response.ShipperListResponse;
+import com.i4u.shipper.domain.entity.QShipper;
 import com.i4u.shipper.domain.entity.ShipperType;
 import com.i4u.shipper.domain.repository.ShipperRepositoryCustom;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -39,7 +41,7 @@ public class ShipperRepositoryCustomImpl implements ShipperRepositoryCustom {
 		List<ShipperListResponse> results = queryFactory
 			.select(Projections.fields(
 				ShipperListResponse.class,
-				shipper.shipperId.as("shipperId"),
+				QShipper.shipper.shipperId.as("shipperId"),
 				shipper.hubId.as("hubId"),
 				shipper.shipperType.as("shipperType"),
 				shipper.shipperOrder.as("shipperOrder"),
@@ -67,6 +69,43 @@ public class ShipperRepositoryCustomImpl implements ShipperRepositoryCustom {
 	}
 
 	/**
+	 * 배송 담당자 순서 지정
+	 * 
+	 * @param hubId : 배송 담당자가 속한 허브 ID
+	 * @return : 배송 담당자 순서
+	 */
+	@Override
+	public Integer confirmShipperOrder(UUID hubId) {
+		Tuple result = queryFactory
+			.select(
+				shipper.count(),
+				shipper.shipperOrder.max()
+			)
+			.from(shipper)
+			.where(
+				shipper.hubId.eq(hubId),
+				shipper.isDeleted.eq(false)
+			)
+			.fetchOne();
+
+		// 해당 hubId에 해당하는 배송 담당자가 없으면 기본값 1 반환
+		if (result == null) {
+			return 1;
+		}
+
+		Long shipperCount = result.get(shipper.count());
+		Integer maxShipperOrder = result.get(shipper.shipperOrder.max());
+
+		// shipper가 10명 이상이면 등록 불가능
+		if (shipperCount >= 10) {
+			return 0;
+		}
+
+		// 새 배송 순서는 max 값 + 1
+		return maxShipperOrder != null ? maxShipperOrder + 1 : 1;
+	}
+
+	/**
 	 * 전체 데이터 개수 계산
 	 *
 	 * @param request : 검색어 여부 확인
@@ -87,7 +126,7 @@ public class ShipperRepositoryCustomImpl implements ShipperRepositoryCustom {
 	}
 
 	/* 검색어 */
-	
+
 	/**
 	 * 배송 담당자 타입 검색하는 경우
 	 *
@@ -112,7 +151,7 @@ public class ShipperRepositoryCustomImpl implements ShipperRepositoryCustom {
 	 * 사용자 ID로 검색하는 경우
 	 *
 	 * @param userId : 사용자의 ID
-	 * @return : 사용자 ID 동일 여부 반환                  
+	 * @return : 사용자 ID 동일 여부 반환
 	 */
 	private BooleanExpression userId(UUID userId) {
 		return userId != null ? shipper.userId.eq(userId) : null;
