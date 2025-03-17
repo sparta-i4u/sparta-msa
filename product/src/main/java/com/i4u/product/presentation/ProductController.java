@@ -6,7 +6,6 @@ import com.i4u.product.application.dto.ProductSearchKeywordCond;
 import com.i4u.product.application.dto.request.ProductCreateRequest;
 import com.i4u.product.application.dto.request.ProductUpdateRequest;
 import com.i4u.product.application.dto.response.ProductResponse;
-import com.i4u.product.application.dto.response.ProductSearchKeywordResponse;
 import com.i4u.product.application.dto.response.ProductSearchResponse;
 import com.i4u.product.application.service.ProductService;
 import com.i4u.common.utils.CommonResponse;
@@ -29,7 +28,7 @@ public class ProductController {
 
     //상품 등록
     //담당허브와 본인업체만 가능하게
-//  @Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+  //@Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @PostMapping("")
     public ResponseEntity<CommonResponse> createProduct(
             @Valid @RequestBody final ProductCreateRequest request
@@ -40,22 +39,20 @@ public class ProductController {
                 HttpStatus.CREATED);
     }
 
-    //상품 목록 전체 조회
-    //누구나 다 조회 가능
-//    @Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    //상품 목록 전체 조회 - 누구나 다 조회 가능
+    //@Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @GetMapping("/search")
     public ResponseEntity<CommonResponse> getProducts(
-            @RequestBody final ProductSearchCond cond,
             @RequestParam final int page,
             @RequestParam final int size,
             @RequestParam(required = false) final String sort) {
-        ProductSearchResponse response = productService.search(cond, page, size, sort);
+        ProductSearchResponse response = productService.findAll(page, size, sort);
         return new ResponseEntity<>(CommonResponse.success(response, ""), HttpStatus.OK);
     }
 
-    //상품 키워드 검색 기능
-    //누구나 다 검색 가능
-//   @Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+//    상품 키워드 검색 기능
+//    누구나 다 검색 가능
+   //@Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @GetMapping("/search/keyword")
     public ResponseEntity<CommonResponse> getProductsKeyword(
             @RequestBody final ProductSearchKeywordCond cond,
@@ -67,9 +64,9 @@ public class ProductController {
         return new ResponseEntity<>(CommonResponse.success("", ""), HttpStatus.OK);
     }
 
-    //상품 전체 정보 수정
-    //본인 업체와 담당 허브만
-//    @Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+//    상품 전체 정보 수정
+//    본인 업체와 담당 허브만
+    //@Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @PutMapping("/{productId}")
     public ResponseEntity<CommonResponse> updateProduct(
             @PathVariable final UUID productId,
@@ -78,9 +75,9 @@ public class ProductController {
         return new ResponseEntity<>(CommonResponse.success(response, ""), HttpStatus.OK);
     }
 
-    //상품 삭제 - 여러상품도 가능
-    //담당허브만 가능
-   // @Secured({Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+//    상품 삭제 - 여러상품도 가능
+//    담당허브만 가능
+    //@Secured({Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @DeleteMapping("")
     public ResponseEntity<CommonResponse> softDeleteProducts(
             @RequestBody final List<UUID> productIds
