@@ -15,4 +15,7 @@ public interface ProductRepository {
     Page<Product> search(ProductSearchCond cond, Pageable pageable);
 
     Optional<Product> findById(UUID id);
+
+    //상품 전체조회
+    Page<Product> findAll(Pageable pageable);
 }
