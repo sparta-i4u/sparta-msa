@@ -18,14 +18,17 @@ public class ShipperCreateRequest {
 	public UUID hubId;
 
 	// 배송 담당자 타입 (허브/업체)
+	// 허브 배송 담당자면 hubId가 null 혹은 공백, 
+	// 업체 배송 담당자면 hubId가 존재
 	public ShipperType shipperType;
 
 	// 배송 담당자의 사용자 ID
 	public UUID userId;
 
-	public Shipper toShipper(Integer shipperOrder) {
+	public Shipper toShipper(Integer shipperOrder, UUID hubId) {
 		return Shipper.builder()
-			.hubId(this.hubId)
+			.shipperId(this.userId)
+			.hubId(hubId)
 			.shipperType(this.shipperType)
 			.shipperOrder(shipperOrder)
 			.userId(this.userId)

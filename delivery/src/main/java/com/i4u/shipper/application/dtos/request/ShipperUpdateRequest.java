@@ -20,9 +20,9 @@ public class ShipperUpdateRequest {
 	// 배송 담당자 타입 (허브/업체)
 	public ShipperType shipperType;
 
-	public Shipper toShipper(Integer shipperOrder) {
+	public Shipper toShipper(Integer shipperOrder, UUID hubId) {
 		return Shipper.builder()
-			.hubId(this.getHubId())
+			.hubId(hubId)
 			.shipperOrder(shipperOrder)
 			.shipperType(this.getShipperType())
 			.build();
