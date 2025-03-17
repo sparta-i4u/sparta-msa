@@ -6,11 +6,14 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.i4u.shipper.presentation.dtos.request.ShipperHubRequest;
+import com.i4u.shipper.presentation.dtos.response.ShipperHubResponse;
+
 @FeignClient(name = "hub")
 public interface HubClient {
 
 	// Shipper -> Hub 로 해당 허브가 존재하는지 여부 확인 (Boolean ?)
 	@GetMapping("/hubs/{hubId}")
-	Boolean getHubInfo(@PathVariable("hubId") UUID hubId);
+	ShipperHubResponse confirmHub(ShipperHubRequest request /*userId, userRole or JWT 필요*/);
 
 }
