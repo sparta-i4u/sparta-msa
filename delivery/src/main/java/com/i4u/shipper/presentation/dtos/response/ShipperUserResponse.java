@@ -15,5 +15,6 @@ public class ShipperUserResponse {
 
 	private Boolean isDeleted;
 	private UUID userId;
+	private String userSlackId;
 
 }

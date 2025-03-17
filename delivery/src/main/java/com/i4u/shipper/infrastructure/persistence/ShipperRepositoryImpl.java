@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedModel;
+import org.springframework.stereotype.Repository;
 
 import com.i4u.shipper.application.dtos.request.ShipperSearchRequest;
 import com.i4u.shipper.application.dtos.response.ShipperListResponse;
@@ -27,13 +28,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Repository
 @RequiredArgsConstructor
-public class ShipperRepositoryCustomImpl implements ShipperRepositoryCustom {
+public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public PagedModel<ShipperListResponse> searchShippers(Pageable pageable, ShipperSearchRequest request/*, String role*/) {
+	public Page<ShipperListResponse> searchShippers(Pageable pageable, ShipperSearchRequest request/*, String role*/) {
 		List<OrderSpecifier<?>> orders = getAllOrderSpecifiers(pageable);
 
 		long pageSize = getPageSize(pageable.getPageSize(), pageable.getOffset());
@@ -64,13 +66,14 @@ public class ShipperRepositoryCustomImpl implements ShipperRepositoryCustom {
 		long totalCount = results.isEmpty() ? 0 : countTotalCount(request);
 
 		// 반환
-		Page<ShipperListResponse> pageResult = new PageImpl<>(results, pageable, totalCount);
-		return new PagedModel<>(pageResult);
+		/*Page<ShipperListResponse> pageResult =*/
+		return new PageImpl<>(results, pageable, totalCount);
+		// return new PagedModel<>(pageResult);
 	}
 
 	/**
 	 * 배송 담당자 순서 지정
-	 * 
+	 *
 	 * @param hubId : 배송 담당자가 속한 허브 ID
 	 * @return : 배송 담당자 순서
 	 */
@@ -165,14 +168,16 @@ public class ShipperRepositoryCustomImpl implements ShipperRepositoryCustom {
 	 * @return : 최소, 최대 범위 조건이 있는지 여부 반환
 	 */
 	private BooleanExpression shipperOrderBetween(Integer minShipperOrder, Integer maxShipperOrder) {
-		if ((minShipperOrder != 0) && (maxShipperOrder != 0)) {
-			return shipper.shipperOrder.between(minShipperOrder, maxShipperOrder);
-		} else if (minShipperOrder != 0) {
-			return shipper.shipperOrder.goe(minShipperOrder);
-		} else if (maxShipperOrder != 0) {
-			return shipper.shipperOrder.loe(maxShipperOrder);
-		} else {
+		if (minShipperOrder == null && maxShipperOrder == null) {
 			return null;
+		}
+
+		if (minShipperOrder != null && maxShipperOrder != null) {
+			return shipper.shipperOrder.between(minShipperOrder, maxShipperOrder);
+		} else if (minShipperOrder != null) {
+			return shipper.shipperOrder.goe(minShipperOrder);
+		} else {
+			return shipper.shipperOrder.loe(maxShipperOrder);
 		}
 	}
 

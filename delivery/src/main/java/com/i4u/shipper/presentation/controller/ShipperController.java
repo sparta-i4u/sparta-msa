@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,10 +59,10 @@ public class ShipperController {
 	 * @return : 조회한 전체 배송 담당자 내용
 	 */
 	@GetMapping
-	public ResponseEntity<CommonResponse<List<ShipperListResponse>>> getAllShippers(
+	public ResponseEntity<CommonResponse<PagedModel<ShipperListResponse>>> getAllShippers(
 		Pageable pageable, @ModelAttribute ShipperSearchRequest request) {
 		log.info("배송 담당자 전제 조회 요청 들어옴");
-		List<ShipperListResponse> shipperList = shipperService.getAllShippers(pageable, request);
+		PagedModel<ShipperListResponse> shipperList = shipperService.getAllShippers(pageable, request);
 		return ResponseEntity.ok(CommonResponse.success(shipperList, "배송 담당자 전체 조회 성공"));
 	}
 
@@ -85,8 +86,9 @@ public class ShipperController {
 	 * @return : 수정한 배송 담당자 내용
 	 */
 	@PutMapping("/{shipperId}")
-	public ResponseEntity<CommonResponse<ShipperUpdateResponse>> putShipper(@PathVariable UUID shipperId, ShipperUpdateRequest shipperUpdateRequest) {
+	public ResponseEntity<CommonResponse<ShipperUpdateResponse>> putShipper(@PathVariable UUID shipperId, @RequestBody ShipperUpdateRequest shipperUpdateRequest) {
 		log.info("배송 담당자 수정 요청 들어옴 : " + shipperId);
+		log.info(shipperUpdateRequest.getShipperType().toString());
 		ShipperUpdateResponse response = shipperService.updateShipper(shipperId, shipperUpdateRequest);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 담당자 수정 성공"));
 	}

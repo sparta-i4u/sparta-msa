@@ -43,6 +43,10 @@ public class Shipper extends Basic {
 	@Column(name = "user_id")
 	private UUID userId;
 
+	// 사용자의 Slack ID
+	@Column(name = "user_slack_id")
+	private String userSlackId;
+
 	/**
 	 * 배송 담당자 수정
 	 * @param updateShipper : 수정할 배송 담담자 정보
