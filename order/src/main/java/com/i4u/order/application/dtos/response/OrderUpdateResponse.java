@@ -29,9 +29,6 @@ public class OrderUpdateResponse {
 	// 요청 사항
 	public String requirement;
 
-	// 배송 주소
-	public String address;
-
 	// 주문 상태
 	public String orderState;
 
@@ -44,7 +41,6 @@ public class OrderUpdateResponse {
 			.productId(order.getProductId())
 			.productQuantity(order.getProductQuantity())
 			.requirement(order.getRequirement())
-			.address(order.getAddress())
 			.orderState(order.getOrderStatus().toString())
 			.build();
 	}

@@ -10,6 +10,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,44 +21,49 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "p_order")
 public class Order extends Basic {
 
 	// 주문 ID
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
-	public UUID orderId;
+	private UUID orderId;
 
 	// 요청 업체 ID (companyId)
 	@Column(name = "supplier_id")
-	public UUID supplierId;
+	private UUID supplierId;
 
 	// 수령 업체 ID (companyId)
 	@Column(name = "recipient_id")
-	public UUID recipientId;
+	private UUID recipientId;
 
 	// 주문할 상품의 ID
 	@Column(name = "product_id")
-	public UUID productId;
+	private UUID productId;
 
 	// 주문할 상품의 수량
 	@Column(name = "product_quantity")
-	public Integer productQuantity;
+	private Integer productQuantity;
 
 	// 요청 사항
 	@Column(name = "requirement")
-	public String requirement;
+	private String requirement;
 
-	// 배송 주소
-	@Column(name = "address")
-	public String address;
+	// 상품 총 가격
+	@Column(name = "product_total_price")
+	private Long productTotalPrice;
+	
+	// 주문한 사용자
+	@Column(name = "user_id")
+	private UUID userId;
 
 	// 배송 ID
 	@Column(name = "delivery_id")
-	public UUID deliveryId;
+	private UUID deliveryId;
 
 	// 주문 상태
 	@Column(name = "order_status")
-	public OrderStatus orderStatus;
+	private OrderStatus orderStatus;
 
 	/**
 	 * 주문 수정
@@ -65,11 +71,10 @@ public class Order extends Basic {
 	 * @param updateOrder : 수정할 주문 내용
 	 */
 	public void updateOrder(Order updateOrder) {
-		Optional.ofNullable(updateOrder.getRecipientId()).ifPresent(recipientId -> this.recipientId = recipientId);
+		Optional.ofNullable(updateOrder.getSupplierId()).ifPresent(supplierId -> this.supplierId = supplierId);
 		Optional.ofNullable(updateOrder.getProductId()).ifPresent(productId -> this.productId = productId);
 		Optional.ofNullable(updateOrder.getProductQuantity()).ifPresent(productQuantity -> this.productQuantity = productQuantity);
 		Optional.ofNullable(updateOrder.getRequirement()).ifPresent(requirement -> this.requirement = requirement);
-		Optional.ofNullable(updateOrder.getAddress()).ifPresent(address -> this.address = address);
 	}
 
 	/**
@@ -79,5 +84,10 @@ public class Order extends Basic {
 	 */
 	public void updateOrderState(Order updateOrder) {
 		Optional.ofNullable(updateOrder.getOrderStatus()).ifPresent(orderStatus -> this.orderStatus = orderStatus);
+	}
+
+	public void updateOrderStateFromDelivery(UUID deliveryId, OrderStatus orderStatus) {
+		this.deliveryId = deliveryId;
+		this.orderStatus = orderStatus;
 	}
 }

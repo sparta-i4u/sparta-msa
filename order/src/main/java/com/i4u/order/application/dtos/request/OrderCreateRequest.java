@@ -27,18 +27,16 @@ public class OrderCreateRequest {
 	// 요청 사항
 	public String requirement;
 
-	// 배송지
-	public String address;
-
-	public Order toOrder() {
+	public Order toOrder(Long productTotalPrice/*, UUID userId*/) {
 		return Order.builder()
 			.supplierId(this.supplierId)
 			.recipientId(this.recipientId)
 			.productId(this.productId)
 			.productQuantity(this.productQuantity)
+			.productTotalPrice(productTotalPrice)
 			.requirement(this.requirement)
-			.address(this.address)
 			.orderStatus(OrderStatus.PAID)  // 생성 시에는 결제 완료 상태로 주문 생성
+			// .userId(userId)
 			.build();
 	}
 }

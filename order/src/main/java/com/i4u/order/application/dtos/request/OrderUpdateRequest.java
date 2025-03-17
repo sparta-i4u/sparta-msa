@@ -13,8 +13,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public class OrderUpdateRequest {
 
-	// 수령 업체 ID (companyId) - 타 업체의 상품 주문으로 수정하고 싶을 때
-	public UUID recipientId;
+	// 요청(공급) 업체 ID (companyId) - 타 업체의 상품 주문으로 수정하고 싶을 때
+	public UUID supplierId;
 
 	// 주문할 상품의 ID
 	public UUID productId;
@@ -24,16 +24,13 @@ public class OrderUpdateRequest {
 	// 요청 사항
 	public String requirement;
 
-	// 배송지
-	public String address;
-
-	public Order toOrder() {
+	public Order toOrder(Long productTotalPrice) {
 		return Order.builder()
-			.recipientId(this.recipientId)
+			.supplierId(this.supplierId)
 			.productId(this.productId)
 			.productQuantity(this.productQuantity)
+			.productTotalPrice(productTotalPrice)
 			.requirement(this.requirement)
-			.address(this.address)
 			.build();
 	}
 

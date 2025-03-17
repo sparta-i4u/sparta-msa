@@ -8,9 +8,11 @@ import com.i4u.order.domain.entity.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 public class OrderGetListResponse {
 
@@ -30,9 +32,6 @@ public class OrderGetListResponse {
 	// 요청 사항
 	public String requirement;
 
-	// 배송 주소
-	public String address;
-
 	// 배송 ID
 	public UUID deliveryId;
 
@@ -47,7 +46,6 @@ public class OrderGetListResponse {
 			.productId(order.getProductId())
 			.productQuantity(order.getProductQuantity())
 			.requirement(order.getRequirement())
-			.address(order.getAddress())
 			.deliveryId(order.getDeliveryId())
 			.orderStatus(order.getOrderStatus())
 			.build();
