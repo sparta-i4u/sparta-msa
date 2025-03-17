@@ -1,5 +1,6 @@
 package com.i4u.shipper.application.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +20,12 @@ import com.i4u.shipper.application.dtos.response.ShipperListResponse;
 import com.i4u.shipper.application.dtos.response.ShipperUpdateResponse;
 import com.i4u.shipper.domain.entity.Shipper;
 import com.i4u.shipper.domain.repository.ShipperRepository;
+import com.i4u.shipper.presentation.client.HubClient;
+import com.i4u.shipper.presentation.client.UserClient;
+import com.i4u.shipper.presentation.dtos.request.ShipperHubRequest;
+import com.i4u.shipper.presentation.dtos.request.ShipperUserRequest;
+import com.i4u.shipper.presentation.dtos.response.ShipperHubResponse;
+import com.i4u.shipper.presentation.dtos.response.ShipperUserResponse;
 import com.i4u.shipper.presentation.exception.ShipperException;
 
 import lombok.RequiredArgsConstructor;
@@ -30,8 +37,14 @@ import lombok.extern.slf4j.Slf4j;
 public class ShipperService {
 
 	private final ShipperRepository shipperRepository;
-	// TODO : 타 도메인으로 요청을 보내고 응답을 받을 때, 필요한 정보가 무엇인지 확인 필수
-	// TODO : 배송 순서 지정 시, 허브 담당 배송자라면 전체에 10명만, 업체 배송 담당자면 허브 마다 10명인 것을 주의하기
+	private final UserClient userClient;
+	private final HubClient hubClient;
+
+	@Value("${hub.id}")
+	private UUID wholeHubId;
+
+	/* TODO: 1. 각 로직마다 Controller에서 받아온 사용자 정보 추가 필수
+			 2. 타 도메인으로 요청을 보내고 응답을 받을 때, 필요한 정보가 무엇인지 확인 필수 */
 
 	/**
 	 * 배송 담당자 생성
@@ -39,21 +52,37 @@ public class ShipperService {
 	 * @param request : 배송 담당자 정보
 	 * @return : 생성한 배송 담당자 내용
 	 */
-	public ShipperCreateResponse createShipper(ShipperCreateRequest request) {
-		// TODO : [user] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기
-		// 사용자 검증이 안됐다면 Exception Throw
-		// userClient.confirmUser(request.getUserId());
+	public ShipperCreateResponse createShipper(ShipperCreateRequest request /*String userId, String userRole*/) {
+		// 1. Role에 따른 배송 담당자 생성 권한 확인
+		// {받아온 userId, userRole로 로직 추가 필요}
+
+		// 2. [userClient] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기
+		ShipperUserResponse responseUser = userClient.confirmUser(
+			ShipperUserRequest.builder().userId(request.getUserId()).build()/* userId, userRole 혹은 JWT 넣어주기 */);
+		if (responseUser.getIsDeleted()) {
+			throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
+		}
 		
-		// TODO : [hub] 허브 쪽으로 허브 검증 (삭제 여부) 요청 보내기
-		// TODO : 추후 Caching으로 전환 예정
-		// 허브 검증에 실패했다면 Exception Throw
-		// hubClient.confirmHub(request.getHubId());
+		// 3. [hubClient] 허브 쪽으로 허브 검증 (삭제 여부) 요청 보내기 (추후 Caching으로 전환 예정)
+		UUID hubId = wholeHubId;;
 
-		// TODO : [changeOrder] hub 검증이 완료되었다면, 해당 허브 혹은 업체 담당자의 배송 순서를 어떻게 지정할지 고민해보기
-		Integer shipperOrder = 1;
-		Shipper shipper = request.toShipper(shipperOrder);
+		if (request.getHubId() != null || !request.getHubId().equals("")) {
+			ShipperHubResponse responseHub = hubClient.confirmHub(ShipperHubRequest.builder().hubId(request.getHubId()).build());
+			if (responseHub.getIsDeleted()) {
+				throw new ShipperException("존재하지 않는 허브입니다.", HttpStatus.BAD_REQUEST);
+			}
+			hubId = responseHub.getHubId();
+		}
 
+		// 4. 배송 담당자 순서 지정
+		Integer shipperOrder = shipperRepository.confirmShipperOrder(hubId);
+		if (shipperOrder == 0) {
+			throw new ShipperException("해당 허브에는 더 이상 배송 담당자를 배정할 수 없습니다.", HttpStatus.BAD_REQUEST);
+		}
+
+		Shipper shipper = request.toShipper(shipperOrder, hubId);
 		Shipper savedShipper = shipperRepository.save(shipper);
+
 		return ShipperCreateResponse.fromShipper(savedShipper);
 	}
 
@@ -63,7 +92,7 @@ public class ShipperService {
 	 * @return : 조회된 배송 담당자들의 내용
 	 */
 	public List<ShipperListResponse> getAllShippers(Pageable pageable, ShipperSearchRequest request) {
-		// TODO : CustomRepo에서 Pagination적용하는 코드로 변경하기 (+검색기능 구현 필수)
+		// 1. Role에 따른 조회 권한 확인 {받아온 userId, userRole 넘기기 로직 추가 필요}
 		PagedModel<ShipperListResponse> shippers = shipperRepository.searchShippers(pageable, request);
 
 		List<Shipper> shipperList = shipperRepository.findAll();
@@ -77,10 +106,12 @@ public class ShipperService {
 	 * @return : 조회된 배송 담당자 내용
 	 */
 	public ShipperGetOneResponse getOneShipper(UUID shipperId) {
-		// 배송 담당자 검색
+		// 1. 배송 담당자 검색
 		Shipper shipper = findShipper(shipperId);
 
-		// response로 반환
+		// 2. Role에 따른 조회 권한 확인 {받아온 userId, userRole 넘기기 로직 추가 필요}
+
+		// 3. response로 반환
 		return ShipperGetOneResponse.fromShipper(shipper);
 	}
 
@@ -93,15 +124,38 @@ public class ShipperService {
 	 */
 	@Transactional
 	public ShipperUpdateResponse updateShipper(UUID shipperId, ShipperUpdateRequest request) {
+		/* 배송 담당자가 속한 허브 ID & 배송 담당자 타입만 수정 가능 */
+		// 1. 배송 담당자 검색
 		Shipper beforeShipper = findShipper(shipperId);
 
-		// TODO : [hub] 허브 로 검증 요청 필요 (배송 담당자 사용자 변경 로직은 현재 X)
-		// 없다면 Exception
-		// hubClient.confirmHub(request.getHubId());
+		// 2. Role에 따른 배송 담당자 수정 권한 확인
+		// {받아온 userId, userRole로 로직 추가 필요}
 
-		// TODO : [changeOrder] 변경된 허브에 따른 배송 순서 변경 필요
-		Integer shipperOrder = 1;
-		Shipper updateingShipper = request.toShipper(shipperOrder);
+		// 3. [userClient] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기
+		ShipperUserResponse responseUser = userClient.confirmUser(
+			ShipperUserRequest.builder().userId(beforeShipper.getUserId()).build()/* userId, userRole 혹은 JWT 넣어주기 */);
+		if (responseUser.getIsDeleted()) {
+			throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
+		}
+
+		// 4. [hubClient] 허브로 검증 요청 전송
+		if (beforeShipper.getHubId().equals(request.getHubId())) {
+			throw new ShipperException("변경 사항이 없습니다.", HttpStatus.BAD_REQUEST);
+		}
+
+		UUID hubId = wholeHubId;
+
+		if (request.getHubId() != null || !request.getHubId().equals("")) {
+			ShipperHubResponse responseHub = hubClient.confirmHub(ShipperHubRequest.builder().hubId(request.getHubId()).build());
+			if (responseHub.getIsDeleted()) {
+				throw new ShipperException("존재하지 않는 허브입니다.", HttpStatus.BAD_REQUEST);
+			}
+			hubId = responseHub.getHubId();
+		}
+
+		// 5. 변경된 내용에 따라 배송 담당자 순서도 재지정 필요
+		Integer shipperOrder = shipperRepository.confirmShipperOrder(hubId);
+		Shipper updateingShipper = request.toShipper(shipperOrder, hubId);
 		beforeShipper.updateShipper(updateingShipper);
 
 		return ShipperUpdateResponse.fromShipper(beforeShipper);
@@ -119,10 +173,6 @@ public class ShipperService {
 		// TODO : 변경된 Basic에서 받아가서 softDelete 적용하기
 		// shipper.softDelete(/*지금 요청한 사용자의 ID*/);
 	}
-
-	// TODO : 배송 담당자 타입에 따른 배송 순서 지정하는 메서드 추가
-	// 생각하는 것은 shipperRepository에서 isDeleted가 false인 개수를 찾아 그 개수에 +1 하기
-	// custom repo를 사용해도 될 듯
 	
 	/**
 	 * 배송 담당자 검색
