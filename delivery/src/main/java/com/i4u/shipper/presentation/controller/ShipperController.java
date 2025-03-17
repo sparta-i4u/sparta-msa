@@ -100,6 +100,7 @@ public class ShipperController {
 	@DeleteMapping("/{shipperId}")
 	public ResponseEntity<CommonResponse> deleteShipper(@PathVariable UUID shipperId) {
 		log.info("배송 담당자 삭제 요청 들어옴 : " + shipperId);
+		shipperService.deleteShipper(shipperId);
 		return ResponseEntity.ok(CommonResponse.success(shipperId, "배송 담당자 삭제 성공"));
 	}
 
