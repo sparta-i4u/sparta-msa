@@ -3,6 +3,7 @@ package com.i4u.order.application.dtos.response;
 import java.util.UUID;
 
 import com.i4u.order.domain.entity.Order;
+import com.i4u.order.domain.entity.OrderStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,26 +30,22 @@ public class OrderGetOneResponse {
 	// 요청 사항
 	public String requirement;
 
-	// 배송 주소
-	public String address;
-
 	// 배송 ID
 	public UUID deliveryId;
 
 	// 주문 상태
-	public String deliveryState;
+	public OrderStatus orderStatus;
 
 	public static OrderGetOneResponse fromOrder(Order order) {
 		return OrderGetOneResponse.builder()
-			.orderId(UUID.randomUUID())
-			.supplierId(UUID.randomUUID())
-			.recipientId(UUID.randomUUID())
-			.productId(UUID.randomUUID())
-			.productQuantity(10)
-			.requirement("2025년 3월 22일까지는 보내주세요.")
-			.address("인천시 계양구")
-			.deliveryId(UUID.randomUUID())
-			.deliveryState("결제 완료")
+			.orderId(order.getOrderId())
+			.supplierId(order.getSupplierId())
+			.recipientId(order.getRecipientId())
+			.productId(order.getProductId())
+			.productQuantity(order.getProductQuantity())
+			.requirement(order.getRequirement())
+			.deliveryId(order.getDeliveryId())
+			.orderStatus(order.getOrderStatus())
 			.build();
 	}
 

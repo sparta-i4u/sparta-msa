@@ -1,7 +1,8 @@
 package com.i4u.order.infrastructure.persistence;
 
+import static com.i4u.order.domain.entity.QOrder.*;
+
 import com.i4u.order.domain.entity.OrderStatus;
-import com.i4u.order.domain.entity.QOrder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.springframework.data.domain.*;
@@ -11,21 +12,23 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.web.PagedModel;
+import org.springframework.stereotype.Repository;
 
 import com.i4u.order.application.dtos.request.OrderSearchRequest;
 import com.i4u.order.application.dtos.response.OrderGetListResponse;
 import com.i4u.order.domain.repository.OrderRepositoryCustom;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.i4u.order.domain.entity.QOrder.order;
 
 @Slf4j
+@Repository
 @RequiredArgsConstructor
-public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
+public class OrderRepositoryImpl implements OrderRepositoryCustom {
 
 	private final JPAQueryFactory queryFactory;
 
@@ -44,8 +47,7 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
 					order.productId.as("productId"),
 					order.productQuantity.as("productQuantity"),
 					order.requirement.as("requirement"),
-					order.address.as("address"),
-					order.deliveryId.as("deliveryId"),
+					order.deliveryId.coalesce(Expressions.constant(UUID.fromString("00000000-0000-0000-0000-000000000000"))).as("deliveryId"),
 					order.orderStatus.as("orderStatus")
 				))
 				.from(order)
@@ -106,7 +108,7 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
 	private BooleanExpression supplierId(UUID supplierId) {
 		return supplierId != null ? order.supplierId.eq(supplierId) : null;
 	}
-	
+
 	/**
 	 * 수령 업체를 검색하는 경우
 	 * @param recipientId : 검색할 수령 업체의 ID

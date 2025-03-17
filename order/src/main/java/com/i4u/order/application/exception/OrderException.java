@@ -1,4 +1,4 @@
-package com.i4u.order.presentation.exception;
+package com.i4u.order.application.exception;
 
 import org.springframework.http.HttpStatus;
 
