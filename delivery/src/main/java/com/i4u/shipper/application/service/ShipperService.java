@@ -1,6 +1,7 @@
 package com.i4u.shipper.application.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.UUID;
@@ -40,8 +41,7 @@ public class ShipperService {
 	private final UserClient userClient;
 	private final HubClient hubClient;
 
-	@Value("${hub.id}")
-	private UUID wholeHubId;
+	private UUID wholeHubId = UUID.randomUUID();
 
 	/* TODO: 1. 각 로직마다 Controller에서 받아온 사용자 정보 추가 필수
 			 2. 타 도메인으로 요청을 보내고 응답을 받을 때, 필요한 정보가 무엇인지 확인 필수 */
@@ -57,22 +57,23 @@ public class ShipperService {
 		// {받아온 userId, userRole로 로직 추가 필요}
 
 		// 2. [userClient] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기
-		ShipperUserResponse responseUser = userClient.confirmUser(
-			ShipperUserRequest.builder().userId(request.getUserId()).build()/* userId, userRole 혹은 JWT 넣어주기 */);
-		if (responseUser.getIsDeleted()) {
-			throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
-		}
+		// ShipperUserResponse responseUser = userClient.confirmUser(
+		// 	ShipperUserRequest.builder().userId(request.getUserId()).build()/* userId, userRole 혹은 JWT 넣어주기 */);
+		// if (responseUser.getIsDeleted()) {
+		// 	throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
+		// }
+		// String userSlackId = responseUser.getUserSlackId();
 		
 		// 3. [hubClient] 허브 쪽으로 허브 검증 (삭제 여부) 요청 보내기 (추후 Caching으로 전환 예정)
-		UUID hubId = wholeHubId;;
+		UUID hubId = (request.getHubId() == null) ? wholeHubId : request.getHubId();
 
-		if (request.getHubId() != null || !request.getHubId().equals("")) {
-			ShipperHubResponse responseHub = hubClient.confirmHub(ShipperHubRequest.builder().hubId(request.getHubId()).build());
-			if (responseHub.getIsDeleted()) {
-				throw new ShipperException("존재하지 않는 허브입니다.", HttpStatus.BAD_REQUEST);
-			}
-			hubId = responseHub.getHubId();
-		}
+		// if (!hubId.equals(beforeShipper.getHubId())) {
+		// 	ShipperHubResponse responseHub = hubClient.confirmHub(ShipperHubRequest.builder().hubId(request.getHubId()).build());
+		// 	if (responseHub.getIsDeleted()) {
+		// 		throw new ShipperException("존재하지 않는 허브입니다.", HttpStatus.BAD_REQUEST);
+		// 	}
+		// 	hubId = responseHub.getHubId();
+		// }
 
 		// 4. 배송 담당자 순서 지정
 		Integer shipperOrder = shipperRepository.confirmShipperOrder(hubId);
@@ -80,7 +81,7 @@ public class ShipperService {
 			throw new ShipperException("해당 허브에는 더 이상 배송 담당자를 배정할 수 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
-		Shipper shipper = request.toShipper(shipperOrder, hubId);
+		Shipper shipper = request.toShipper(shipperOrder, hubId /*, userSlackId*/);
 		Shipper savedShipper = shipperRepository.save(shipper);
 
 		return ShipperCreateResponse.fromShipper(savedShipper);
@@ -91,13 +92,14 @@ public class ShipperService {
 	 *
 	 * @return : 조회된 배송 담당자들의 내용
 	 */
-	public List<ShipperListResponse> getAllShippers(Pageable pageable, ShipperSearchRequest request) {
+	public PagedModel<ShipperListResponse> getAllShippers(Pageable pageable, ShipperSearchRequest request) {
 		// 1. Role에 따른 조회 권한 확인 {받아온 userId, userRole 넘기기 로직 추가 필요}
-		PagedModel<ShipperListResponse> shippers = shipperRepository.searchShippers(pageable, request);
-
-		List<Shipper> shipperList = shipperRepository.findAll();
-		return shipperList.stream().map(ShipperListResponse::fromShipper)
-			              .collect(Collectors.toList());
+		Page<ShipperListResponse> shippers = shipperRepository.searchShippers(pageable, request);
+		PagedModel<ShipperListResponse> shipperDtoList = new PagedModel<>(shippers);
+		return shipperDtoList;
+		// List<Shipper> shipperList = shipperRepository.findAll();
+		// return shipperList.stream().map(ShipperListResponse::fromShipper)
+		// 	              .collect(Collectors.toList());
 	}
 
 	/**
@@ -130,34 +132,34 @@ public class ShipperService {
 
 		// 2. Role에 따른 배송 담당자 수정 권한 확인
 		// {받아온 userId, userRole로 로직 추가 필요}
+		UUID hubId = (request.getHubId() == null) ? wholeHubId : request.getHubId();
 
-		// 3. [userClient] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기
-		ShipperUserResponse responseUser = userClient.confirmUser(
-			ShipperUserRequest.builder().userId(beforeShipper.getUserId()).build()/* userId, userRole 혹은 JWT 넣어주기 */);
-		if (responseUser.getIsDeleted()) {
-			throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
-		}
-
-		// 4. [hubClient] 허브로 검증 요청 전송
 		if (beforeShipper.getHubId().equals(request.getHubId())) {
 			throw new ShipperException("변경 사항이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
-		UUID hubId = wholeHubId;
+		// 3. [userClient] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기
+		// ShipperUserResponse responseUser = userClient.confirmUser(
+		// 	ShipperUserRequest.builder().userId(beforeShipper.getUserId()).build()/* userId, userRole 혹은 JWT 넣어주기 */);
+		// if (responseUser.getIsDeleted()) {
+		// 	throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
+		// }
 
-		if (request.getHubId() != null || !request.getHubId().equals("")) {
-			ShipperHubResponse responseHub = hubClient.confirmHub(ShipperHubRequest.builder().hubId(request.getHubId()).build());
-			if (responseHub.getIsDeleted()) {
-				throw new ShipperException("존재하지 않는 허브입니다.", HttpStatus.BAD_REQUEST);
-			}
-			hubId = responseHub.getHubId();
+		// 4. [hubClient] 허브로 검증 요청 전송
+		if (!hubId.equals(beforeShipper.getHubId())) {
+			// ShipperHubResponse responseHub = hubClient.confirmHub(ShipperHubRequest.builder().hubId(request.getHubId()).build());
+			// if (responseHub.getIsDeleted()) {
+			// 	throw new ShipperException("존재하지 않는 허브입니다.", HttpStatus.BAD_REQUEST);
+			// }
+			// hubId = responseHub.getHubId();
 		}
 
 		// 5. 변경된 내용에 따라 배송 담당자 순서도 재지정 필요
 		Integer shipperOrder = shipperRepository.confirmShipperOrder(hubId);
+
 		Shipper updateingShipper = request.toShipper(shipperOrder, hubId);
 		beforeShipper.updateShipper(updateingShipper);
-
+//		Shipper afterShipper = shipperRepository.save(beforeShipper);
 		return ShipperUpdateResponse.fromShipper(beforeShipper);
 	}
 

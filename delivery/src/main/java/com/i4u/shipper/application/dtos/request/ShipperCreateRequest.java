@@ -25,13 +25,14 @@ public class ShipperCreateRequest {
 	// 배송 담당자의 사용자 ID
 	public UUID userId;
 
-	public Shipper toShipper(Integer shipperOrder, UUID hubId) {
+	public Shipper toShipper(Integer shipperOrder, UUID hubId /*, String userSlackId*/) {
 		return Shipper.builder()
 			.shipperId(this.userId)
 			.hubId(hubId)
 			.shipperType(this.shipperType)
 			.shipperOrder(shipperOrder)
 			.userId(this.userId)
+			// userSlackId(userSlackId)
 			.build();
 	}
 }

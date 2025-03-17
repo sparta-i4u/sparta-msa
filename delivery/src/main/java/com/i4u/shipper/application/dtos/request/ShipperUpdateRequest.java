@@ -24,7 +24,7 @@ public class ShipperUpdateRequest {
 		return Shipper.builder()
 			.hubId(hubId)
 			.shipperOrder(shipperOrder)
-			.shipperType(this.getShipperType())
+			.shipperType(this.shipperType)
 			.build();
 	}
 
