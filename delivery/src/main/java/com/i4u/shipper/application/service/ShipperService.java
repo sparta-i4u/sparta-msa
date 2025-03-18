@@ -1,11 +1,9 @@
 package com.i4u.shipper.application.service;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import java.util.List;
+
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -23,11 +21,7 @@ import com.i4u.shipper.domain.entity.Shipper;
 import com.i4u.shipper.domain.repository.ShipperRepository;
 import com.i4u.shipper.presentation.client.HubClient;
 import com.i4u.shipper.presentation.client.UserClient;
-import com.i4u.shipper.presentation.dtos.request.ShipperHubRequest;
-import com.i4u.shipper.presentation.dtos.request.ShipperUserRequest;
-import com.i4u.shipper.presentation.dtos.response.ShipperHubResponse;
-import com.i4u.shipper.presentation.dtos.response.ShipperUserResponse;
-import com.i4u.shipper.presentation.exception.ShipperException;
+import com.i4u.shipper.application.exception.ShipperException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
