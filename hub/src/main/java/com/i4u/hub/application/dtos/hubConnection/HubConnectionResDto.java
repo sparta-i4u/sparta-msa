@@ -23,10 +23,10 @@ public class HubConnectionResDto {
 
     public static HubConnectionResDto from(HubConnection hubConnection) {
         return HubConnectionResDto.builder()
-                .hubConnectionId(hubConnection.getHub_connection_id())
-                .departureHubId(hubConnection.getDeparture_hub_id())
-                .arrivalHubId(hubConnection.getArrival_hub_id())
-                .hubToHubTime(hubConnection.getHub_to_hub_time())
+                .hubConnectionId(hubConnection.getHubConnectionId())
+                .departureHubId(hubConnection.getDepartureHub().getHubId())
+                .arrivalHubId(hubConnection.getArrivalHub().getHubId())
+                .hubToHubTime(hubConnection.getHubToHubTime())
                 .distance(hubConnection.getDistance())
                 .build();
     }

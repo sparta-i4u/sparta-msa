@@ -4,7 +4,6 @@ import com.i4u.hub.application.dtos.hubConnection.UpdateHubConnectionReqDto;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter @Setter
@@ -18,17 +17,19 @@ public class HubConnection {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "uuid", nullable = false, updatable = false)
-    private UUID hub_connection_id;
+    private UUID hubConnectionId;
 
-    @Column(nullable = false)
-    private UUID departure_hub_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    private Hub departureHub;
 
-    @Column(nullable = false)
-    private UUID arrival_hub_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    private Hub arrivalHub;
 
     // 허브간 이동시간 분으로 처리 예: 150 (2시간 30분)
     @Column(nullable = false)
-    private Integer hub_to_hub_time;
+    private Integer hubToHubTime;
 
     // 단위: km
     @Column(nullable = false)
@@ -36,7 +37,7 @@ public class HubConnection {
 
     public void update(UpdateHubConnectionReqDto dto) {
         if (dto.getHubToHubTime() != null) {
-            this.hub_to_hub_time = dto.getHubToHubTime();
+            this.hubToHubTime = dto.getHubToHubTime();
         }
         if (dto.getDistance() != null) {
             this.distance = dto.getDistance();
