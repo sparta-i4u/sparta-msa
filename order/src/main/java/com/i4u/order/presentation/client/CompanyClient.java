@@ -1,21 +1,25 @@
 package com.i4u.order.presentation.client;
 
+import java.util.UUID;
+
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import com.i4u.common.utils.CommonResponse;
 import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
-import com.i4u.order.presentation.dtos.request.OrderCompanyUpdateRequest;
 import com.i4u.order.presentation.dtos.response.OrderCompanyResponse;
 import com.i4u.order.presentation.dtos.response.OrderCompanyUpdateResponse;
 
 @FeignClient(name = "company")
 public interface CompanyClient {
 
-	@GetMapping("/companies/{companyId}")
-	OrderCompanyResponse confirmCompany(@ModelAttribute OrderCompanyRequest request /*userId, userRole or JWT 필요*/);
+	@GetMapping("/api/v1/companies/orders")
+	ResponseEntity<CommonResponse<OrderCompanyResponse>> confirmCompany(@ModelAttribute OrderCompanyRequest request /*userId, userRole or JWT 필요*/);
 
-	@GetMapping("/companies/{companyId}/update-confirm")
-	OrderCompanyUpdateResponse confirmCompanyUpdate(@ModelAttribute OrderCompanyUpdateRequest request /*userId, userRole or JWT 필요*/);
+	@GetMapping("/api/v1/companies/{companyId}/orders")
+	ResponseEntity<CommonResponse<OrderCompanyUpdateResponse>> confirmCompanyUpdate(@PathVariable UUID companyId /*userId, userRole or JWT 필요*/);
 
 }

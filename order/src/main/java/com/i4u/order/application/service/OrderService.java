@@ -1,43 +1,38 @@
 package com.i4u.order.application.service;
 
+import java.util.UUID;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.i4u.common.utils.CommonResponse;
 import com.i4u.order.application.dtos.request.OrderCreateRequest;
 import com.i4u.order.application.dtos.request.OrderSearchRequest;
 import com.i4u.order.application.dtos.request.OrderStatusUpdateRequest;
 import com.i4u.order.application.dtos.request.OrderUpdateRequest;
-import com.i4u.order.application.dtos.response.*;
+import com.i4u.order.application.dtos.response.OrderCreateResponse;
+import com.i4u.order.application.dtos.response.OrderGetListResponse;
+import com.i4u.order.application.dtos.response.OrderGetOneResponse;
+import com.i4u.order.application.dtos.response.OrderStatusUpdateResponse;
+import com.i4u.order.application.dtos.response.OrderUpdateResponse;
+import com.i4u.order.application.exception.OrderException;
 import com.i4u.order.domain.entity.Order;
 import com.i4u.order.domain.entity.OrderStatus;
 import com.i4u.order.domain.repository.OrderRepository;
-import com.i4u.order.application.exception.OrderException;
 import com.i4u.order.presentation.client.CompanyClient;
 import com.i4u.order.presentation.client.DeliveryClient;
 import com.i4u.order.presentation.client.ProductClient;
 import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
-import com.i4u.order.presentation.dtos.request.OrderCompanyUpdateRequest;
-import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
-import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
-import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
-import com.i4u.order.presentation.dtos.request.OrderProductRequest;
-import com.i4u.order.presentation.dtos.request.OrderProductStateUpdateRequest;
-import com.i4u.order.presentation.dtos.request.OrderProductUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderStatusUpdateByDeliveryRequest;
 import com.i4u.order.presentation.dtos.response.OrderCompanyResponse;
 import com.i4u.order.presentation.dtos.response.OrderCompanyUpdateResponse;
-import com.i4u.order.presentation.dtos.response.OrderDeliveryResponse;
-import com.i4u.order.presentation.dtos.response.OrderProductResponse;
-import com.i4u.order.presentation.dtos.response.OrderProductUpdateResponse;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedModel;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -62,13 +57,13 @@ public class OrderService {
 		// {권한을 보고 주문 생성 권한이 있는지 확인하기}
 
 		// 2. [companyClient] 업체 쪽으로 검증 요청 필요
-		// OrderCompanyResponse responseCompany = companyClient.confirmCompany(OrderCompanyRequest.builder()
-		// 	.supplierId(request.getSupplierId()).recipientId(request.getRecipientId()).build());
-		//
-		// if (responseCompany.getIsDeleted()) {
-		// 	// 업체가 둘 중 하나라도 없다면 Exception
-		// 	throw new OrderException("해당 업체가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
-		// }
+		ResponseEntity<CommonResponse<OrderCompanyResponse>> responseCompany = companyClient.confirmCompany(OrderCompanyRequest.builder()
+			.supplierId(request.getSupplierId()).recipientId(request.getRecipientId()).build());
+
+		if (responseCompany.getBody().getData().getIsDeleted()) {
+			// 업체가 둘 중 하나라도 없다면 Exception
+			throw new OrderException("해당 업체가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+		}
 
 		// 3. [productClient] 상품 쪽으로 검증 요청 필요 (상품의 개수랑 상품 ID를 같이 넘김)
 		// 재고가 없거나 상품이 없다면 Exception
@@ -151,12 +146,11 @@ public class OrderService {
 		// 4. 주문 내용 수정
 
 		// 4-1. [companyClient] 수령 업체 검증
-		// OrderCompanyUpdateResponse responseCompany = companyClient.confirmCompanyUpdate(OrderCompanyUpdateRequest.builder()
-		// 	.supplierId(request.getSupplierId()).build());
-		//
-		// if (responseCompany.getIsDeleted()) {
-		// 	throw new OrderException("해당 업체가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
-		// }
+		ResponseEntity<CommonResponse<OrderCompanyUpdateResponse>> responseCompany = companyClient.confirmCompanyUpdate(request.getSupplierId());
+
+		if (responseCompany.getBody().getData().getIsDeleted()) {
+			throw new OrderException("해당 업체가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+		}
 
 		// 4-2. [productClient] 상품 검증
 		// OrderProductUpdateResponse responseProduct = productClient.confirmProductUpdate(OrderProductUpdateRequest.builder()
