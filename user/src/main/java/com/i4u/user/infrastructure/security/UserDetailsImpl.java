@@ -4,7 +4,6 @@ import com.i4u.common.security.CustomUserDetails;
 import com.i4u.user.domain.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;

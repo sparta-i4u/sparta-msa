@@ -12,12 +12,10 @@ import com.i4u.user.application.exception.UserException;
 import com.i4u.user.infrastructure.security.aop.RequiresMasterRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -25,9 +23,27 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
 
-    // UserRole 변환 헬퍼 메서드
+//    // ✅ 사용자 정보를 특정 필드 기준으로 조회하는 메서드 (모든 모듈에서 사용 가능)
+//    public Map<String, Object> getUserInfo(UUID userId, List<String> fields) {
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
+//
+//        Map<String, Object> userInfo = new HashMap<>();
+//        if (fields == null || fields.isEmpty()) {
+//            // 기본적으로 모든 데이터 반환
+//            userInfo.put("userId", user.getUserId());
+//            userInfo.put("userSlackId", user.getSlackId());
+//            userInfo.put("isDeleted", user.getIsDeleted());
+//        } else {
+//            if (fields.contains("userId")) userInfo.put("userId", user.getUserId());
+//            if (fields.contains("userSlackId")) userInfo.put("userSlackId", user.getSlackId());
+//            if (fields.contains("isDeleted")) userInfo.put("isDeleted", user.getIsDeleted());
+//        }
+//        return userInfo;
+//    }
+
+    // ✅ 역할 문자열을 UserRole Enum으로 변환하는 유틸리티 메서드
     private UserRole convertToUserRole(String role) {
         if (role == null || role.isBlank()) {
             throw new UserException(UserException.UserErrorType.INVALID_ROLE);
@@ -39,15 +55,12 @@ public class UserService {
         }
     }
 
-    // 회원가입 요청 저장
-    public UserDetailResponseDto createUser(UserCreateRequestDto requestDTO) {
+    // ✅ 신규 사용자 생성 메서드
+    public UserDetailResponseDto createUser(UserCreateRequestDto requestDTO, String encodedPassword) {
         if (userRepository.findBySlackIdAndIsDeletedFalse(requestDTO.getSlackId()).isPresent()) {
             throw new UserException(UserException.UserErrorType.DUPLICATE_USERNAME);
         }
 
-        String encodedPassword = passwordEncoder.encode(requestDTO.getPassword());
-
-        // 역할 변환 (UserRole Enum으로 정상적으로 호출 가능)
         UserRole userRole = requestDTO.getRole();
 
         User newUser = User.createUser(
@@ -58,35 +71,48 @@ public class UserService {
                 requestDTO.getSlackId(),
                 userRole
         );
-
         userRepository.save(newUser);
         return UserDetailResponseDto.from(newUser);
     }
 
-    // 특정 사용자 조회 - ID 기반
+    // ✅ userId를 기반으로 사용자 조회
     public Optional<UserDetailResponseDto> getUserById(UUID userId) {
         return userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .map(UserDetailResponseDto::from);
     }
 
-    // 특정 사용자 조회 - Slack ID 기반
+    // ✅ Slack ID를 기반으로 사용자 조회
     public Optional<UserDetailResponseDto> getUserBySlackId(String slackId) {
         return userRepository.findBySlackIdAndIsDeletedFalse(slackId)
                 .map(UserDetailResponseDto::from);
     }
 
-    // 사용자 검색 (닉네임, 이메일, 역할(Role) 기반 검색)
-    public UserListResponseDto searchUsers(UserSearchRequestDto searchRequest) {
-        Page<User> userPage = userRepository.searchUsers(
-                searchRequest.getKeyword(),
-                searchRequest.getRole(),
-                searchRequest.getPageable(),
-                false
-        );
+    // ✅ 사용자 검색 기능 (페이징 포함)
+    public UserListResponseDto searchUsers(UserSearchRequestDto searchRequest, UUID requestUserId, UserRole requestUserRole) {
+        boolean isMaster = requestUserRole == UserRole.MASTER;
+
+        Page<User> userPage;
+        if (isMaster) {
+            // MASTER는 모든 사용자 검색 가능
+            userPage = userRepository.searchUsers(
+                    searchRequest.getKeyword(),
+                    searchRequest.getRole(),
+                    searchRequest.getPageable(),
+                    false
+            );
+        } else {
+            // 허브 관리자, 배송 담당자, 업체 담당자는 본인만 검색 가능
+            userPage = userRepository.searchUsers(
+                    searchRequest.getKeyword(),
+                    requestUserRole,
+                    searchRequest.getPageable(),
+                    false
+            ).map(user -> user.getUserId().equals(requestUserId) ? user : null); // 본인만 검색 가능
+        }
         return new UserListResponseDto(userPage);
     }
 
-    // 사용자 정보 업데이트 (닉네임, 이메일 변경 가능, ROLE 변경 불가)
+    // ✅ 사용자 정보 업데이트 (관리자 권한 필요 여부 체크 포함)
     public UserDetailResponseDto updateUser(UUID adminUserId, UUID userId, UserUpdateRequestDto requestDto) {
         User adminUser = userRepository.findByUserIdAndIsDeletedFalse(adminUserId)
                 .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
@@ -96,7 +122,6 @@ public class UserService {
         User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
 
-        // 기존 값을 유지하면서 변경된 값만 적용
         UserUpdateRequestDto updatedDto = UserUpdateRequestDto.createUpdatedDto(user, requestDto);
 
         user.updateUser(updatedDto.getNickname(), updatedDto.getEmail(), adminUserId, isAdmin);
@@ -105,7 +130,7 @@ public class UserService {
         return UserDetailResponseDto.from(user);
     }
 
-    // MASTER만 사용자의 ROLE을 변경 가능
+    // ✅ 사용자 역할 변경 (MASTER 권한 필요)
     @RequiresMasterRole
     public UserDetailResponseDto updateUserRole(UUID adminUserId, UUID targetUserId, String newRole) {
         User targetUser = userRepository.findByUserIdAndIsDeletedFalse(targetUserId)
@@ -117,7 +142,7 @@ public class UserService {
         return UserDetailResponseDto.from(targetUser);
     }
 
-    // 사용자 논리 삭제 (Soft Delete)
+    // ✅ 사용자 논리 삭제 (Soft Delete, MASTER 권한 필요)
     @RequiresMasterRole
     public UserDetailResponseDto deleteUser(UUID adminUserId, UUID userId, UUID deletedBy) {
         User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
@@ -129,27 +154,3 @@ public class UserService {
         return UserDetailResponseDto.from(user);
     }
 }
-//    @RequiresMasterRole
-//    public UserDetailResponseDto updateUserRole(UUID adminUserId, UUID targetUserId, String newRole) {
-//        User adminUser = userRepository.findByUserIdAndIsDeletedFalse(adminUserId)
-//                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
-//
-//        User targetUser = userRepository.findByUserIdAndIsDeletedFalse(targetUserId)
-//                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
-//
-//        targetUser.updateRole(UserRole.valueOf(newRole.toUpperCase()), adminUser.getRole());
-//        userRepository.save(targetUser);
-//
-//        return UserDetailResponseDto.from(targetUser);
-//    }
-//
-//    @RequiresMasterRole
-//    public UserDetailResponseDto deleteUser(UUID adminUserId, UUID userId, UUID deletedBy) {
-//        User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
-//                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
-//
-//        user.softDelete(deletedBy);
-//        userRepository.save(user);
-//
-//        return UserDetailResponseDto.from(user);
-//    }

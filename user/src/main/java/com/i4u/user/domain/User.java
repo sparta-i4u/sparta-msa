@@ -18,8 +18,8 @@ public class User extends Basic {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name="user_id", columnDefinition = "UUID", updatable = false, nullable = false) // ✅ PostgreSQL의 UUID 타입 적용
-    private UUID userId;
+    @Column(name="user_id", columnDefinition = "UUID", updatable = false, nullable = false) // PostgreSQL의 UUID 타입 적용
+    private UUID userId;        // long으로 하는 이유 ? userid 겹칠 일이 없다보니 long해보는거 좋다.
 
     @Column(name="username", nullable = false, length = 100, unique = true)
     private String username;
