@@ -17,11 +17,13 @@ import com.i4u.order.presentation.dtos.request.OrderCompanyUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderProductRequest;
+import com.i4u.order.presentation.dtos.request.OrderProductUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderStatusUpdateByDeliveryRequest;
 import com.i4u.order.presentation.dtos.response.OrderCompanyResponse;
 import com.i4u.order.presentation.dtos.response.OrderCompanyUpdateResponse;
 import com.i4u.order.presentation.dtos.response.OrderDeliveryResponse;
 import com.i4u.order.presentation.dtos.response.OrderProductResponse;
+import com.i4u.order.presentation.dtos.response.OrderProductUpdateResponse;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -155,8 +157,9 @@ public class OrderService {
 		// }
 
 		// 4-2. [productClient] 상품 검증
-		// OrderProductResponse responseProduct = productClient.confirmProduct(OrderProductRequest.builder()
-		// 	.productId(request.getProductId()).productQuantity(request.getProductQuantity()).build());
+		// OrderProductUpdateResponse responseProduct = productClient.confirmProductUpdate(OrderProductUpdateRequest.builder()
+		// 	.beforeProductId(order.getProductId()).beforeProductQuantity(order.getProductQuantity())
+		// 	.afterProductId(request.getProductId()).afterProductQuantity(request.getProductQuantity()).build());
 		//
 		// if (responseProduct.getIsDeleted()) {
 		// 	throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
