@@ -1,5 +1,6 @@
 package com.i4u.hub.domain.model;
 
+import com.i4u.common.entity.Basic;
 import com.i4u.hub.application.dtos.hubConnection.UpdateHubConnectionReqDto;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "p_hub_connection")
-public class HubConnection {
+public class HubConnection extends Basic {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

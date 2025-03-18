@@ -161,7 +161,8 @@ public class HubConnectionService {
         HubConnection hubConnection = hubConnectionRepository.findById(hubConnectionId)
                 .orElseThrow(() -> new IllegalArgumentException("허브 이동정보를 찾을 수 없습니다."));
 
-        hubConnectionRepository.delete(hubConnection);
+        hubConnection.softDelete(null);
+        hubConnectionRepository.save(hubConnection);
     }
 
     // 내부 클래스: 그래프 간선

@@ -50,7 +50,10 @@ public class HubService {
     public void deleteHub(UUID hubId) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new IllegalArgumentException("허브를 찾을 수 없습니다."));
-        hubRepository.delete(hub);
+
+        // 유저정보 가져와야함
+        hub.softDelete(null);
+        hubRepository.save(hub);
     }
 
 }
