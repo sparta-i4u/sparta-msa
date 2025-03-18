@@ -29,6 +29,7 @@ import com.i4u.order.application.dtos.response.OrderStatusUpdateResponse;
 import com.i4u.order.application.dtos.response.OrderUpdateResponse;
 import com.i4u.order.application.service.OrderService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,7 +49,7 @@ public class OrderController {
 	 * @return : 생성된 주문 내용
 	 */
 	@PostMapping
-	public ResponseEntity<CommonResponse<OrderCreateResponse>> createOrder(@RequestBody OrderCreateRequest request){
+	public ResponseEntity<CommonResponse<OrderCreateResponse>> createOrder(@Valid @RequestBody OrderCreateRequest request){
 		log.info("주문 생성 요청");
 		OrderCreateResponse response = orderService.createOrder(request);
 		return ResponseEntity.ok(CommonResponse.success(response, "주문 생성 성공"));
@@ -86,7 +87,7 @@ public class OrderController {
 	 * @return : 수정된 주문 내용
 	 */
 	@PutMapping("/{orderId}")
-	public ResponseEntity<CommonResponse<OrderUpdateResponse>> putOrder(@PathVariable UUID orderId, @RequestBody OrderUpdateRequest request) {
+	public ResponseEntity<CommonResponse<OrderUpdateResponse>> putOrder(@PathVariable UUID orderId, @Valid @RequestBody OrderUpdateRequest request) {
 		// 주문 상태 확인 필수
 		log.info("주문 수정 요청");
 		OrderUpdateResponse response = orderService.updateOrder(orderId, request);
