@@ -72,5 +72,7 @@ public class Delivery extends Basic {
 		Optional.ofNullable(updatingDelivery.getDeliveryState()).ifPresent(deliveryState -> this.deliveryState = deliveryState);
 	}
 
-
+	public void updateDeliveryStateByOrder(DeliveryState deliveryState) {
+		this.deliveryState = deliveryState;
+	}
 }
