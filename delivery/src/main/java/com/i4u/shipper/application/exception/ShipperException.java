@@ -1,4 +1,4 @@
-package com.i4u.shipper.presentation.exception;
+package com.i4u.shipper.application.exception;
 
 import org.springframework.http.HttpStatus;
 
