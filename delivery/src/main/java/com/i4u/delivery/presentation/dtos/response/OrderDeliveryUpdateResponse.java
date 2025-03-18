@@ -1,4 +1,4 @@
-package com.i4u.order.presentation.dtos.response;
+package com.i4u.delivery.presentation.dtos.response;
 
 import java.util.UUID;
 
@@ -11,10 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderDeliveryResponse {
-
-	// orderId
-	private UUID orderId;
+public class OrderDeliveryUpdateResponse {
 
 	// 생성된 delivery ID
 	private UUID deliveryId;
