@@ -6,12 +6,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
+@Order(1) // HubConnection 데이터가 저장되기 전에 실행되도록 순서 지정
 public class HubDataInitializer {
 
     private final HubRepository hubRepository;
