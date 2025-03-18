@@ -26,9 +26,11 @@ import com.i4u.order.presentation.client.CompanyClient;
 import com.i4u.order.presentation.client.DeliveryClient;
 import com.i4u.order.presentation.client.ProductClient;
 import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
+import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
 import com.i4u.order.presentation.dtos.request.OrderStatusUpdateByDeliveryRequest;
 import com.i4u.order.presentation.dtos.response.OrderCompanyResponse;
 import com.i4u.order.presentation.dtos.response.OrderCompanyUpdateResponse;
+import com.i4u.order.presentation.dtos.response.OrderDeliveryResponse;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -83,13 +85,14 @@ public class OrderService {
 		Order savedOrder = orderRepository.save(order);
 
 		// 6. delivery 쪽으로 요청 전송 필요 (생성한 order의 정보와, 지금 주문을 요청한 사용자의 정보)
-		// OrderDeliveryResponse response = deliveryClient.createDelivery(OrderDeliveryRequest.builder()
-		// 		.orderId(savedOrder.getOrderId())
-		// 		.supplierHubId(responseCompany.getSupplierHubId())
-		// 		.recipientHubId(responseCompany.getRecipientHubId())
-		// 		.address(responseCompany.getAddress())
-		// 		// .userId(userId)
-		// 	.build());
+		OrderCompanyResponse company = responseCompany.getBody().getData();
+		ResponseEntity<CommonResponse<OrderDeliveryResponse>> response = deliveryClient.createDelivery(OrderDeliveryRequest.builder()
+				.orderId(savedOrder.getOrderId())
+				.supplierHubId(company.getSupplierHubId())
+				.recipientHubId(company.getRecipientHubId())
+				.address(company.getAddress())
+				// .userId(userId)
+			.build());
 
 		// 7. 받아온 내용으로 order Update
 		// savedOrder.updateOrderStateFromDelivery(response.getDeliveryId(), switchIntoOrderStatus(response.getDeliveryState()));
