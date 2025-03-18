@@ -1,5 +1,9 @@
 package com.i4u.hub.application.service;
 
+import com.i4u.hub.application.dtos.hubConnection.CreateHubConnectionReqDto;
+import com.i4u.hub.application.dtos.hubConnection.HubConnectionListResDto;
+import com.i4u.hub.application.dtos.hubConnection.HubConnectionResDto;
+import com.i4u.hub.application.dtos.hubConnection.UpdateHubConnectionReqDto;
 import com.i4u.hub.domain.model.Hub;
 import com.i4u.hub.domain.model.HubConnection;
 import com.i4u.hub.domain.repository.HubConnectionRepository;
@@ -122,6 +126,42 @@ public class HubConnectionService {
         }
 
         return new PathResult(distances.get(end), path);
+    }
+
+    public HubConnectionResDto createHubConnection(CreateHubConnectionReqDto createHubConnectionReqDto) {
+        HubConnection savedHubConnection = hubConnectionRepository.save(createHubConnectionReqDto.toEntity());
+
+        return HubConnectionResDto.from(savedHubConnection);
+    }
+
+    public HubConnectionResDto getHubConnection(UUID hubConnectionId) {
+        HubConnection hubConnection = hubConnectionRepository.findById(hubConnectionId)
+                .orElseThrow(() -> new IllegalArgumentException("허브 이동정보를 찾을 수 없습니다."));
+
+        return HubConnectionResDto.from(hubConnection);
+    }
+
+    public HubConnectionListResDto getHubConnections() {
+        List<HubConnection> hubConnections = hubConnectionRepository.findAll();
+
+        return HubConnectionListResDto.from(hubConnections);
+    }
+
+    public HubConnectionResDto updateHubConnection(UUID hubConnectionId, UpdateHubConnectionReqDto updateHubConnectionReqDto) {
+        HubConnection hubConnection = hubConnectionRepository.findById(hubConnectionId)
+                .orElseThrow(() -> new IllegalArgumentException("허브 이동정보를 찾을 수 없습니다."));
+
+        hubConnection.update(updateHubConnectionReqDto);
+        HubConnection updatedHubConnection = hubConnectionRepository.save(hubConnection);
+
+        return HubConnectionResDto.from(updatedHubConnection);
+    }
+
+    public void deleteHubConnection(UUID hubConnectionId) {
+        HubConnection hubConnection = hubConnectionRepository.findById(hubConnectionId)
+                .orElseThrow(() -> new IllegalArgumentException("허브 이동정보를 찾을 수 없습니다."));
+
+        hubConnectionRepository.delete(hubConnection);
     }
 
     // 내부 클래스: 그래프 간선

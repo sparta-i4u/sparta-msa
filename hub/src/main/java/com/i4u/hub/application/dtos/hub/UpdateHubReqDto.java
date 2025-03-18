@@ -1,4 +1,4 @@
-package com.i4u.hub.application.dtos;
+package com.i4u.hub.application.dtos.hub;
 
 import lombok.*;
 

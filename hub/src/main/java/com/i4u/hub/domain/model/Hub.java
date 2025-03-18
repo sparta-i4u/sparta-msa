@@ -1,7 +1,7 @@
 package com.i4u.hub.domain.model;
 
 import com.i4u.common.entity.Basic;
-import com.i4u.hub.application.dtos.UpdateHubReqDto;
+import com.i4u.hub.application.dtos.hub.UpdateHubReqDto;
 import jakarta.persistence.*;
 import lombok.*;
 
