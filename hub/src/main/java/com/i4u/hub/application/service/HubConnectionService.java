@@ -50,9 +50,9 @@ public class HubConnectionService {
         Map<UUID, List<Edge>> graph = new HashMap<>();
 
         for (HubConnection connection : connections) {
-            UUID from = connection.getDeparture_hub_id();
-            UUID to = connection.getArrival_hub_id();
-            int time = connection.getHub_to_hub_time();
+            UUID from = connection.getDepartureHub().getHubId();
+            UUID to = connection.getArrivalHub().getHubId();
+            int time = connection.getHubToHubTime();
 
             // 양방향 그래프로 구성
             graph.computeIfAbsent(from, k -> new ArrayList<>())

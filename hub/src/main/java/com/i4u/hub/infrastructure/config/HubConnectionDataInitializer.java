@@ -71,10 +71,10 @@ public class HubConnectionDataInitializer {
 
         if (departure != null && arrival != null) {
             HubConnection connection = HubConnection.builder()
-                    .departure_hub_id(departure.getHubId())
-                    .arrival_hub_id(arrival.getHubId())
+                    .departureHub(departure)
+                    .arrivalHub(arrival)
                     .distance(distance)
-                    .hub_to_hub_time(timeMinutes)
+                    .hubToHubTime(timeMinutes)
                     .build();
 
             connections.add(connection);
