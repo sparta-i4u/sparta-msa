@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import com.i4u.order.domain.entity.Order;
 
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +19,9 @@ public class OrderUpdateRequest {
 
 	// 주문할 상품의 ID
 	public UUID productId;
+
 	// 주문할 상품의 수량
+	@Min(1)
 	public Integer productQuantity;
 
 	// 요청 사항

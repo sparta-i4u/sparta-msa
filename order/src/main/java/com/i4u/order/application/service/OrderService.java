@@ -15,8 +15,10 @@ import com.i4u.order.presentation.client.ProductClient;
 import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
 import com.i4u.order.presentation.dtos.request.OrderCompanyUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
+import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderProductRequest;
+import com.i4u.order.presentation.dtos.request.OrderProductStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderProductUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderStatusUpdateByDeliveryRequest;
 import com.i4u.order.presentation.dtos.response.OrderCompanyResponse;
@@ -197,6 +199,17 @@ public class OrderService {
 		// 3. 주문 상태 수정
 		Order updateOrder = request.toOrder();
 		order.updateOrderState(updateOrder);
+
+		// 4. 주문을 취소했다면 delivery, product 측으로 요청 전송 필요
+		// if (updateOrder.getOrderStatus().equals(OrderStatus.ORDER_CANCELED)) {
+		// 	// [deliveryClient] 주문이 취소되었으므로 배송 update 필요 (deliveryId가 null 이면 ..?)
+		// 	deliveryClient.updateDeliveryState(OrderDeliveryStateUpdateRequest.builder()
+		// 		.orderId(order.getOrderId()).orderState("ORDER_CANCELED").deliveryId(order.getDeliveryId()).build());
+		//
+		// 	// [productClient] 주문이 취소되었으므로 재고 update 필요
+		// 	productClient.updateProductState(OrderProductStateUpdateRequest.builder()
+		// 		.productId(order.getProductId()).productQuantity(order.getProductQuantity()).build());
+		// }
 		
 		return OrderStatusUpdateResponse.fromOrder(order);
 	}
@@ -248,10 +261,14 @@ public class OrderService {
 	 */
 	private OrderStatus switchIntoOrderStatus(String deliveryStatus) {
 		switch (deliveryStatus) {
-			case "d" :
-				return OrderStatus.PROCESSING;
-			case "dd" :
+			case "SHIPPED" :
 				return OrderStatus.SHIPPED;
+			case "OUT_FOR_DELIVERY" :
+				return OrderStatus.OUT_FOR_DELIVERY;
+			case "DELIVERED" :
+				return OrderStatus.DELIVERED;
+			case "DELIVERY_CANCELED" :
+				return OrderStatus.DELIVERY_CANCELED;
 			default :
 				return OrderStatus.SCHEDULED;
 		}
