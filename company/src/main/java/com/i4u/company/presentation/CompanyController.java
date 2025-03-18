@@ -19,6 +19,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 public class CompanyController {
+    //허브랑 user필요
 
     private final CompanyService companyService;
 
