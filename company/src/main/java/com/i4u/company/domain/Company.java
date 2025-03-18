@@ -1,6 +1,7 @@
 package com.i4u.company.domain;
 
 import com.i4u.common.entity.Basic;
+import com.i4u.company.domain.enums.CompanyType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,8 +25,10 @@ public class Company extends Basic {
     private UUID hubId;
 
     private String name;
-
-    private String type;
+    
+    //업체 타입 - 생산업체, 수령업체
+    @Enumerated(EnumType.STRING)
+    private CompanyType type;
 
     private String owner;
 
@@ -33,7 +36,7 @@ public class Company extends Basic {
 
     private String number;
 
-    public Company(UUID hubId, String name,String type, String owner, String address, String number) {
+    public Company(UUID hubId, String name,CompanyType type, String owner, String address, String number) {
         this.hubId = hubId;
         this.name = name;
         this.type = type;

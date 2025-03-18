@@ -1,6 +1,7 @@
 package com.i4u.company.application.dto.response;
 
 import com.i4u.company.domain.Company;
+import com.i4u.company.domain.enums.CompanyType;
 
 import java.util.UUID;
 
@@ -8,7 +9,7 @@ public record CompanyResponseDto(
         UUID companyId,
         UUID hubId,
         String name,
-        String type,
+        CompanyType type,
         String owner,
         String address,
         String number
