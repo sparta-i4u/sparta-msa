@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class OrderCompanyUpdateResponse {
 
 	private Boolean isDeleted;
+	private UUID supplierId;
 	private UUID supplierHubId;
 
 }
