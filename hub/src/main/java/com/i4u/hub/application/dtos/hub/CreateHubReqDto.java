@@ -1,9 +1,7 @@
-package com.i4u.hub.application.dtos;
+package com.i4u.hub.application.dtos.hub;
 
 import com.i4u.hub.domain.model.Hub;
 import lombok.*;
-
-import java.util.UUID;
 
 @Getter
 @Setter

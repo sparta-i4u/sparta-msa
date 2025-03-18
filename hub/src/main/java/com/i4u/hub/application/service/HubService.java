@@ -1,9 +1,9 @@
 package com.i4u.hub.application.service;
 
-import com.i4u.hub.application.dtos.CreateHubReqDto;
-import com.i4u.hub.application.dtos.HubDetailResDto;
-import com.i4u.hub.application.dtos.HubListResDto;
-import com.i4u.hub.application.dtos.UpdateHubReqDto;
+import com.i4u.hub.application.dtos.hub.CreateHubReqDto;
+import com.i4u.hub.application.dtos.hub.HubDetailResDto;
+import com.i4u.hub.application.dtos.hub.HubListResDto;
+import com.i4u.hub.application.dtos.hub.UpdateHubReqDto;
 import com.i4u.hub.domain.model.Hub;
 import com.i4u.hub.domain.repository.HubRepository;
 import jakarta.transaction.Transactional;

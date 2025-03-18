@@ -1,7 +1,10 @@
 package com.i4u.hub.presentation.controller;
 
 import com.i4u.common.utils.CommonResponse;
-import com.i4u.hub.application.dtos.*;
+import com.i4u.hub.application.dtos.hub.CreateHubReqDto;
+import com.i4u.hub.application.dtos.hub.HubDetailResDto;
+import com.i4u.hub.application.dtos.hub.HubListResDto;
+import com.i4u.hub.application.dtos.hub.UpdateHubReqDto;
 import com.i4u.hub.application.service.HubService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

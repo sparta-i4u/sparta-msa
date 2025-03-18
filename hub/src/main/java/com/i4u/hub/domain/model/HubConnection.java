@@ -1,5 +1,6 @@
 package com.i4u.hub.domain.model;
 
+import com.i4u.hub.application.dtos.hubConnection.UpdateHubConnectionReqDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,4 +33,13 @@ public class HubConnection {
     // 단위: km
     @Column(nullable = false)
     private Integer distance;
+
+    public void update(UpdateHubConnectionReqDto dto) {
+        if (dto.getHubToHubTime() != null) {
+            this.hub_to_hub_time = dto.getHubToHubTime();
+        }
+        if (dto.getDistance() != null) {
+            this.distance = dto.getDistance();
+        }
+    }
 }
