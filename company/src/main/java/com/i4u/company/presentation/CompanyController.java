@@ -19,12 +19,14 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 public class CompanyController {
-    //허브랑 user필요
+    //hubId, user 정보 필요
+    //모든 업체는 특정 허브에 소속되어 있다.
 
     private final CompanyService companyService;
 
     //업체 생성
-    //@Secured
+    //관리 허브 ID가 존재하는 허브인지 확인
+    //MASTER, 담당 허브 관리자
     @PostMapping("")
     public ResponseEntity<CommonResponse> createCompany(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -34,7 +36,7 @@ public class CompanyController {
     }
 
     //업체 조회
-    //@Secured
+    //ALL
     @GetMapping("")
     public ResponseEntity<CommonResponse> getCompany(
             @RequestParam String keyword,
@@ -47,7 +49,8 @@ public class CompanyController {
     }
 
     //업체 수정
-    //@Secured({UserRoleEnum.Authority.MANAGER, UserRoleEnum.Authority.MASTER, UserRoleEnum.Authority.OWNER})
+    //관리 허브 ID가 존재하는 허브인지 확인
+    //MASTER, 담당허브, 본인업체
     @PutMapping("/{companyId}")
     public ResponseEntity<CommonResponse> updateCompany(
             @PathVariable UUID companyId, final @RequestBody CompanyRequestDto requestDto) {
@@ -56,7 +59,9 @@ public class CompanyController {
     }
 
     //업체 삭제
-   // @Secured({UserRoleEnum.Authority.MANAGER, UserRoleEnum.Authority.MASTER, UserRoleEnum.Authority.OWNER})
+    //업체 엔티티에 deleted_at, deleted_by 필드를 이용하여 논리적 삭제를 관리합니다.
+    //업체가 삭제될 경우 관련된 서비스에서 연관 데이터를 비 활성화할 때 삭제 관련 필드를 기준으로 처리합니다.
+    //MASTER, 담당허브
     @DeleteMapping("/{companyId}")
     public ResponseEntity<CommonResponse> deleteCompany(@PathVariable UUID companyId) {
         CompanyResponseDto response = companyService.deleteCompany(companyId);
