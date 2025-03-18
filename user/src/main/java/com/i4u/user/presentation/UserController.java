@@ -1,5 +1,6 @@
 package com.i4u.user.presentation;
 
+import com.i4u.common.utils.CommonResponse;
 import com.i4u.user.application.UserService;
 import com.i4u.user.application.dtos.request.UserCreateRequestDto;
 import com.i4u.user.application.dtos.request.UserUpdateRequestDto;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,70 +25,92 @@ public class UserController {
 
     private final UserService userService;
 
+//    // ✅ 모든 모듈이 공통으로 사용할 수 있는 사용자 검증 API (GET /users/{userId}/validate?fields=userId,isDeleted)
+//    @GetMapping("/{userId}/validate")
+//    public ResponseEntity<CommonResponse<Map<String, Object>>> validateUser(
+//            @PathVariable UUID userId,
+//            @RequestParam(required = false) List<String> fields) {
+//
+//        Map<String, Object> userInfo = userService.getUserInfo(userId, fields);
+//        return ResponseEntity.ok(CommonResponse.success(userInfo, "사용자 검증 성공"));
+//    }
+
     // 회원가입 (POST /users)
     @PostMapping
-    public ResponseEntity<UserDetailResponseDto> createUser(@RequestBody UserCreateRequestDto requestDto) {
-        return ResponseEntity.ok(userService.createUser(requestDto));
+    public ResponseEntity<CommonResponse<UserDetailResponseDto>> createUser(
+            @RequestBody UserCreateRequestDto requestDto,
+            @RequestParam String encodedPassword // 추가된 부분 (Auth 서비스에서 전달)
+    ) {
+        return ResponseEntity.ok(CommonResponse.success(
+                userService.createUser(requestDto, encodedPassword),
+                "회원가입이 완료되었습니다.")
+        );
     }
 
     // 특정 사용자 조회 - ID 기반 (GET /users/{userId})
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDetailResponseDto> getUserById(@PathVariable UUID userId) {
+    public ResponseEntity<CommonResponse<UserDetailResponseDto>> getUserById(@PathVariable UUID userId) {
         return userService.getUserById(userId)
-                .map(ResponseEntity::ok)
+                .map(user -> ResponseEntity.ok(CommonResponse.success(user, "사용자 조회 성공")))
                 .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
     }
 
     // 특정 사용자 조회 - Slack ID 기반 (GET /users/slack/{slackId})
     @GetMapping("/slack/{slackId}")
-    public ResponseEntity<UserDetailResponseDto> getUserBySlackId(@PathVariable String slackId) {
+    public ResponseEntity<CommonResponse<UserDetailResponseDto>> getUserBySlackId(@PathVariable String slackId) {
         return userService.getUserBySlackId(slackId)
-                .map(ResponseEntity::ok)
+                .map(user -> ResponseEntity.ok(CommonResponse.success(user, "사용자 조회 성공")))
                 .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
     }
 
     // 사용자 검색 (GET /users/search?keyword=xxx&role=HUB_MANAGER&page=0&size=10)
     @GetMapping("/search")
-    public ResponseEntity<UserListResponseDto> searchUsers(
+    public ResponseEntity<CommonResponse<UserListResponseDto>> searchUsers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String role,
-            Pageable pageable) {
-        UserRole userRole = null;
-        if (role != null && !role.isBlank()) {
-            try {
-                userRole = UserRole.valueOf(role.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new UserException(UserException.UserErrorType.INVALID_ROLE);
-            }
-        }
+            Pageable pageable,
+            @RequestHeader("X-User-Id") UUID requestUserId,
+            @RequestHeader("X-User-Role") String requestUserRole) {
+
+        UserRole userRole = UserRole.valueOf(requestUserRole.toUpperCase());
         UserSearchRequestDto searchRequest = new UserSearchRequestDto(keyword, userRole, pageable);
-        return ResponseEntity.ok(userService.searchUsers(searchRequest));
+        return ResponseEntity.ok(CommonResponse.success(
+                userService.searchUsers(searchRequest, requestUserId, userRole), "사용자 검색 성공"));
     }
 
     // 사용자 정보 업데이트 (PUT /users/{adminUserId}/{userId})
     @PutMapping("/{adminUserId}/{userId}")
-    public ResponseEntity<UserDetailResponseDto> updateUser(
+    public ResponseEntity<CommonResponse<UserDetailResponseDto>> updateUser(
             @PathVariable UUID adminUserId,
             @PathVariable UUID userId,
             @RequestBody UserUpdateRequestDto requestDto) {
-        return ResponseEntity.ok(userService.updateUser(adminUserId, userId, requestDto));
+        return ResponseEntity.ok(CommonResponse.success(
+                userService.updateUser(adminUserId, userId, requestDto),
+                "사용자 정보 업데이트 성공")
+        );
     }
 
     // MASTER만 사용자의 ROLE 변경 가능 (PUT /users/{adminUserId}/role/{targetUserId})
     @PutMapping("/{adminUserId}/role/{targetUserId}")
-    public ResponseEntity<UserDetailResponseDto> updateUserRole(
+    public ResponseEntity<CommonResponse<UserDetailResponseDto>> updateUserRole(
             @PathVariable UUID adminUserId,
             @PathVariable UUID targetUserId,
             @RequestParam String newRole) {
-        return ResponseEntity.ok(userService.updateUserRole(adminUserId, targetUserId, newRole));
+        return ResponseEntity.ok(CommonResponse.success(
+                userService.updateUserRole(adminUserId, targetUserId, newRole),
+                "사용자 역할 변경 성공")
+        );
     }
 
     // 사용자 논리 삭제 - Soft Delete (DELETE /users/{adminUserId}/{userId})
     @DeleteMapping("/{adminUserId}/{userId}")
-    public ResponseEntity<UserDetailResponseDto> deleteUser(
+    public ResponseEntity<CommonResponse<UserDetailResponseDto>> deleteUser(
             @PathVariable UUID adminUserId,
             @PathVariable UUID userId,
             @RequestParam UUID deletedBy) {
-        return ResponseEntity.ok(userService.deleteUser(adminUserId, userId, deletedBy));
+        return ResponseEntity.ok(CommonResponse.success(
+                userService.deleteUser(adminUserId, userId, deletedBy),
+                "사용자가 삭제되었습니다.")
+        );
     }
 }

@@ -1,26 +1,30 @@
 package com.i4u.user.application.dtos.request;
 
 import com.i4u.user.domain.UserRole;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @Getter
 @Builder
-@AllArgsConstructor // @NoArgsConstructor 제거 후 @AllArgsConstructor 사용
-public class UserSearchRequestDto { // 검색 시 Role 필터 추가
+@AllArgsConstructor
+public class UserSearchRequestDto {
 
-    private final String keyword; // 불변성 유지 위해 final 추가
+    @Size(min = 1, max = 50, message = "검색어는 1~50자 이내여야 합니다.")
+    private final String keyword;
+
     private final UserRole role;
     private final Pageable pageable;
 
-    // @Builder 사용 시 필드 초기화 문제 방지
+    // null-safe 변환 메서드 추가
     public static UserSearchRequestDto of(String keyword, UserRole role, Pageable pageable) {
         return UserSearchRequestDto.builder()
-                .keyword(keyword)
+                .keyword(keyword != null ? keyword.trim() : "") // null 방지
                 .role(role)
-                .pageable(pageable)
+                .pageable(pageable != null ? pageable : PageRequest.of(0, 10)) // 기본 페이징 처리
                 .build();
     }
 }
