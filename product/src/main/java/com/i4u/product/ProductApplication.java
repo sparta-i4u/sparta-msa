@@ -1,9 +1,16 @@
 package com.i4u.product;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 
-@SpringBootApplication(scanBasePackages = {"com.i4u.common", "com.i4u.product"})
+@SpringBootApplication(exclude = {
+		SecurityAutoConfiguration.class,
+		ManagementWebSecurityAutoConfiguration.class
+})
+@ComponentScan(basePackages = {"com.i4u.common", "com.i4u.product"})
 public class ProductApplication {
 
 	//product branch test

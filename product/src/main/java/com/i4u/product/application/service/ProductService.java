@@ -7,6 +7,8 @@ import com.i4u.product.application.dto.request.ProductUpdateRequest;
 import com.i4u.product.application.dto.response.ProductResponse;
 import com.i4u.product.application.dto.response.ProductSearchResponse;
 import com.i4u.product.domain.Product;
+import com.i4u.product.domain.QProduct;
+import com.i4u.product.domain.repository.ProductQueryRepository;
 import com.i4u.product.domain.repository.ProductRepository;
 import com.i4u.product.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +26,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductService {
 
-    private final ProductRepository productRepository;
+//    private final ProductRepository productRepository;
 //    private final HubRepository hubRepository;
 //    private final CompanyRepository companyRepository;
+
+    private final ProductQueryRepository productQueryRepository;  // QueryDSL 용도
+    private final ProductRepository productRepository;  // CRUD 용도
 
     //상품 생성
     @Transactional
@@ -53,14 +58,14 @@ public class ProductService {
     //모든 조회 및 검색에서 deleted_at 필드가 null인 데이터만을 대상으로 처리
     public ProductSearchResponse search(final ProductSearchCond cond, final int page, final int size, final String sort) {
         Pageable pageable = getPageable(page, size, sort);
-        return ProductSearchResponse.of(productRepository.search(cond, pageable));
+        return ProductSearchResponse.of(productQueryRepository.search(cond, pageable));
     }
 
     //모든 상품 전체 조회
     //모든 조회 및 검색에서 deleted_at 필드가 null인 데이터만을 대상으로 처리
     public ProductSearchResponse findAll(final int page, final int size, final String sort) {
         Pageable pageable = getPageable(page, size, sort);
-        return ProductSearchResponse.of(productRepository.findAll(pageable));
+        return ProductSearchResponse.of(productQueryRepository.findAll(pageable));
     }
 
     //페이징 함수
@@ -92,7 +97,7 @@ public class ProductService {
 
     //상품 아이디로 찾기
     public Product findProductById(final UUID productId) {
-        return productRepository.findById(productId)
+        return productQueryRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("찾는 상품이 없습니다"));
     }
 
