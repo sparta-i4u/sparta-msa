@@ -13,7 +13,6 @@ public record ProductResponse (
         Integer price,
         String content) {
 
-
     public static ProductResponse of(Product product) {
         return new ProductResponse(
                 product.getId(),
