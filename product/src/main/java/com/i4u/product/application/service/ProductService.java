@@ -1,13 +1,12 @@
 package com.i4u.product.application.service;
 
 
-import com.i4u.product.application.dto.ProductSearchCond;
+
 import com.i4u.product.application.dto.request.ProductCreateRequest;
 import com.i4u.product.application.dto.request.ProductUpdateRequest;
 import com.i4u.product.application.dto.response.ProductResponse;
 import com.i4u.product.application.dto.response.ProductSearchResponse;
 import com.i4u.product.domain.Product;
-import com.i4u.product.domain.QProduct;
 import com.i4u.product.domain.repository.ProductQueryRepository;
 import com.i4u.product.domain.repository.ProductRepository;
 import com.i4u.product.exception.ProductNotFoundException;
@@ -116,7 +115,7 @@ public class ProductService {
 
     //상품 삭제
     //상품 엔티티의 deleted_at, deleted_by 필드를 이용하여 논리적 삭제를 관리합니다.
-    // 상품이 삭제될 때 연관된 데이터(주문 등)도 삭제 관련 필드를 통해 관리합니다.
+    //상품이 삭제될 때 연관된 데이터(주문 등)도 삭제 관련 필드를 통해 관리합니다.
     @Transactional
     public void softDeleteProducts(final List<UUID> productIds, final String deletedBy){
         List<Product> products = productRepository.findAllById(productIds);

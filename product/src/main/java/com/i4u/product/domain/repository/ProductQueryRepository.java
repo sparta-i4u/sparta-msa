@@ -1,9 +1,8 @@
 package com.i4u.product.domain.repository;
 
-import com.i4u.product.application.dto.ProductSearchCond;
+
 import com.i4u.product.domain.Product;
 import com.i4u.product.domain.QProduct;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
