@@ -4,6 +4,7 @@ import com.i4u.common.entity.Basic;
 import com.i4u.hub.application.dtos.hubConnection.UpdateHubConnectionReqDto;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.UUID;
 
@@ -12,6 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@SQLRestriction("is_deleted IS NULL OR is_deleted = false")
 @Table(name = "p_hub_connection")
 public class HubConnection extends Basic {
 
