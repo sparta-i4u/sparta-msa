@@ -15,6 +15,8 @@ public enum DeliveryState {
 	// 주문 취소
 	ORDER_CANCELED,
 	// 배송 취소
-	DELIVERY_CANCELED
+	DELIVERY_CANCELED,
+	// 삭제
+	DELETED
 
 }

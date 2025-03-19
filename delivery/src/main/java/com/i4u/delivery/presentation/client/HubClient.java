@@ -8,14 +8,12 @@ import com.i4u.delivery.presentation.dtos.request.DeliveryHubUpdateRequest;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubUpdateResponse;
 
-import lombok.Getter;
-
-@FeignClient(name = "hub")
+@FeignClient(name = "hub-service")
 public interface HubClient {
 
-	@GetMapping("/deliveries/{deliveryId}/hubs/confirm")
+	@GetMapping("/api/v1/deliveries/hubs/confirm")
 	DeliveryHubCreateResponse confirmHubs(DeliveryHubCreateRequest build);
 
-	@GetMapping("")
+	@GetMapping("/api/v1/deliveries/hubs/confirm/update")
 	DeliveryHubUpdateResponse updateHubInfo(DeliveryHubUpdateRequest build);
 }
