@@ -17,6 +17,9 @@ public class DeliveryUpdateRequest {
 	// 배송지 주소
 	private String address;
 
+	// 변경된 주소지에 맞는 HubId
+	private UUID arriveHubId;
+
 	// 수령인 ID
 	private UUID recipientId;
 
