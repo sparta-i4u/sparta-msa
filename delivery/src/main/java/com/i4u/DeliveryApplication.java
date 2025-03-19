@@ -5,12 +5,14 @@ import org.springframework.boot.actuate.autoconfigure.security.servlet.Managemen
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication(exclude = {
 	SecurityAutoConfiguration.class,
 	ManagementWebSecurityAutoConfiguration.class
 })
 @EnableFeignClients
+@EnableJpaAuditing
 public class DeliveryApplication {
 
 	public static void main(String[] args) {

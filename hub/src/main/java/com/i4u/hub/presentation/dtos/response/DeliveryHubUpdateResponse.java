@@ -1,4 +1,4 @@
-package com.i4u.delivery.presentation.dtos.response;
+package com.i4u.hub.presentation.dtos.response;
 
 import java.util.UUID;
 

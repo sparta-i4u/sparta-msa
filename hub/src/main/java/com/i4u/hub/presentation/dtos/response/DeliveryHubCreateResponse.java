@@ -1,4 +1,4 @@
-package com.i4u.delivery.presentation.dtos.response;
+package com.i4u.hub.presentation.dtos.response;
 
 import java.util.UUID;
 
@@ -11,9 +11,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DeliveryHubUpdateResponse {
+public class DeliveryHubCreateResponse {
 
-	private UUID arriveHubId;
+	private UUID supplierHubId;
+	private UUID recipientHubId;
 	private Boolean isDeleted;
 
 }

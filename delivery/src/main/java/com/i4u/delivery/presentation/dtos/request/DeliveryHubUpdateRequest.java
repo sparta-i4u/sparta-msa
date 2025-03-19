@@ -1,5 +1,7 @@
 package com.i4u.delivery.presentation.dtos.request;
 
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,6 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DeliveryHubUpdateRequest {
 
-	private String address;
+	private UUID arriveHubId;
 
 }
