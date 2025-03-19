@@ -15,5 +15,6 @@ public class ShipperHubResponse {
 
 	private Boolean isDeleted;
 	private UUID hubId;
+	private UUID hubManagerId;
 
 }
