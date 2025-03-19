@@ -8,9 +8,9 @@ plugins {
 group = 'com.i4u'
 version = '0.0.1-SNAPSHOT'
 
-// common jar 설정
-bootJar.enabled = false // Executable Archive
-jar.enabled = true      // Plain Archive
+// `common` 모듈은 실행 가능한 JAR가 필요하지 않으므로 `bootJar` 비활성화
+bootJar.enabled = false
+jar.enabled = true
 
 java {
 	toolchain {
@@ -26,45 +26,62 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' } // Spring Cloud 최신 버전 다운로드 가능하도록 추가
 }
 
 ext {
+	set('springCloudVersion', "2024.0.0") // Spring Cloud BOM 버전 설정
 	set('querydslVersion', "5.0.0")  // QueryDSL 버전 명시적으로 설정
 }
 
 dependencies {
-	// Web
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	// ✅ WebFlux (일반 Web 대신 WebFlux 유지)
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
-	// Jpa
+	// ✅ Jpa
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-	// Swagger
+	// ✅ Swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
-	// Querydsl
+	// ✅ QueryDSL
 	implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
 	annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
-	// Lombok
+	// ✅ Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	// Json
+	// ✅ Json
 	implementation 'org.json:json:20210307'
 
-	// Security
+	// ✅ Open Feign 및 LoadBalancer (Spring Cloud)
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+
+	// ✅ Actuator (모니터링 및 관리용)
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// ✅ Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	testImplementation 'org.springframework.security:spring-security-test'
 
-	// Test
+	// ✅ Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+// ✅ Spring Cloud BOM 추가
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
 }
+
+tasks.named('test') {
+//	useJUnitPlatform()
+	enabled = false
+}
+

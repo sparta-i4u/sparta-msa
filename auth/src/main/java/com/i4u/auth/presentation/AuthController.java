@@ -20,7 +20,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // ✅ 모든 모듈이 공통으로 사용할 수 있는 사용자 검증 API (GET /auth/validate-user/{userId}?fields=userId,isDeleted)
+    // 모든 모듈이 공통으로 사용할 수 있는 사용자 검증 API (GET /auth/validate-user/{userId}?fields=userId,isDeleted)
     @GetMapping("/validate-user/{userId}")
     public ResponseEntity<CommonResponse<Map<String, Object>>> validateUser(
             @PathVariable UUID userId,

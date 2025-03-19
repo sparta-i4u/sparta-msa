@@ -16,17 +16,25 @@ public class CommonResponse<T> {
 
 	public static <T> CommonResponse<T> success(T data, String message) {
 		return CommonResponse.<T>builder()
-			.code(SUCCESS_CODE)
-			.data(data)
-			.message(message)
-			.build();
+				.code(SUCCESS_CODE)
+				.data(data)
+				.message(message)
+				.build();
 	}
 
 	public static <T> CommonResponse<T> fail() {
 		return CommonResponse.<T>builder()
-			.code(FAIL_CODE)
-			.data(null)
-			.message(null)
-			.build();
+				.code(FAIL_CODE)
+				.data(null)
+				.message("요청 처리 중 오류가 발생했습니다.")
+				.build();
+	}
+
+	public static <T> CommonResponse<T> fail(String errorCode, String message) {
+		return CommonResponse.<T>builder()
+				.code(errorCode != null ? errorCode : FAIL_CODE)
+				.data(null)
+				.message(message != null ? message : "요청 처리 중 오류가 발생했습니다.")
+				.build();
 	}
 }

@@ -1,4 +1,4 @@
-package com.i4u.user.infrastructure.security.aop;
+package com.i4u.auth.infrastructure.security.aop;
 
 import com.i4u.common.security.CustomUserDetails;
 import com.i4u.user.application.exception.UserException;
@@ -12,7 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
-
+// 로그인 검증(AOP 기반)을 수행
 //`@RequiresAuth` 어노테이션이 적용된 메서드에 대한 로그인 검증 AOP.
 @Aspect
 @Component
