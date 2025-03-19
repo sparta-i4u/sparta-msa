@@ -3,6 +3,8 @@ package com.i4u.delivery.domain.entity;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.hibernate.annotations.SQLRestriction;
+
 import com.i4u.common.entity.Basic;
 
 import jakarta.persistence.Column;
@@ -22,6 +24,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "p_delivery")
+@SQLRestriction("is_deleted IS NULL OR is_deleted = false")
 public class Delivery extends Basic {
 
 	@Id

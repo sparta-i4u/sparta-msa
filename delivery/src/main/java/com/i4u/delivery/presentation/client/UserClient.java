@@ -8,7 +8,7 @@ import com.i4u.delivery.presentation.dtos.request.DeliveryUserUpdateRequest;
 import com.i4u.delivery.presentation.dtos.response.DeliveryUserSlackIdResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryUserUpdateResponse;
 
-@FeignClient(name = "user")
+@FeignClient(name = "user-service")
 public interface UserClient {
 
 	@GetMapping("/deliveries/{deliveryId}/users/confirm")

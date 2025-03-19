@@ -1,4 +1,4 @@
-package com.i4u.delivery.presentation.dtos.request;
+package com.i4u.order.presentation.dtos.request;
 
 import java.util.UUID;
 
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DeliveryOrderDeleteRequest {
+public class DeliveryOrderStateUpdateRequest {
 
 	private UUID orderId;
 	private UUID deliveryId;
