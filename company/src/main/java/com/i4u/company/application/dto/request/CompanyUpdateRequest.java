@@ -1,0 +1,12 @@
+package com.i4u.company.application.dto.request;
+
+import com.i4u.company.domain.enums.CompanyType;
+import jakarta.validation.constraints.NotBlank;
+
+public record CompanyUpdateRequest (
+        @NotBlank(message = "업체 이름은 필수입니다.") String name,
+        @NotBlank(message = "업체 타입은 필수입니다.") CompanyType type,
+        @NotBlank(message = "업체 점주이름은 필수입니다.") String owner,
+        @NotBlank(message = "업체 주소는 필수입니다.") String address,
+        @NotBlank(message = "업체 번호는 필수입니다.") String number) {
+}

@@ -108,6 +108,7 @@ public class CompanyService {
         Company store = companyRepository.findById(companyId)
                 .orElseThrow(() -> new RuntimeException("Company Not FOUND"));
         companyRepository.softDeleteCompany(companyId);
+        // store.softDelete(/*user uuid*/);
         return CompanyResponseDto.of(store);
     }
 }

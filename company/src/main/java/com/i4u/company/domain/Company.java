@@ -1,14 +1,11 @@
 package com.i4u.company.domain;
 
 import com.i4u.common.entity.Basic;
+import com.i4u.company.application.dto.request.CompanyUpdateRequest;
 import com.i4u.company.domain.enums.CompanyType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -45,4 +42,14 @@ public class Company extends Basic {
         this.number = number;
         this.isDeleted = false;
     }
+
+    //상품 수정 함수
+    public void update(final CompanyUpdateRequest newCompany) {
+        this.name = newCompany.name();
+        this.type = newCompany.type();
+        this.owner = newCompany.owner();
+        this.address = newCompany.address();
+        this.number = newCompany.number();
+    }
+
 }
