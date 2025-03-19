@@ -3,6 +3,8 @@ package com.i4u.shipper.domain.entity;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.hibernate.annotations.SQLRestriction;
+
 import com.i4u.common.entity.Basic;
 
 import jakarta.persistence.Column;
@@ -21,6 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "p_shipper")
+@SQLRestriction("is_deleted IS NULL OR is_deleted = false")
 public class Shipper extends Basic {
 
 	// 배송 담당자 ID

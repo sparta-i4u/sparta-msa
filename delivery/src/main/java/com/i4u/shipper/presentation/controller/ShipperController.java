@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,8 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ShipperController {
 
-	// TODO : 전체적으로 권한 확인 어떻게 할지 생각하기
-
 	private final ShipperService shipperService;
 
 	/**
@@ -45,10 +44,13 @@ public class ShipperController {
 	 * @param shipperCreateRequest : 배송 담당자 생성 정보
 	 * @return : 생성한 배송 담당자 내용
 	 */
-	@PostMapping
-	public ResponseEntity<CommonResponse<ShipperCreateResponse>> createShipper(@RequestBody ShipperCreateRequest shipperCreateRequest) {
+	@PostMapping // MASTER, HUB_MANAGER(담당 허브)
+	public ResponseEntity<CommonResponse<ShipperCreateResponse>> createShipper(
+		@RequestBody ShipperCreateRequest shipperCreateRequest,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("배송 담당자 생성 요청 들어옴");
-		ShipperCreateResponse response = shipperService.createShipper(shipperCreateRequest);
+		ShipperCreateResponse response = shipperService.createShipper(shipperCreateRequest, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 담당자 생성 성공"));
 	}
 
@@ -58,11 +60,13 @@ public class ShipperController {
 	 * @param pageable : 페이지네이션 (페이지 수 page, 한 페이지의 데이터 개수 size)
 	 * @return : 조회한 전체 배송 담당자 내용
 	 */
-	@GetMapping
+	@GetMapping // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 정보)
 	public ResponseEntity<CommonResponse<PagedModel<ShipperListResponse>>> getAllShippers(
-		Pageable pageable, @ModelAttribute ShipperSearchRequest request) {
+		Pageable pageable, @ModelAttribute ShipperSearchRequest request,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("배송 담당자 전제 조회 요청 들어옴");
-		PagedModel<ShipperListResponse> shipperList = shipperService.getAllShippers(pageable, request);
+		PagedModel<ShipperListResponse> shipperList = shipperService.getAllShippers(pageable, request, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(shipperList, "배송 담당자 전체 조회 성공"));
 	}
 
@@ -72,10 +76,13 @@ public class ShipperController {
 	 * @param shipperId : 조회할 배송 담당자 ID
 	 * @return : 조회한 배송 담당자 내용
 	 */
-	@GetMapping("/{shipperId}")
-	public ResponseEntity<CommonResponse<ShipperGetOneResponse>> getOneShipper(@PathVariable UUID shipperId) {
+	@GetMapping("/{shipperId}") // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 정보)
+	public ResponseEntity<CommonResponse<ShipperGetOneResponse>> getOneShipper(
+		@PathVariable UUID shipperId,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("배송 담당자 단건 조회 요청 들어옴 : " + shipperId);
-		ShipperGetOneResponse response = shipperService.getOneShipper(shipperId);
+		ShipperGetOneResponse response = shipperService.getOneShipper(shipperId, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 담당자 단건 조회 성공"));
 	}
 
@@ -85,11 +92,14 @@ public class ShipperController {
 	 * @param shipperId : 수정할 배송 담당자 ID
 	 * @return : 수정한 배송 담당자 내용
 	 */
-	@PutMapping("/{shipperId}")
-	public ResponseEntity<CommonResponse<ShipperUpdateResponse>> putShipper(@PathVariable UUID shipperId, @RequestBody ShipperUpdateRequest shipperUpdateRequest) {
+	@PutMapping("/{shipperId}") // MASTER, HUB_MANAGER(담당 허브)
+	public ResponseEntity<CommonResponse<ShipperUpdateResponse>> putShipper(
+		@PathVariable UUID shipperId, @RequestBody ShipperUpdateRequest shipperUpdateRequest,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("배송 담당자 수정 요청 들어옴 : " + shipperId);
 		log.info(shipperUpdateRequest.getShipperType().toString());
-		ShipperUpdateResponse response = shipperService.updateShipper(shipperId, shipperUpdateRequest);
+		ShipperUpdateResponse response = shipperService.updateShipper(shipperId, shipperUpdateRequest, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 담당자 수정 성공"));
 	}
 
@@ -99,10 +109,13 @@ public class ShipperController {
 	 * @param shipperId : 삭제할 배송 담당자 ID
 	 * @return : 삭제한 배송 담당자 내용
 	 */
-	@DeleteMapping("/{shipperId}")
-	public ResponseEntity<CommonResponse> deleteShipper(@PathVariable UUID shipperId) {
+	@DeleteMapping("/{shipperId}") // MASTER, HUB_MANAGER(담당 허브)
+	public ResponseEntity<CommonResponse> deleteShipper(
+		@PathVariable UUID shipperId,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("배송 담당자 삭제 요청 들어옴 : " + shipperId);
-		shipperService.deleteShipper(shipperId);
+		shipperService.deleteShipper(shipperId, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(shipperId, "배송 담당자 삭제 성공"));
 	}
 
