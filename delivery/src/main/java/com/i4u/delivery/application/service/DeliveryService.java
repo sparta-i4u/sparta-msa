@@ -63,7 +63,7 @@ public class DeliveryService {
 	public DeliveryCreateResponse createDelivery(DeliveryCreateRequest request) {
 		// 1. [hubClient] 허브 검증
 		ResponseEntity<CommonResponse<DeliveryHubCreateResponse>> responseHub = hubClient.confirmHubsFromDelivery(
-			request.getDepartHubId(), request.getArriveHubId() );
+				request.getDepartHubId(), request.getArriveHubId() );
 
 		if (responseHub.getBody().getData().getIsDeleted()) {
 			throw new DeliveryException("배송할 수 있는 허브가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
@@ -78,8 +78,8 @@ public class DeliveryService {
 
 		// 3. [shipperClient]  배송 담당자 배정 요청
 		ResponseEntity<CommonResponse<DeliveryShipperResponse>> responseShipper = shipperClient.assignShipper(
-			DeliveryShipperRequest.builder()
-			.recipientHubId(request.getArriveHubId()).build());
+				DeliveryShipperRequest.builder()
+						.recipientHubId(request.getArriveHubId()).build());
 
 		if (responseShipper.getBody().getData().getIsDeleted()) {
 			throw new DeliveryException("배송 가능한 배송 담당자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
@@ -101,7 +101,7 @@ public class DeliveryService {
 	 * @return : 조회한 전체 배송 내용
 	 */   // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 주문), COMPANY_MANAGER
 	public PagedModel<DeliveryGetListResponse> getAllDeliveries(Pageable pageable, DeliverySearchRequest request,
-		String userId, String role) {
+																String userId, String role) {
 		// 1. 사용자 권한 값 넘겨주기 (전체 조회 제한 여부 확인)
 		UUID hubManagerHubId = null;
 		if (role.equals("ROLE_HUB_MANAGER")) {
@@ -125,12 +125,12 @@ public class DeliveryService {
 
 		// 1. 해당 배송을 조회할 수 있는 사용자인지 확인
 		if ( (role.equals("ROLE_HUB_MANAGER") &&
-			confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
+				confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		if ( role.equals("DELIVERY_MANAGER") &&
-			!delivery.getShipperId().equals(userId) ) {
+				!delivery.getShipperId().equals(userId) ) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -152,17 +152,17 @@ public class DeliveryService {
 	 */  // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 배송) - shipperId와 일치하면 됨
 	@Transactional
 	public DeliveryUpdateResponse updateDelivery(UUID deliveryId, DeliveryUpdateRequest request, String userId,
-		String role) {
+												 String role) {
 		Delivery delivery = findDelivery(deliveryId);
 
 		// 1. 해당 배송을 수정할 수 있는 사용자인지 확인
 		if ( (role.equals("ROLE_HUB_MANAGER") &&
-			confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
+				confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		if ( role.equals("DELIVERY_MANAGER") &&
-			!delivery.getShipperId().equals(userId) ) {
+				!delivery.getShipperId().equals(userId) ) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -177,7 +177,7 @@ public class DeliveryService {
 		if (!delivery.getArriveHubId().equals(request.getArriveHubId())) {
 			// 2-1. [hubClient] 허브 ID가 다른 경우에만 Hub로 요청 전송
 			ResponseEntity<CommonResponse<DeliveryHubUpdateResponse>> responseHub = hubClient.updateConfirmHubsFromDelivery(
-				request.getArriveHubId());
+					request.getArriveHubId());
 
 			if (responseHub.getBody().getData().getIsDeleted()) {
 				throw new DeliveryException("허브가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
@@ -187,8 +187,8 @@ public class DeliveryService {
 			recipientHubId = responseHub.getBody().getData().getArriveHubId();
 
 			ResponseEntity<CommonResponse<DeliveryShipperResponse>> responseShipper = shipperClient.assignShipper(
-				DeliveryShipperRequest.builder()
-				.recipientHubId(request.getArriveHubId()).build());
+					DeliveryShipperRequest.builder()
+							.recipientHubId(request.getArriveHubId()).build());
 
 			if (responseShipper.getBody().getData().getIsDeleted()) {
 				throw new DeliveryException("배송 가능한 배송 담당자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
@@ -197,7 +197,7 @@ public class DeliveryService {
 			shipperId = responseShipper.getBody().getData().getShipperId();
 
 		}
-		
+
 		// 2-3. [userClient] 사용자 정보가 바뀌면 (SlackId만 변경하는 경우 -> 요청 없이 변경하도록 설정)
 		String userSlackId = request.getRecipientSlackId();
 		if (!delivery.getRecipientId().equals(request.getRecipientId())) {
@@ -206,11 +206,11 @@ public class DeliveryService {
 
 			userSlackId = responseUser.getUserSlackId();
 		}
-		
+
 		// 3. 수정하기
 		Delivery updatingDelivery = request.toDelivery(recipientHubId, shipperId, userSlackId);
 		delivery.updateDelivery(updatingDelivery);
-		
+
 		return DeliveryUpdateResponse.fromDelivery(delivery);
 	}
 
@@ -225,17 +225,17 @@ public class DeliveryService {
 	 */  // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 배송)
 	@Transactional
 	public DeliveryStateUpdateResponse updateDeliveryState(UUID deliveryId, DeliveryStatusUpdateRequest request,
-		String userId, String role) {
+														   String userId, String role) {
 		Delivery delivery = findDelivery(deliveryId);
 
 		// 1. 해당 배송을 수정할 수 있는 사용자인지 확인
 		if ( (role.equals("ROLE_HUB_MANAGER") &&
-			confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
+				confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		if ( role.equals("DELIVERY_MANAGER") &&
-			!delivery.getShipperId().equals(userId) ) {
+				!delivery.getShipperId().equals(userId) ) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -249,8 +249,8 @@ public class DeliveryService {
 
 		// 3. 변경된 상태에 따라서 order 측으로 요청 전송
 		orderClient.notificationDeliveryState(DeliveryOrderStateUpdateRequest.builder()
-			.orderId(delivery.getOrderId()).deliveryId(delivery.getDeliveryId())
-			.deliveryState(delivery.getDeliveryState().toString()).build());
+				.orderId(delivery.getOrderId()).deliveryId(delivery.getDeliveryId())
+				.deliveryState(delivery.getDeliveryState().toString()).build());
 
 		// 4. 상태가 변경된 배송 정보 반환
 		return DeliveryStateUpdateResponse.fromDelivery(delivery);
@@ -267,20 +267,20 @@ public class DeliveryService {
 	public void deleteDelivery(UUID deliveryId, String userId, String role) {
 		// 1. 배송 검색
 		Delivery delivery = findDelivery(deliveryId);
-		
+
 		// 2. 사용자 권한 확인
 		if ( (role.equals("ROLE_HUB_MANAGER") &&
-			confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
+				confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		
+
 		if (! (role.equals("ROLE_MASTER") || role.equals("ROLE_HUB_MANAGER"))) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		
+
 		// 3. delivery 삭제 로직 추가 - delivery 상태에 따라서 배송이 시작되었다면 삭제가 불가능하도록 설정하기
 		if ( (delivery.getDeliveryState().equals(DeliveryState.PENDING) ||
-			delivery.getDeliveryState().equals(DeliveryState.PREPARING)) ) {
+				delivery.getDeliveryState().equals(DeliveryState.PREPARING)) ) {
 			throw new DeliveryException("배송을 삭제할 수 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -289,8 +289,8 @@ public class DeliveryService {
 
 		// 5. [orderClient] order 쪽으로도 요청 전송
 		orderClient.notificationDeliveryState(DeliveryOrderStateUpdateRequest.builder()
-			.orderId(delivery.getOrderId()).deliveryId(delivery.getDeliveryId())
-			.deliveryState(DeliveryState.DELETED.toString()).build());
+				.orderId(delivery.getOrderId()).deliveryId(delivery.getDeliveryId())
+				.deliveryState(DeliveryState.DELETED.toString()).build());
 	}
 
 	/**
@@ -320,6 +320,6 @@ public class DeliveryService {
 	 */
 	private Delivery findDelivery(UUID deliveryId) {
 		return deliveryRepository.findById(deliveryId)
-			.orElseThrow(() -> new DeliveryException("해당 배송 내역을 찾을 수 없습니다", HttpStatus.BAD_REQUEST));
+				.orElseThrow(() -> new DeliveryException("해당 배송 내역을 찾을 수 없습니다", HttpStatus.BAD_REQUEST));
 	}
 }
