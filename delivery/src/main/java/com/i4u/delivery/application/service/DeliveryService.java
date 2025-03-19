@@ -1,13 +1,14 @@
 package com.i4u.delivery.application.service;
 
 import org.springframework.data.domain.Pageable;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
+import java.util.UUID;
+
+import com.i4u.common.utils.CommonResponse;
 import com.i4u.delivery.application.dtos.request.DeliverySearchRequest;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.i4u.delivery.application.dtos.request.DeliveryCreateRequest;
@@ -27,14 +28,9 @@ import com.i4u.delivery.presentation.client.OrderClient;
 import com.i4u.delivery.presentation.client.ShipperClient;
 import com.i4u.delivery.presentation.client.UserClient;
 import com.i4u.delivery.presentation.dtos.request.DeliveryHubUpdateRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryOrderCreateRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryOrderDeleteRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryOrderStateUpdateRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryShipperUpdateRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryUserUpdateRequest;
+import com.i4u.delivery.presentation.dtos.request.DeliveryShipperRequest;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubUpdateResponse;
-import com.i4u.delivery.presentation.dtos.response.DeliveryShipperUpdateResponse;
-import com.i4u.delivery.presentation.dtos.response.DeliveryUserUpdateResponse;
+import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -77,16 +73,17 @@ public class DeliveryService {
 		// 	throw new DeliveryException("수령인이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		// }
 		//
-		// // 4. [shipperClient]  배송 담당자 배정 요청
-		// DeliveryShipperCreateResponse responseShipper = shipperClient.assignShipper(DeliveryShipperCreateRequest.builder()
-		// 	.recipientHubId(responseHub.getRecipientHubId()).build());
-		//
-		// if (responseShipper.getIsDeleted()) {
-		// 	throw new DeliveryException("배송 가능한 배송 담당자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
-		// }
+		// 4. [shipperClient]  배송 담당자 배정 요청
+		ResponseEntity<CommonResponse<DeliveryShipperResponse>> responseShipper = shipperClient.assignShipper(
+			DeliveryShipperRequest.builder()
+			.recipientHubId(request.getArriveHubId()).build());
+
+		if (responseShipper.getBody().getData().getIsDeleted()) {
+			throw new DeliveryException("배송 가능한 배송 담당자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+		}
 
 		// 5. 배송 생성
-		// UUID shipperId = responseShipper.getShipperId();
+		// UUID shipperId = responseShipper.getBody().getData().getShipperId();
 		// String recipientSlackId = responseUser.getUserSlackId();
 
 		UUID shipperId = UUID.randomUUID();
@@ -144,23 +141,25 @@ public class DeliveryService {
 		UUID recipientHubId = delivery.getArriveHubId();
 		UUID shipperId = delivery.getShipperId();
 
-		// if (!delivery.getAddress().equals(request.getAddress())) {
-		// 	// 2-1. [hubClient] 주소가 다른 경우에만 Hub로 요청 전송
-		// 	// recipient 허브 ID 바꿔주세요 ~
-		// 	DeliveryHubUpdateResponse responseHub = hubClient.updateHubInfo(DeliveryHubUpdateRequest.builder()
-		// 		.address(delivery.getAddress()).build());
-		//
-		// 	// 그리고 recipient 허브가 바뀌면 배송 담당자도 재배정 필요함
-		// 	// 2-2. [shipperClient] 허브 바뀌었으니까 배송 담당자 다시 주세요
-		// 	if (!delivery.getArriveHubId().equals(responseHub.getArriveHubId())) {
-		// 		recipientHubId = responseHub.getArriveHubId();
-		//
-		// 		DeliveryShipperUpdateResponse responseShipper = shipperClient.updateShipperInfo(
-		// 			DeliveryShipperUpdateRequest.builder().recipientHubId(recipientHubId).build());
-		//
-		// 		shipperId = responseShipper.getShipperId();
-		// 	}
-		// }
+		if (!delivery.getArriveHubId().equals(request.getArriveHubId())) {
+			// 2-1. [hubClient] 허브 ID가 다른 경우에만 Hub로 요청 전송
+			DeliveryHubUpdateResponse responseHub = hubClient.updateHubInfo(DeliveryHubUpdateRequest.builder()
+				.address(delivery.getAddress()).build());
+
+			// 2-2. [shipperClient] 허브 바뀌었으니까 배송 담당자 다시 주세요
+			recipientHubId = responseHub.getArriveHubId();
+
+			ResponseEntity<CommonResponse<DeliveryShipperResponse>> responseShipper = shipperClient.assignShipper(
+				DeliveryShipperRequest.builder()
+				.recipientHubId(request.getArriveHubId()).build());
+
+			if (responseShipper.getBody().getData().getIsDeleted()) {
+				throw new DeliveryException("배송 가능한 배송 담당자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+			}
+
+			shipperId = responseShipper.getBody().getData().getShipperId();
+
+		}
 		
 		// 2-3. [userClient] 사용자 정보가 바뀌면 (SlackId만 변경하는 경우 -> 요청 없이 변경하도록 설정)
 		String userSlackId = request.getRecipientSlackId();

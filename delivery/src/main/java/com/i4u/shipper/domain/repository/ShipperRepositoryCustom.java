@@ -8,8 +8,11 @@ import org.springframework.data.web.PagedModel;
 
 import com.i4u.shipper.application.dtos.request.ShipperSearchRequest;
 import com.i4u.shipper.application.dtos.response.ShipperListResponse;
+import com.i4u.shipper.domain.entity.Shipper;
 
 public interface ShipperRepositoryCustom {
 	Page<ShipperListResponse> searchShippers(Pageable pageable, ShipperSearchRequest request/*, String role*/);
 	Integer confirmShipperOrder(UUID hubId);
+	Shipper assignShipper(UUID hubId);
+	Shipper assignNewShipper(UUID hubId, Integer shipperOrder);
 }
