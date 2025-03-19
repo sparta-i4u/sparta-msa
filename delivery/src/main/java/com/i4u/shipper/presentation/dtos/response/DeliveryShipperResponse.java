@@ -1,18 +1,19 @@
-package com.i4u.delivery.presentation.dtos.request;
+package com.i4u.shipper.presentation.dtos.response;
 
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class DeliveryShipperUpdateRequest {
+public class DeliveryShipperResponse {
 
 	private UUID recipientHubId;
+	private UUID shipperId;
+	private Boolean isDeleted;
 
 }
+

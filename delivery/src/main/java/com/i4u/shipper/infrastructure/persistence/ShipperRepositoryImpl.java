@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import com.i4u.shipper.application.dtos.request.ShipperSearchRequest;
 import com.i4u.shipper.application.dtos.response.ShipperListResponse;
 import com.i4u.shipper.domain.entity.QShipper;
+import com.i4u.shipper.domain.entity.Shipper;
 import com.i4u.shipper.domain.entity.ShipperType;
 import com.i4u.shipper.domain.repository.ShipperRepositoryCustom;
 import com.querydsl.core.Tuple;
@@ -106,6 +107,42 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 
 		// 새 배송 순서는 max 값 + 1
 		return maxShipperOrder != null ? maxShipperOrder + 1 : 1;
+	}
+
+	@Override
+	public Shipper assignShipper(UUID hubId) {
+		Shipper assignShipper = queryFactory
+			.selectFrom(shipper)
+			.where(
+				shipper.hubId.eq(hubId),
+				shipper.shipperType.eq(ShipperType.COMPANY)
+			)
+			.orderBy(shipper.shipperOrder.asc())
+			.limit(1)
+			.fetchOne();
+
+		return assignShipper;
+	}
+
+	@Override
+	public Shipper assignNewShipper(UUID hubId, Integer shipperOrder) {
+		Shipper assignShipper = queryFactory
+			.selectFrom(shipper)
+			.where(
+				shipper.hubId.eq(hubId),
+				shipper.shipperOrder.gt(shipperOrder),
+				shipper.shipperType.eq(ShipperType.COMPANY)
+			)
+			.orderBy(shipper.shipperOrder.asc())
+			.limit(1)
+			.fetchOne();
+
+		// shipperOrder보다 큰 값이 없을 경우, 가장 작은 shipperOrder 가진 Shipper 반환
+		if (assignShipper == null) {
+			assignShipper = assignShipper(hubId);
+		}
+
+		return assignShipper;
 	}
 
 	/**
