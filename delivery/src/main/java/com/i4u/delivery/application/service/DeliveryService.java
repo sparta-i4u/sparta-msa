@@ -28,6 +28,9 @@ import com.i4u.delivery.presentation.client.OrderClient;
 import com.i4u.delivery.presentation.client.ShipperClient;
 import com.i4u.delivery.presentation.client.UserClient;
 import com.i4u.delivery.presentation.dtos.request.DeliveryHubUpdateRequest;
+import com.i4u.delivery.presentation.dtos.request.DeliveryOrderCreateRequest;
+import com.i4u.delivery.presentation.dtos.request.DeliveryOrderDeleteRequest;
+import com.i4u.delivery.presentation.dtos.request.DeliveryOrderStateUpdateRequest;
 import com.i4u.delivery.presentation.dtos.request.DeliveryShipperRequest;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubUpdateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
@@ -92,11 +95,7 @@ public class DeliveryService {
 		Delivery delivery = request.toDelivery(DeliveryState.PREPARING, recipientSlackId, shipperId);
 		Delivery savedDelivery = deliveryRepository.save(delivery);
 
-		// 6. 배송을 생성했으니 다시 order 쪽으로 deliveryId와 state 전송 필요
-		// orderClient.notificationDeliveryCreate(DeliveryOrderCreateRequest.builder()
-		// 	.orderId(savedDelivery.getOrderId()).deliveryId(savedDelivery.getDeliveryId()).deliveryState(savedDelivery.getDeliveryState().toString()).build());
-
-		return DeliveryCreateResponse.fromDelivery(delivery);
+		return DeliveryCreateResponse.fromDelivery(savedDelivery);
 	}
 
 	/**
@@ -108,8 +107,6 @@ public class DeliveryService {
 		// 1. 사용자 권한 값 넘겨주기 (전체 조회 제한 여부 확인)
 		PagedModel<DeliveryGetListResponse> deliveryList = deliveryRepository.searchDeliveries(pageable, request);
 		return deliveryList;
-		// List<Delivery> deliveries = deliveryRepository.findAll();
-		// return deliveries.stream().map(DeliveryGetListResponse::fromDelivery).collect(Collectors.toList());
 	}
 
 	/**
@@ -196,9 +193,9 @@ public class DeliveryService {
 		delivery.updateDeliveryState(updatingDelivery);
 
 		// 3. 변경된 상태에 따라서 order 측으로 요청 전송
-		// orderClient.notificationDeliveryState(DeliveryOrderStateUpdateRequest.builder()
-		// 	.orderId(delivery.getOrderId()).deliveryId(delivery.getDeliveryId())
-		// 	.deliveryState(delivery.getDeliveryState().toString()).build());
+		orderClient.notificationDeliveryState(DeliveryOrderStateUpdateRequest.builder()
+			.orderId(delivery.getOrderId()).deliveryId(delivery.getDeliveryId())
+			.deliveryState(delivery.getDeliveryState().toString()).build());
 
 		// 4. 상태가 변경된 배송 정보 반환
 		return DeliveryStateUpdateResponse.fromDelivery(delivery);
@@ -224,9 +221,10 @@ public class DeliveryService {
 
 		// delivery.softDelete(/*사용자 정보*/);
 
-		// 4. order 쪽으로도 요청이 날라가야 함 (배송 삭제되었다고)
-		// orderClient.notificationDeliveryCanceled(DeliveryOrderDeleteRequest.builder()
-		// 	.orderId(delivery.getOrderId()).deliveryId(delivery.getDeliveryId()).build());
+		// 4. [orderClient] order 쪽으로도 요청 전송
+		orderClient.notificationDeliveryState(DeliveryOrderStateUpdateRequest.builder()
+			.orderId(delivery.getOrderId()).deliveryId(delivery.getDeliveryId())
+			.deliveryState(DeliveryState.DELETED.toString()).build());
 	}
 
 
@@ -237,7 +235,6 @@ public class DeliveryService {
 	 * @return : 배송 내역
 	 */
 	private Delivery findDelivery(UUID deliveryId) {
-		// TODO : 삭제 여부 필터링 필요 없는지 다시 한 번 확인
 		return deliveryRepository.findById(deliveryId)
 			.orElseThrow(() -> new DeliveryException("해당 배송 내역을 찾을 수 없습니다", HttpStatus.BAD_REQUEST));
 	}
