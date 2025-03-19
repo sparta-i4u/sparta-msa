@@ -70,17 +70,29 @@ public class ProductService {
 
     //페이징 함수
     private Pageable getPageable(final int page, final int size, final String sort) {
+
+        if (sort == null || sort.isBlank()) {
+            return PageRequest.of(page, size); // 기본 정렬 없음
+        }
+
         String[] sortParams = sort.split(",");
         List<Sort.Order> orders = new ArrayList<>();
+
         for (String param : sortParams) {
-            String[] fieldAndDirection = param.trim().split("-");
+            String[] fieldAndDirection = param.trim().split("[- ]"); // '-' 또는 ' '으로 구분
             if (fieldAndDirection.length != 2) {
                 throw new IllegalArgumentException(
-                        "Invalid sort parameter format. Expected 'field direction'.");
+                        "Invalid sort parameter format. Expected 'field direction' (e.g., 'name asc').");
             }
-            String field = fieldAndDirection[0];
-            String direction = fieldAndDirection[1].toUpperCase();
-            Sort.Direction dir = direction.equals("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+            String field = fieldAndDirection[0].trim();
+            String direction = fieldAndDirection[1].trim().toUpperCase();
+
+            if (!direction.equals("ASC") && !direction.equals("DESC")) {
+                throw new IllegalArgumentException("Invalid sort direction. Use 'asc' or 'desc'.");
+            }
+
+            Sort.Direction dir = Sort.Direction.fromString(direction);
             orders.add(new Sort.Order(dir, field));
         }
         Sort sortObj = Sort.by(orders);
