@@ -3,6 +3,7 @@ package com.i4u.company.presentation;
 
 import com.i4u.common.utils.CommonResponse;
 import com.i4u.company.application.dto.request.CompanyRequestDto;
+import com.i4u.company.application.dto.request.CompanyUpdateRequest;
 import com.i4u.company.application.dto.response.CompanyResponseDto;
 import com.i4u.company.application.service.CompanyService;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class CompanyController {
     //업체 조회
     //ALL
     @GetMapping("")
-    public ResponseEntity<CommonResponse> getCompany(
+    public ResponseEntity<CommonResponse> getCompany (
             @RequestParam String keyword,
             @RequestParam int page,
             @RequestParam int size,
@@ -53,7 +54,7 @@ public class CompanyController {
     //MASTER, 담당허브, 본인업체
     @PutMapping("/{companyId}")
     public ResponseEntity<CommonResponse> updateCompany(
-            @PathVariable UUID companyId, final @RequestBody CompanyRequestDto requestDto) {
+            @PathVariable UUID companyId, final @RequestBody CompanyUpdateRequest requestDto) {
         CompanyResponseDto response = companyService.updateCompany(companyId, requestDto);
         return new ResponseEntity<>(ResponseVOUtils.getSuccessResponse(response), HttpStatus.OK);
     }
