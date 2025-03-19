@@ -7,12 +7,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.util.UUID;
 import com.i4u.product.application.dto.request.ProductUpdateRequest;
+import org.hibernate.annotations.SQLRestriction;
 
 @Getter
 @NoArgsConstructor
 @Table(name="p_product")
 @Entity
-
+@SQLRestriction("is_deleted IS NULL OR is_deleted = false")
 //Basic을 extends 받아서 is_deleted 상속받음
 public class Product extends Basic {
 

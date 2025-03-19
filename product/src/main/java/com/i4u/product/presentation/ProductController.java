@@ -35,7 +35,7 @@ public class ProductController {
     ){
 
         ProductResponse response = productService.createProduct(request);
-        return new ResponseEntity<>(CommonResponse.success(response, ""),
+        return new ResponseEntity<>(CommonResponse.success(response, "상품 등록이 정상 수행되었습니다"),
                 HttpStatus.CREATED);
     }
 
@@ -47,7 +47,7 @@ public class ProductController {
             @RequestParam final int size,
             @RequestParam(required = false) final String sort) {
         ProductSearchResponse response = productService.findAll(page, size, sort);
-        return new ResponseEntity<>(CommonResponse.success(response, ""), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.success(response, "상품 목록이 정상 조회되었습니다"), HttpStatus.OK);
     }
 
 //    상품 키워드 검색 기능
@@ -72,11 +72,12 @@ public class ProductController {
             @PathVariable final UUID productId,
             @Valid @RequestBody final ProductUpdateRequest request) {
         ProductResponse response = productService.updateProduct(productId, request);
-        return new ResponseEntity<>(CommonResponse.success(response, ""), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.success(response, "상품 정보가 수정되었습니다"), HttpStatus.OK);
     }
 
 //    상품 삭제 - 여러상품도 가능
 //    담당허브만 가능
+    //API 요청시 [] 리스트형태로 전송
     //@Secured({Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @DeleteMapping("")
     public ResponseEntity<CommonResponse> softDeleteProducts(
@@ -84,6 +85,6 @@ public class ProductController {
     ){
         productService.softDeleteProducts(productIds);
         // CommonResposen
-        return new ResponseEntity<>(CommonResponse.success("", "메세지"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.success("", "상품이 정상적으로 삭제되었습니다"), HttpStatus.OK);
     }
 }

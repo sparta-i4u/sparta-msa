@@ -35,7 +35,7 @@ public class ProductQueryRepository {
     public Page<Product> findAll(Pageable pageable) {
         List<Product> products = queryFactory
                 .selectFrom(product)
-                .where(product.deletedAt.isNull()) // deleted_at이 null인 데이터만 조회
+                .where(product.isDeleted.isFalse()) // deleted_at이 null인 데이터만 조회
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
