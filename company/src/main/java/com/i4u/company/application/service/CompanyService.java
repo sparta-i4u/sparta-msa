@@ -1,25 +1,19 @@
 package com.i4u.company.application.service;
 
-import com.i4u.company.application.dto.request.CompanyRequestDto;
+import com.i4u.company.application.dto.request.CompanyCreateRequest;
 import com.i4u.company.application.dto.request.CompanyUpdateRequest;
-import com.i4u.company.application.dto.response.CompanyResponseDto;
-import com.i4u.company.domain.Company;
+import com.i4u.company.application.dto.response.CompanyResponse;
+import com.i4u.company.application.dto.response.CompanySearchResponse;
+import com.i4u.company.domain.entity.Company;
 import com.i4u.company.domain.repository.CompanyQueryRepository;
 import com.i4u.company.domain.repository.CompanyRepository;
-import jakarta.validation.constraints.NotBlank;
+import com.i4u.company.exceptiion.CompanyNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,18 +24,19 @@ import java.util.UUID;
 public class CompanyService {
 
     private final CompanyRepository companyRepository;
-    private final CompanyQueryRepository companyQueryRepository;;
+    private final CompanyQueryRepository companyQueryRepository;
+    ;
 
     //업체 생성 service
     @Transactional
-    public CompanyResponseDto createCompany(UserDetailsImpl userDetails, CompanyRequestDto requestDto) {
+    public CompanyResponse createCompany(CompanyCreateRequest request) {
         /**
-         * TODO 중복된 전화번호, 이름 등록불가 , 유저 연관관계 설정
+         * TODO 중복된 전화번호, 이름 체크 / user 로그인 권한 체크
          */
         //User user = userRepository.findById(requestDto.owner()).orElseThrow(() -> new RuntimeException("User Not Found"));
-        Company company = new Company(requestDto.hubId(), requestDto.name(), requestDto.type(), requestDto.owner(), requestDto.address(), requestDto.number());
+        Company company = new Company(request.hubId(), request.name(), request.type(), request.owner(), request.address(), request.number());
         Company saved = companyRepository.save(company);
-        return CompanyResponseDto.of(saved);
+        return CompanyResponse.of(saved);
     }
 
     //업체 전체 조회 SERVICE
@@ -52,14 +47,15 @@ public class CompanyService {
     }
 
     //업체 이름 검색 service
-//    @Transactional(readOnly = true)
-//    public Page<CompanyRequestDto> getCompany(String keyword, int page, int size, String sortBy,
-//                                           boolean isAsc) {
-//        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
-//        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-//        Page<Company> companyPage = companyQueryRepository.findByName(keyword, pageable);
-//        return companyPage.map(CompanyResponseDto::of);
-//    }
+    public CompanySearchResponse findCompanyByKeyword(final String keyword, final int page, final int size, final String sort){
+        Pageable pageable = getPageable(page, size, sort);
+        // 업체 이름으로 필터링
+        if (keyword != null || !keyword.isBlank()) {  //keyword가 있으면
+            return CompanySearchResponse.of(companyQueryRepository.findByNameContaining(pageable, keyword));
+        }
+        //키워드 없으면 원래 Product 조회
+        return CompanySearchResponse.of(companyQueryRepository.findAll(pageable));
+    }
 
     //업체 카테고리 검색 service
 
@@ -96,19 +92,27 @@ public class CompanyService {
 
     //업체 수정
     @Transactional
-    public CompanyResponseDto updateCompany(UUID companyId, CompanyUpdateRequest request) {
-        final Company company = companyQueryRepository.findById(companyId).orElseThrow();
+    public CompanyResponse updateCompany(final UUID companyId, final CompanyUpdateRequest request) {
+        final Company company = findCompanyById(companyId);
         company.update(request);
-        return CompanyResponseDto.of(company);
+        return CompanyResponse.of(company);
     }
-    
+
+    //업체 아이디로 찾기
+    public Company findCompanyById(final UUID companyId) {
+        return companyQueryRepository.findById(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(companyId));
+    }
+
+
     //업체 삭제
     @Transactional
-    public CompanyResponseDto deleteCompany(UUID companyId) {
-        Company store = companyRepository.findById(companyId)
-                .orElseThrow(() -> new RuntimeException("Company Not FOUND"));
-        companyRepository.softDeleteCompany(companyId);
-        // store.softDelete(/*user uuid*/);
-        return CompanyResponseDto.of(store);
+    public void softDeleteCompanies(final List<UUID> companyIds, final String deletedBy) {
+        List<Company> companies = companyRepository.findAllById(companyIds);
+        if (companies.isEmpty()) { // 조회된 상품들이 없으면 예외 처리하거나, 빈 리스트 처리 가능
+            throw new CompanyNotFoundException(companyIds);
+        }
+        // 각 상품에 대해 논리 삭제 처리
+        companies.forEach(company -> company.softDelete(deletedBy));
     }
 }
