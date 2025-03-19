@@ -9,6 +9,7 @@ public class CommonResponse<T> {
 
 	private static final String SUCCESS_CODE = "S000";
 	private static final String FAIL_CODE = "F000";
+	private static final String CREATED_CODE = "C000";
 
 	private String code;
 	private T data;
@@ -28,5 +29,13 @@ public class CommonResponse<T> {
 			.data(null)
 			.message(null)
 			.build();
+	}
+
+	public static <T> CommonResponse<T> created(T data, String message) {
+		return CommonResponse.<T>builder()
+				.code(CREATED_CODE)
+				.data(data)
+				.message(message)
+				.build();
 	}
 }
