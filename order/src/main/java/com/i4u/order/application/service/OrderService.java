@@ -28,6 +28,7 @@ import com.i4u.order.presentation.client.ProductClient;
 import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
+import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderProductRequest;
 import com.i4u.order.presentation.dtos.request.OrderProductStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderProductUpdateRequest;
@@ -94,10 +95,10 @@ public class OrderService {
 		OrderCompanyResponse company = responseCompany.getBody().getData();
 		ResponseEntity<CommonResponse<OrderDeliveryResponse>> response = deliveryClient.createDelivery(OrderDeliveryRequest.builder()
 				.orderId(savedOrder.getOrderId())
-				.supplierHubId(company.getSupplierHubId())
-				.recipientHubId(company.getRecipientHubId())
+				.arriveHubId(company.getSupplierHubId())
+				.departHubId(company.getRecipientHubId())
 				.address(company.getAddress())
-				// .userId(userId)
+				// .recipientId(userId)
 			.build());
 
 		// 7. 받아온 내용으로 order Update
@@ -178,8 +179,8 @@ public class OrderService {
 		order.updateOrder(updateOrder);
 
 		// 6. [deliveryClient] 변경 사항에 대한 배송 수정 요청 전송 (공급 업체가 바뀌어서 허브도 바뀜)
-		// deliveryClient.updateDelivery(OrderDeliveryUpdateRequest.builder()
-		// 	.orderId(updateOrder.getOrderId()).supplierHubId(responseCompany.getSupplierHubId()).build());
+		deliveryClient.updateDeliveryByOrder(OrderDeliveryUpdateRequest.builder()
+			.orderId(updateOrder.getOrderId()).supplierHubId(responseCompany.getBody().getData().getSupplierHubId()).build());
 
 		return OrderUpdateResponse.fromOrder(order);
 	}
@@ -204,14 +205,17 @@ public class OrderService {
 		order.updateOrderState(updateOrder);
 
 		// 4. 주문을 취소했다면 delivery, product 측으로 요청 전송 필요
-		if (updateOrder.getOrderStatus().equals(OrderStatus.ORDER_CANCELED)) {
-			// [deliveryClient] 주문이 취소되었으므로 배송 update 필요 (deliveryId가 null 이면 ..?)
-			// deliveryClient.updateDeliveryState(OrderDeliveryStateUpdateRequest.builder()
-			// 	.orderId(order.getOrderId()).orderState("ORDER_CANCELED").deliveryId(order.getDeliveryId()).build());
+		if (updateOrder.getOrderStatus().equals(OrderStatus.ORDER_CANCELED) &&
+			order.getDeliveryId() != null) {
 
-			// [productClient] 주문이 취소되었으므로 재고 update 필요
+			// 4-1. [deliveryClient] 주문이 취소되었으므로 배송 update 필요
+			deliveryClient.updateDeliveryStateByOrder(OrderDeliveryStateUpdateRequest.builder()
+				.orderId(order.getOrderId()).deliveryId(order.getDeliveryId()).build());
+
+			// 4-2. [productClient] 주문이 취소되었으므로 재고 update 필요
 			productClient.updateProductState(OrderProductStateUpdateRequest.builder()
 				.productId(order.getProductId()).productQuantity(order.getProductQuantity()).build());
+
 		}
 		
 		return OrderStatusUpdateResponse.fromOrder(order);
@@ -225,7 +229,7 @@ public class OrderService {
 	 * @return : 변경된 주문 정보
 	 */
 	@Transactional
-	public OrderStatusUpdateResponse updateOrderStatusWithDelivery(UUID orderId, OrderStatusUpdateByDeliveryRequest request) {
+	public OrderStatusUpdateResponse updateOrderStatusByDelivery(UUID orderId, OrderStatusUpdateByDeliveryRequest request) {
 		// 1. orderId에 해당하는 Order 검색
 		Order order = findOrder(orderId);
 

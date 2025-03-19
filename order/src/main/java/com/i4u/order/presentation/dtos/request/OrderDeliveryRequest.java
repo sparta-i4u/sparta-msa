@@ -16,16 +16,16 @@ public class OrderDeliveryRequest {
 	// 주문 ID
 	private UUID orderId;
 
-	// 요청 업체 HubId
-	private UUID supplierHubId;
+	// 출발 허브 ID (배송하는 업체의 허브 ID를 받아와야 함)
+	private UUID departHubId;
 
-	// 수령 업체 HubId
-	private UUID recipientHubId;
+	// 도착 허브 ID (배송받는 업체의 허브 ID를 받아와야 함)
+	private UUID arriveHubId;
 
-	// 배송 주소
+	// 배송지 주소
 	private String address;
 
-	// 주문한 사용자 (Delivery 측에서는 받아서 사용자 SlackID도 요청해서 저장하기)
-	private UUID userId;
+	// 수령자 ID (배송받는 업체에서 주문한 사람의 ID 필요)
+	private UUID recipientId;
 
 }

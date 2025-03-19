@@ -13,36 +13,20 @@ import lombok.Getter;
 @AllArgsConstructor
 public class DeliveryCreateResponse {
 
-
-	private UUID deliveryId;
-
+	// orderId
 	private UUID orderId;
 
+	// 생성된 delivery ID
+	private UUID deliveryId;
+
+	// 배송 상태
 	private String deliveryState;
-
-	private UUID departHubId;
-
-	private UUID arriveHubId;
-
-	private String address;
-
-	private UUID recipientId;
-
-	private String recipientSlackId;
-
-	private UUID shipperId;
 
 	public static DeliveryCreateResponse fromDelivery(Delivery delivery) {
 		return DeliveryCreateResponse.builder()
-			.deliveryId(delivery.getDeliveryId())
 			.orderId(delivery.getOrderId())
+			.deliveryId(delivery.getDeliveryId())
 			.deliveryState(delivery.getDeliveryState().toString())
-			.departHubId(delivery.getDepartHubId())
-			.arriveHubId(delivery.getArriveHubId())
-			.address(delivery.getAddress())
-			.recipientId(delivery.getRecipientId())
-			.recipientSlackId(delivery.getRecipientSlackId())
-			.shipperId(delivery.getShipperId())
 			.build();
 	}
 

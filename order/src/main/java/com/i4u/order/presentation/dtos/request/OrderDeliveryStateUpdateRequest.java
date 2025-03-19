@@ -15,6 +15,5 @@ public class OrderDeliveryStateUpdateRequest {
 
 	private UUID orderId;
 	private UUID deliveryId;
-	private String orderState;
 
 }
