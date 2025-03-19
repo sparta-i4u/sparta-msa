@@ -5,6 +5,8 @@ import com.i4u.common.entity.Basic;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 import com.i4u.product.application.dto.request.ProductUpdateRequest;
 import org.hibernate.annotations.SQLRestriction;
@@ -51,7 +53,9 @@ public class Product extends Basic {
     }
 
     //상품 여러개 삭제 함수
-    public void softDelete() {
+    public void softDelete(String deletedBy) {
         this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();  // 삭제 일시를 현재 시간으로 설정
+        //this.deletedBy = deletedBy;  // 삭제한 사용자의 정보를 설정
     }
 }

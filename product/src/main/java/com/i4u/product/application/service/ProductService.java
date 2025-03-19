@@ -33,17 +33,15 @@ public class ProductService {
     @Transactional
     public ProductResponse createProduct(final ProductCreateRequest request){
 
-        //TODO
-        //허브아이디와 컴퍼니 아이디 받아오기
+        //TODO 허브아이디와 컴퍼니 아이디 받아오기
         final UUID hubId = request.hubId();
         final UUID companyId = request.companyId();
 
-        //TODO
-        //상품 관리 허브 id 확인해 존재하는지 확인
+        //TODO 상품 관리 허브 id 확인해 존재하는지 확인
         //        if (!hubRepository.existsById(hubId)) {
         //            throw new IllegalArgumentException("허브가 존재하지 않습니다: " + hubId);
         //        }
-        //상품 company가 존재하는지 확인
+        //TODO 상품 company가 존재하는지 확인
         //        if (!companyRepository.existsById(companyId)) {
         //            throw new IllegalArgumentException("업체가 존재하지 않습니다: " + companyId);
         //        }
@@ -120,8 +118,9 @@ public class ProductService {
     //상품 엔티티의 deleted_at, deleted_by 필드를 이용하여 논리적 삭제를 관리합니다.
     // 상품이 삭제될 때 연관된 데이터(주문 등)도 삭제 관련 필드를 통해 관리합니다.
     @Transactional
-    public void softDeleteProducts(final List<UUID> productIds){
-        productIds.stream().map(this::findProductById).forEach(Product::softDelete);
+    public void softDeleteProducts(final List<UUID> productIds, final String deletedBy){
+        productIds.stream().map(this::findProductById)
+                .forEach(product -> product.softDelete(deletedBy));
     }
     //스트림으로 변환해 데이터 처리
     //findProductById 호출해 UUID-> Product로 변환

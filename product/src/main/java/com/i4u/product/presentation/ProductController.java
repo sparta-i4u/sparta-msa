@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -75,8 +76,14 @@ public class ProductController {
     //@Secured({Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
     @DeleteMapping("")
     public ResponseEntity<CommonResponse> softDeleteProducts(
-            @RequestBody final List<UUID> productIds){
-        productService.softDeleteProducts(productIds);
+            @RequestBody final List<UUID> productIds
+            //TODO 로그인 한 사람 정보 받아오기
+            //@AuthenticationPrincipal CustomUserDetails userDetails
+            ){
+        //TODO 로그인 한 사람 정보 받아오기
+        //String deletedBy = userDetails.getUsername();
+        String deletedBy = "root"; //임시 설정
+        productService.softDeleteProducts(productIds, deletedBy);
         return new ResponseEntity<>(CommonResponse.success("", "상품이 정상적으로 삭제되었습니다"), HttpStatus.OK);
     }
 }
