@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication(exclude = {
 	SecurityAutoConfiguration.class,
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
 })
 @EnableFeignClients
 @ComponentScan(basePackages = {"com.i4u.common", "com.i4u.order"})
+@EnableJpaAuditing
 public class OrderApplication {
 
 	public static void main(String[] args) {

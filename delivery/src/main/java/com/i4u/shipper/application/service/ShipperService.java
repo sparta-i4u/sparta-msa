@@ -1,16 +1,17 @@
 package com.i4u.shipper.application.service;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.UUID;
-
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.i4u.client.HubClient;
+import com.i4u.client.UserClient;
 import com.i4u.shipper.application.dtos.request.ShipperCreateRequest;
 import com.i4u.shipper.application.dtos.request.ShipperSearchRequest;
 import com.i4u.shipper.application.dtos.request.ShipperUpdateRequest;
@@ -18,14 +19,11 @@ import com.i4u.shipper.application.dtos.response.ShipperCreateResponse;
 import com.i4u.shipper.application.dtos.response.ShipperGetOneResponse;
 import com.i4u.shipper.application.dtos.response.ShipperListResponse;
 import com.i4u.shipper.application.dtos.response.ShipperUpdateResponse;
+import com.i4u.shipper.application.exception.ShipperException;
 import com.i4u.shipper.domain.entity.Shipper;
 import com.i4u.shipper.domain.entity.ShipperType;
 import com.i4u.shipper.domain.repository.ShipperRepository;
-import com.i4u.shipper.presentation.client.HubClient;
-import com.i4u.shipper.presentation.client.UserClient;
-import com.i4u.shipper.application.exception.ShipperException;
-import com.i4u.shipper.presentation.dtos.request.ShipperHubRequest;
-import com.i4u.shipper.presentation.dtos.response.ShipperHubResponse;
+
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,8 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ShipperService {
 
 	private final ShipperRepository shipperRepository;
-	private final UserClient userClient;
 	private final HubClient hubClient;
+	private final UserClient userClient;
 
 	@Value("${whole.hub.id}")
 	private UUID wholeHubId;

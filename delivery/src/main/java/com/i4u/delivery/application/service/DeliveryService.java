@@ -23,15 +23,15 @@ import com.i4u.delivery.application.exception.DeliveryException;
 import com.i4u.delivery.domain.entity.Delivery;
 import com.i4u.delivery.domain.entity.DeliveryState;
 import com.i4u.delivery.domain.repository.DeliveryRepository;
-import com.i4u.delivery.presentation.client.HubClient;
+import com.i4u.client.HubClient;
 import com.i4u.delivery.presentation.client.OrderClient;
 import com.i4u.delivery.presentation.client.ShipperClient;
-import com.i4u.delivery.presentation.client.UserClient;
+import com.i4u.client.UserClient;
+import com.i4u.delivery.presentation.dtos.request.DeliveryHubCreateRequest;
 import com.i4u.delivery.presentation.dtos.request.DeliveryHubUpdateRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryOrderCreateRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryOrderDeleteRequest;
 import com.i4u.delivery.presentation.dtos.request.DeliveryOrderStateUpdateRequest;
 import com.i4u.delivery.presentation.dtos.request.DeliveryShipperRequest;
+import com.i4u.delivery.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubUpdateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
 
@@ -61,13 +61,13 @@ public class DeliveryService {
 		// {사용자 역할에 따라 배송 생성이 가능한지 (order로부터 client 요청을 받을 예정 (Endpoint처리) )}
 
 		// 2. [hubClient] 허브 검증
-		// DeliveryHubCreateResponse responseHub = hubClient.confirmHubs(DeliveryHubCreateRequest.builder()
-		// 	.supplierHubId(request.getDepartHubId()).recipientHubId(request.getArriveHubId()).build());
-		//
-		// if (responseHub.getIsDeleted()) {
-		// 	throw new DeliveryException("배송할 수 있는 허브가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
-		// }
-		//
+		ResponseEntity<CommonResponse<DeliveryHubCreateResponse>> responseHub = hubClient.confirmHubsFromDelivery(DeliveryHubCreateRequest.builder()
+			.supplierHubId(request.getDepartHubId()).recipientHubId(request.getArriveHubId()).build());
+
+		if (responseHub.getBody().getData().getIsDeleted()) {
+			throw new DeliveryException("배송할 수 있는 허브가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+		}
+
 		// // 3. [userClient] 수령인 슬랙 ID 받아오기
 		// DeliveryUserSlackIdResponse responseUser = userClient.confirmUser(DeliveryUserSlackIdRequest.builder()
 		// 	.userId(request.getRecipientId()).build());
@@ -140,11 +140,15 @@ public class DeliveryService {
 
 		if (!delivery.getArriveHubId().equals(request.getArriveHubId())) {
 			// 2-1. [hubClient] 허브 ID가 다른 경우에만 Hub로 요청 전송
-			DeliveryHubUpdateResponse responseHub = hubClient.updateHubInfo(DeliveryHubUpdateRequest.builder()
-				.address(delivery.getAddress()).build());
+			ResponseEntity<CommonResponse<DeliveryHubUpdateResponse>> responseHub = hubClient.updateConfirmHubsFromDelivery(DeliveryHubUpdateRequest.builder()
+				.arriveHubId(request.getArriveHubId()).build());
+
+			if (responseHub.getBody().getData().getIsDeleted()) {
+				throw new DeliveryException("허브가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+			}
 
 			// 2-2. [shipperClient] 허브 바뀌었으니까 배송 담당자 다시 주세요
-			recipientHubId = responseHub.getArriveHubId();
+			recipientHubId = responseHub.getBody().getData().getArriveHubId();
 
 			ResponseEntity<CommonResponse<DeliveryShipperResponse>> responseShipper = shipperClient.assignShipper(
 				DeliveryShipperRequest.builder()
