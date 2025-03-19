@@ -1,5 +1,7 @@
 package com.i4u.hub.application.service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -39,6 +41,24 @@ public class HubClientService {
 	}
 
 	/**
+	 * 허브 검증 요청 (Shipper -> Gateway)
+	 * @param hubId : 검증할 허브 ID
+	 * @return : 검증된 허브 내용
+	 */
+	public Map<String, Object> confirmHubFromShippers(UUID hubId) {
+		// 허브 검증
+		Hub hub = hubRepository.findById(hubId).filter(h -> !h.getIsDeleted())
+			.orElseThrow(() -> new IllegalArgumentException("해당 허브가 존재하지 않습니다. "));
+
+		Map<String, Object> hubResponse = new HashMap<>();
+		hubResponse.put("hubId", hub.getHubId());
+		// hubResponse.put("hubManagerId", hub.getHubManagerId());
+		hubResponse.put("isDeleted", false);
+
+		return hubResponse;
+	}
+
+	/**
 	 * 허브 검증 요청 (Delivery Create)
 	 *
 	 * @param request : 검증을 요청할 허브들의 정보
@@ -73,4 +93,6 @@ public class HubClientService {
 			.arriveHubId(recipientHubId.getHubId()).isDeleted(false)
 			.build();
 	}
+
+
 }
