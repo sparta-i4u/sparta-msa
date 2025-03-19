@@ -1,8 +1,10 @@
 package com.i4u.company.application.service;
 
 import com.i4u.company.application.dto.request.CompanyRequestDto;
+import com.i4u.company.application.dto.request.CompanyUpdateRequest;
 import com.i4u.company.application.dto.response.CompanyResponseDto;
 import com.i4u.company.domain.Company;
+import com.i4u.company.domain.repository.CompanyQueryRepository;
 import com.i4u.company.domain.repository.CompanyRepository;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +30,7 @@ import java.util.UUID;
 public class CompanyService {
 
     private final CompanyRepository companyRepository;
+    private final CompanyQueryRepository companyQueryRepository;;
 
     //업체 생성 service
     @Transactional
@@ -40,32 +44,62 @@ public class CompanyService {
         return CompanyResponseDto.of(saved);
     }
 
-    //업체 검색 service
-
+    //업체 전체 조회 SERVICE
     @Transactional(readOnly = true)
-    public Page<CompanyRequestDto> getCompany(String keyword, int page, int size, String sortBy,
-                                           boolean isAsc) {
-        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        Page<Company> companyPage = companyRepository.findByName(keyword, pageable);
-        return companyPage.map(CompanyResponseDto::of);
+    public CompanySearchResponse findAll(final int page, final int size, final String sort) {
+        Pageable pageable = getPageable(page, size, sort);
+        return CompanySearchResponse.of(companyQueryRepository.findAll(pageable));
+    }
+
+    //업체 이름 검색 service
+//    @Transactional(readOnly = true)
+//    public Page<CompanyRequestDto> getCompany(String keyword, int page, int size, String sortBy,
+//                                           boolean isAsc) {
+//        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+//        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+//        Page<Company> companyPage = companyQueryRepository.findByName(keyword, pageable);
+//        return companyPage.map(CompanyResponseDto::of);
+//    }
+
+    //업체 카테고리 검색 service
+
+    //페이징 함수
+    private Pageable getPageable(final int page, final int size, final String sort) {
+
+        if (sort == null || sort.isBlank()) {
+            return PageRequest.of(page, size); // 기본 정렬 없음
+        }
+
+        String[] sortParams = sort.split(",");
+        List<Sort.Order> orders = new ArrayList<>();
+
+        for (String param : sortParams) {
+            String[] fieldAndDirection = param.trim().split("[- ]"); // '-' 또는 ' '으로 구분
+            if (fieldAndDirection.length != 2) {
+                throw new IllegalArgumentException(
+                        "Invalid sort parameter format. Expected 'field direction' (e.g., 'name asc').");
+            }
+
+            String field = fieldAndDirection[0].trim();
+            String direction = fieldAndDirection[1].trim().toUpperCase();
+
+            if (!direction.equals("ASC") && !direction.equals("DESC")) {
+                throw new IllegalArgumentException("Invalid sort direction. Use 'asc' or 'desc'.");
+            }
+
+            Sort.Direction dir = Sort.Direction.fromString(direction);
+            orders.add(new Sort.Order(dir, field));
+        }
+        Sort sortObj = Sort.by(orders);
+        return PageRequest.of(page, size, sortObj);
     }
 
     //업체 수정
     @Transactional
-    public CompanyResponseDto updateCompany(UUID companyId, CompanyRequestDto requestDto) {
-        Company company = companyRepository.findById(companyId).orElseThrow();
-
-        String name = requestDto.name();
-        String address = requestDto.address();
-        String number = requestDto.number();
-
-        company.updateName(name);
-        company.updateAddress(address);
-        company.updateNumber(number);
-
-        Company updatedStore = companyRepository.save(company);
-        return CompanyResponseDto.of(updatedStore);
+    public CompanyResponseDto updateCompany(UUID companyId, CompanyUpdateRequest request) {
+        final Company company = companyQueryRepository.findById(companyId).orElseThrow();
+        company.update(request);
+        return CompanyResponseDto.of(company);
     }
     
     //업체 삭제
