@@ -50,39 +50,24 @@ public class ProductQueryRepository {
         return new PageImpl<>(products, pageable, total);
     }
 
-    //조건에 맞는 상품 조회
-    public Page<Product> search(ProductSearchCond cond, Pageable pageable) {
-        BooleanBuilder builder = getBooleanBuilder(cond);
+    //상품 검색 쿼리DSL
+    public Page<Product> findByNameContaining(Pageable pageable, String keyword) {
+        // 상품 목록을 가져옵니다.
         List<Product> products = queryFactory
                 .selectFrom(product)
-                .where(builder)
+                .where(product.name.containsIgnoreCase(keyword)  // 상품 이름에 이름이 포함된 데이터를 조회
+                        .and(product.deletedAt.isNull()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .fetch();
+                .fetch();  // 결과 리스트 반환
 
+        // 전체 상품 개수를 가져옵니다.
         long total = queryFactory
                 .select(product.count())
                 .from(product)
-                .where(builder)
-                .fetchOne();
-        return new PageImpl<>(products, pageable, total);
-    }
+                .where(product.name.containsIgnoreCase(keyword))  // 이름에 포함된 상품 개수 조회
+                .fetchOne();  // fetchOne()은 단일 값 반환
 
-    private BooleanBuilder getBooleanBuilder(ProductSearchCond cond) {
-        BooleanBuilder builder = new BooleanBuilder();
-
-//        if (cond.hubId() != null) {
-//            builder.and(product.hub.id.eq(cond.hubId()));
-//        }
-//        if (cond.companyId() != null) {
-//            builder.and(product.company.id.eq(cond.companyId()));
-//       }
-        if (cond.name() != null) {
-            builder.and(product.name.containsIgnoreCase(cond.name()));
-        }
-        if (!cond.isDeleted()) {
-            builder.and(product.isDeleted.eq(false));
-        }
-        return builder;
+        return new PageImpl<>(products, pageable, total);  // PageImpl로 반환
     }
 }

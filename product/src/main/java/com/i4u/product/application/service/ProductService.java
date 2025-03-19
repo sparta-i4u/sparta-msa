@@ -26,45 +26,48 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductService {
 
-//    private final ProductRepository productRepository;
-//    private final HubRepository hubRepository;
-//    private final CompanyRepository companyRepository;
-
     private final ProductQueryRepository productQueryRepository;  // QueryDSL 용도
     private final ProductRepository productRepository;  // CRUD 용도
 
     //상품 생성
     @Transactional
     public ProductResponse createProduct(final ProductCreateRequest request){
+
+        //TODO
         //허브아이디와 컴퍼니 아이디 받아오기
         final UUID hubId = request.hubId();
         final UUID companyId = request.companyId();
 
+        //TODO
         //상품 관리 허브 id 확인해 존재하는지 확인
-//        if (!hubRepository.existsById(hubId)) {
-//            throw new IllegalArgumentException("허브가 존재하지 않습니다: " + hubId);
-//        }
-
+        //        if (!hubRepository.existsById(hubId)) {
+        //            throw new IllegalArgumentException("허브가 존재하지 않습니다: " + hubId);
+        //        }
         //상품 company가 존재하는지 확인
-//        if (!companyRepository.existsById(companyId)) {
-//            throw new IllegalArgumentException("업체가 존재하지 않습니다: " + companyId);
-//        }
+        //        if (!companyRepository.existsById(companyId)) {
+        //            throw new IllegalArgumentException("업체가 존재하지 않습니다: " + companyId);
+        //        }
+
         final Product product = new Product(hubId, companyId, request.name(), request.price(), request.content());
         Product saved = productRepository.save(product);
         return ProductResponse.of(saved);
-    }
-
-    //상품 목록 조회 - 필터링
-    //모든 조회 및 검색에서 deleted_at 필드가 null인 데이터만을 대상으로 처리
-    public ProductSearchResponse search(final ProductSearchCond cond, final int page, final int size, final String sort) {
-        Pageable pageable = getPageable(page, size, sort);
-        return ProductSearchResponse.of(productQueryRepository.search(cond, pageable));
     }
 
     //모든 상품 전체 조회
     //모든 조회 및 검색에서 deleted_at 필드가 null인 데이터만을 대상으로 처리
     public ProductSearchResponse findAll(final int page, final int size, final String sort) {
         Pageable pageable = getPageable(page, size, sort);
+        return ProductSearchResponse.of(productQueryRepository.findAll(pageable));
+    }
+
+    //상품 이름 검색 Service
+    public ProductSearchResponse findProudctByKeyword(final String keyword, final int page, final int size, final String sort){
+        Pageable pageable = getPageable(page, size, sort);
+        // 상품 이름으로 필터링
+        if (keyword != null || !keyword.isBlank()) {  //keyword가 있으면
+            return ProductSearchResponse.of(productQueryRepository.findByNameContaining(pageable, keyword));
+        }
+        //키워드 없으면 원래 Product 조회
         return ProductSearchResponse.of(productQueryRepository.findAll(pageable));
     }
 
@@ -120,7 +123,6 @@ public class ProductService {
     public void softDeleteProducts(final List<UUID> productIds){
         productIds.stream().map(this::findProductById).forEach(Product::softDelete);
     }
-
     //스트림으로 변환해 데이터 처리
     //findProductById 호출해 UUID-> Product로 변환
     //.forEach 는 반복문 같은 역할, 하나씩 뽑아서
