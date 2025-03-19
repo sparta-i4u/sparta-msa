@@ -119,13 +119,11 @@ public class ProductService {
     // 상품이 삭제될 때 연관된 데이터(주문 등)도 삭제 관련 필드를 통해 관리합니다.
     @Transactional
     public void softDeleteProducts(final List<UUID> productIds, final String deletedBy){
-        productIds.stream().map(this::findProductById)
-                .forEach(product -> product.softDelete(deletedBy));
+        List<Product> products = productRepository.findAllById(productIds);
+        if (products.isEmpty()) { // 조회된 상품들이 없으면 예외 처리하거나, 빈 리스트 처리 가능
+            throw new ProductNotFoundException("해당하는 상품이 없습니다.");
+        }
+        // 각 상품에 대해 논리 삭제 처리
+        products.forEach(product -> product.softDelete(deletedBy));
     }
-    //스트림으로 변환해 데이터 처리
-    //findProductById 호출해 UUID-> Product로 변환
-    //.forEach 는 반복문 같은 역할, 하나씩 뽑아서
-    // product1.softDelete();
-    //product2.softDelete();
-    //product3.softDelete();  ... 방식으로 반복문수행
 }
