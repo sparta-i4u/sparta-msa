@@ -1,6 +1,6 @@
 package com.i4u.company.application.dto.request;
 
-import com.i4u.company.domain.enums.CompanyType;
+import com.i4u.company.domain.entity.CompanyType;
 import jakarta.validation.constraints.NotBlank;
 
 public record CompanyUpdateRequest (
