@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,82 +41,103 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderController {
 	
 	private final OrderService orderService;
-	
-	// TODO : 사용자 정보 받아오는 로직 전부 추가
 
 	/**
 	 * 주문 생성
+	 *
 	 * @param request : 생성할 주문의 정보
 	 * @return : 생성된 주문 내용
 	 */
-	@PostMapping
-	public ResponseEntity<CommonResponse<OrderCreateResponse>> createOrder(@Valid @RequestBody OrderCreateRequest request){
+	@PostMapping  // MASTER, HUB_MANAGER, DELIVERY_MANAGER, COMPANY_MANAGER (ALL) -> 검증 X
+	public ResponseEntity<CommonResponse<OrderCreateResponse>> createOrder(
+		@Valid @RequestBody OrderCreateRequest request,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role){
 		log.info("주문 생성 요청");
-		OrderCreateResponse response = orderService.createOrder(request);
+		OrderCreateResponse response = orderService.createOrder(request, userId);
 		return ResponseEntity.ok(CommonResponse.success(response, "주문 생성 성공"));
 	}
 
 	/**
 	 * 주문 전체 조회 (+검색)
+	 *
 	 * @return : 조회된 전체 주문 내용
 	 */
-	@GetMapping
+	@GetMapping // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 주문), COMPANY_MANAGER(본인 주문) -> 허브 매니저만 소속 확인 필요
 	public ResponseEntity<CommonResponse<PagedModel<OrderGetListResponse>>> getAllOrders(
-		Pageable pageable, @ModelAttribute OrderSearchRequest request) {
+		Pageable pageable, @ModelAttribute OrderSearchRequest request,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role) {
 		// 검색 기능 적용 예정으로 Pagination 내용으로 변경하기
 		log.info("주문 전체 조회 요청");
-		PagedModel<OrderGetListResponse> orders = orderService.getAllOrders(pageable, request);
+		PagedModel<OrderGetListResponse> orders = orderService.getAllOrders(pageable, request, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(orders, "주문 전체 조회 성공"));
 	}
 
 	/**
 	 * 주문 단건 조회
+	 *
 	 * @param orderId : 조회할 주문의 ID
 	 * @return : 조회된 주문 내용
 	 */
-	@GetMapping("/{orderId}")
-	public ResponseEntity<CommonResponse<OrderGetOneResponse>> getOneOrder(@PathVariable UUID orderId) {
+	@GetMapping("/{orderId}")  // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 주문), COMPANY_MANAGER(본인 주문) -> 허브 매니저만 소속 확인 필요
+	public ResponseEntity<CommonResponse<OrderGetOneResponse>> getOneOrder(
+		@PathVariable UUID orderId,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("주문 단건 조회 요청");
-		OrderGetOneResponse response = orderService.getOneOrder(orderId);
+		OrderGetOneResponse response = orderService.getOneOrder(orderId, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "주문 단건 조회 성공"));
 	}
 
 	/**
 	 * 주문 수정
+	 *
 	 * @param orderId : 수정할 주문의 ID
 	 * @param request : 수정할 주문 정보
 	 * @return : 수정된 주문 내용
 	 */
-	@PutMapping("/{orderId}")
-	public ResponseEntity<CommonResponse<OrderUpdateResponse>> putOrder(@PathVariable UUID orderId, @Valid @RequestBody OrderUpdateRequest request) {
+	@PutMapping("/{orderId}")  // MASTER, HUB_MANAGER(담당 허브) -> 허브 매니저만 소속 확인 필요
+	public ResponseEntity<CommonResponse<OrderUpdateResponse>> putOrder(
+		@PathVariable UUID orderId, @Valid @RequestBody OrderUpdateRequest request,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role) {
 		// 주문 상태 확인 필수
 		log.info("주문 수정 요청");
-		OrderUpdateResponse response = orderService.updateOrder(orderId, request);
+		OrderUpdateResponse response = orderService.updateOrder(orderId, request, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "주문 수정 성공"));
 	}
 
 	/**
 	 * 주문 상태 수정
+	 *
 	 * @param orderId : 상태를 수정할 주문의 ID
 	 * @param request : 수정할 주문 상태 정보
 	 * @return : 상태가 수정된 주문 내용
 	 */
-	@PatchMapping("/{orderId}")
-	public ResponseEntity<CommonResponse<OrderStatusUpdateResponse>> patchOrder(@PathVariable UUID orderId, @RequestBody OrderStatusUpdateRequest request) {
+	@PatchMapping("/{orderId}") // MASTER, HUB_MANAGER(담당 허브) -> 허브 매니저만 소속 확인 필요
+	public ResponseEntity<CommonResponse<OrderStatusUpdateResponse>> patchOrder(
+		@PathVariable UUID orderId, @RequestBody OrderStatusUpdateRequest request,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("주문 상태 수정 요청");
-		OrderStatusUpdateResponse response = orderService.updateOrderStatus(orderId, request);
+		OrderStatusUpdateResponse response = orderService.updateOrderStatus(orderId, request, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "주문 수정 성공"));
 	}
 
 	/**
 	 * 주문 삭제
+	 *
 	 * @param orderId : 삭제할 주문의 ID
 	 * @return : 삭제 완료된 주문 내용
 	 */
-	@DeleteMapping("/{orderId}")
-	public ResponseEntity<CommonResponse> deleteOrder(@PathVariable UUID orderId) {
+	@DeleteMapping("/{orderId}") // MASTER, HUB_MANAGER(담당 허브) -> 허브 매니저만 소속 확인 필요
+	public ResponseEntity<CommonResponse> deleteOrder(
+		@PathVariable UUID orderId,
+		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("주문 삭제 요청");
-		orderService.deleteOrder(orderId);
+		orderService.deleteOrder(orderId, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(orderId, "주문 삭제 성공"));
 	}
 

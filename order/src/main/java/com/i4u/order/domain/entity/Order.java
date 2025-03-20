@@ -36,9 +36,15 @@ public class Order extends Basic {
 	@Column(name = "supplier_id")
 	private UUID supplierId;
 
+	@Column
+	private UUID supplierHubId;
+
 	// 수령 업체 ID (companyId)
 	@Column(name = "recipient_id")
 	private UUID recipientId;
+
+	@Column
+	private UUID recipientHubId;
 
 	// 주문할 상품의 ID
 	@Column(name = "product_id")
