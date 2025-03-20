@@ -11,7 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,9 +24,14 @@ public class ProductController {
 
     private final ProductService productService;
 
+    // 	@RequestHeader(name = "X-User-Id") String userId,
+    //	@RequestHeader(name = "X-User-Email") String email,
+    //	@RequestHeader(name = "X-User-Role") String role
+
     //상품 등록
     //담당허브와 본인업체만 가능하게
-    //@Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    // MASTER, HUB_MANAGER(담당 허브), COMPANY_MANAGER(본인 업체)
+   //@Secured({"ROLE_COMPANY_MANAGER", "ROLE_HUB_MANAGER", "Authority" ,"ROLE_MASTER"})
     @PostMapping("")
     public ResponseEntity<CommonResponse> createProduct(
             @Valid @RequestBody final ProductCreateRequest request){
@@ -37,6 +42,7 @@ public class ProductController {
 
     //상품 목록 전체 조회 - 누구나 다 조회 가능
     //@Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER, COMPANY_MANAGER
     @GetMapping("/search")
     public ResponseEntity<CommonResponse> getProducts(
             @RequestParam final int page,
@@ -49,6 +55,7 @@ public class ProductController {
     //상품이름으로 검색 - 키워드로 검색 기능
     //누구나 다 검색 가능
     //@Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER, COMPANY_MANAGER
     @GetMapping("/search/keyword")
     public ResponseEntity<CommonResponse> findProudctByKeyword(
             @RequestParam final String keyword,
@@ -62,6 +69,7 @@ public class ProductController {
     //상품 전체 정보 수정
     //본인 업체와 담당 허브만
     //@Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    // ROLE_MASTER, ROLE_HUB_MANAGER(담당 허브), COMPANY_MANAGER(본인 업체)
     @PutMapping("/{productId}")
     public ResponseEntity<CommonResponse> updateProduct(
             @PathVariable final UUID productId,
@@ -74,6 +82,7 @@ public class ProductController {
     //담당허브만 가능
     //API 요청시 [] 리스트형태로 전송
     //@Secured({Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    // ROLE_MASTER, ROLE_HUB_MANAGER(담당 허브)
     @DeleteMapping("")
     public ResponseEntity<CommonResponse> softDeleteProducts(
             @RequestBody final List<UUID> productIds
