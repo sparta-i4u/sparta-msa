@@ -29,6 +29,55 @@ public class HubEndpoint {
 	private final HubClientService hubClientService;
 
 	/**
+	 * 허브 담당자가 관리하는 허브 ID 반환 (소속 검증)
+	 *
+	 * @param userId : 검증을 요청할 사용자
+	 * @return : 허브 관리자의 허브 ID 반환
+	 */
+	@GetMapping("/shippers/{userId}")
+	UUID confirmHubFromUser(@PathVariable UUID userId) {
+		UUID hubId = hubClientService.confirmHubFromUser(userId);
+		return hubId;
+	}
+
+	/**
+	 * Shipper에서 보내는 허브 검증 요청
+	 *
+	 * @param hubId : 검증을 요청한 HubId
+	 * @return : 검증이 완료된 정보
+	 */
+	@GetMapping("/{hubId}/shipper")
+	ResponseEntity<CommonResponse<ShipperHubResponse>> confirmHubFromShipper(@PathVariable UUID hubId) {
+		ShipperHubResponse response = hubClientService.confirmHubFromShipper(hubId);
+		return ResponseEntity.ok(CommonResponse.success(response, "허브 검증 완료"));
+	}
+
+	/**
+	 * Delivery에서 보내는 허브 검증 요청 (create)
+	 *
+	 * @param recipientHubId : 수령 허브
+	 * @param supplierHubId : 공급 허브
+	 * @return
+	 */
+	@GetMapping("/deliveries/{recipientHubId}/{supplierHubId}")
+	ResponseEntity<CommonResponse<DeliveryHubCreateResponse>> confirmHubsFromDelivery(@PathVariable UUID recipientHubId, @PathVariable UUID supplierHubId) {
+		DeliveryHubCreateResponse response = hubClientService.confirmHubsFromDelivery(recipientHubId, supplierHubId);
+		return ResponseEntity.ok(CommonResponse.success(response, ""));
+	}
+
+	/**
+	 * Delivery에서 보내는 허브 검증 요청 (update)
+	 *
+	 * @param recipientHubId : 공급 허브
+	 * @return
+	 */
+	@GetMapping("/deliveries/{supplierHubId}")
+	ResponseEntity<CommonResponse<DeliveryHubUpdateResponse>> updateConfirmHubsFromDelivery(@PathVariable UUID recipientHubId) {
+		DeliveryHubUpdateResponse response = hubClientService.updateConfirmHubsFromDelivery(recipientHubId);
+		return ResponseEntity.ok(CommonResponse.success(response, ""));
+	}
+
+	/**
 	 * 배송 담당자 측에서 보내는 허브 검증 요청 (By Gateway)
 	 *
 	 * @param hubId : 검증을 요청한 허브 ID
@@ -40,28 +89,5 @@ public class HubEndpoint {
 		return Mono.just(response);
 	}
 
-	/**
-	 * 배송 담당자 측에서 보내는 허브 검증 요청
-	 *
-	 * @param hubId : 검증을 요청한 HubId
-	 * @return : 검증이 완료된 정보
-	 */
-	@GetMapping("/{hubId}/shipper")
-	ResponseEntity<CommonResponse<ShipperHubResponse>> confirmHubFromShipper(@PathVariable UUID hubId) {
-		ShipperHubResponse response = hubClientService.confirmHubFromShipper(hubId);
-		return ResponseEntity.ok(CommonResponse.success(response, "허브 검증 완료"));
-	}
-
-	@GetMapping("/deliveries/confirm")
-	ResponseEntity<CommonResponse<DeliveryHubCreateResponse>> confirmHubsFromDelivery(@ModelAttribute DeliveryHubCreateRequest request) {
-		DeliveryHubCreateResponse response = hubClientService.confirmHubsFromDelivery(request);
-		return ResponseEntity.ok(CommonResponse.success(response, ""));
-	}
-
-	@GetMapping("/confirm-update")
-	ResponseEntity<CommonResponse<DeliveryHubUpdateResponse>> updateConfirmHubsFromDelivery(DeliveryHubUpdateRequest request) {
-		DeliveryHubUpdateResponse response = hubClientService.updateConfirmHubsFromDelivery(request);
-		return ResponseEntity.ok(CommonResponse.success(response, ""));
-	}
 
 }
