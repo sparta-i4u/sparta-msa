@@ -1,3 +1,4 @@
+// 📌 UserRepositoryImpl.java 수정 (User 모듈)
 package com.i4u.user.infrastructure;
 
 import com.i4u.user.domain.QUser;
@@ -29,20 +30,20 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
         QUser user = QUser.user;
         BooleanBuilder whereClause = new BooleanBuilder();
 
-        // 키워드 필터 추가 (닉네임, 이메일 검색)
-        if (keyword != null && !keyword.isEmpty()) {
-            whereClause.or(user.email.containsIgnoreCase(keyword));
-            whereClause.or(user.nickname.containsIgnoreCase(keyword));
+        // ✅ 기본 where 조건 유지 (논리 삭제된 계정 제외)
+        if (!includeDeleted) {
+            whereClause.and(user.isDeleted.isFalse());
         }
 
-        // 특정 역할(Role) 필터 추가
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            whereClause.and(
+                    user.email.containsIgnoreCase(keyword)
+                            .or(user.nickname.containsIgnoreCase(keyword))
+            );
+        }
+
         if (role != null) {
             whereClause.and(user.role.eq(role));
-        }
-
-        // 논리 삭제 필터 추가
-        if (!includeDeleted) {
-            whereClause.and(user.isDeleted.eq(false));
         }
 
         List<User> users = queryFactory

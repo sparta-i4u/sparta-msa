@@ -1,3 +1,4 @@
+// 📌 UserDetailResponseDto.java 수정 (User 모듈)
 package com.i4u.user.application.dtos.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -32,6 +33,7 @@ public class UserDetailResponseDto {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private final LocalDateTime updatedAt;
 
+    // ✅ User 객체를 DTO로 변환하는 메서드
     public static UserDetailResponseDto from(User user) {
         Objects.requireNonNull(user, "User 객체가 null일 수 없습니다.");
 

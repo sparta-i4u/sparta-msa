@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter // Lombok의 @Getter 추가 (getter 자동 생성)
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,10 +33,10 @@ public class AuthSignUpRequestDto {
     @NotBlank(message = "Slack ID는 필수 입력값입니다.")
     private String slackId;
 
-    private AuthUserRole role; // AuthUserRole을 사용
+    private AuthUserRole role; // AuthUserRole 사용
 
-    // UserRole로 변환하는 메서드 추가
+    //AuthUserRole을 UserRole로 변환하는 메서드
     public UserRole toUserRole() {
-        return UserRole.valueOf(this.role.name()); // AuthUserRole → UserRole 변환
+        return (role != null) ? UserRole.valueOf(role.name()) : UserRole.MASTER;
     }
 }
