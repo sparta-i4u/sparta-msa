@@ -1,4 +1,3 @@
-// 📌 ErrorResponse.java 수정 (Common 모듈)
 package com.i4u.common.exception;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
