@@ -11,10 +11,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShipperUserResponse {
+public class ConfirmUserResponse {
 
 	private Boolean isDeleted;
 	private UUID userId;
 	private String userSlackId;
+	private String userRole;
 
 }
