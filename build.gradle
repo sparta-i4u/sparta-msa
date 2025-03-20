@@ -37,11 +37,11 @@ subprojects {
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
-
+    
     test {
         useJUnitPlatform()
     }
-
+    
 }
 
 project(':common') { // common은 bootJar로 패키징 할 필요 없음
@@ -65,39 +65,39 @@ project(':gateway') {
         implementation project(':common')
     }
 
-    project(':company') {
-        dependencies {
-            implementation project(':common')
-        }
+project(':company') {
+    dependencies {
+        implementation project(':common')
     }
+}
 
-    project(':delivery') {
-        dependencies {
-            implementation project(':common')
-        }
+project(':delivery') {
+    dependencies {
+        implementation project(':common')
     }
+}
 
-    project(':hub') {
-        dependencies {
-            implementation project(':common')
-        }
+project(':hub') {
+    dependencies {
+        implementation project(':common')
     }
+}
 
-    project(':message') {
-        dependencies {
-            implementation project(':common')
-        }
+project(':message') {
+    dependencies {
+        implementation project(':common')
     }
+}
 
-    project(':order') {
-        dependencies {
-            implementation project(':common')
-        }
+project(':order') {
+    dependencies {
+        implementation project(':common')
     }
+}
 
-    project(':product') {
-        dependencies {
-            implementation project(':common')
-        }
+project(':product') {
+    dependencies {
+        implementation project(':common')
     }
+}
 }

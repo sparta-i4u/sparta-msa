@@ -1,17 +1,18 @@
 package com.i4u.common.utils;
 
-import com.i4u.common.security.CustomUserDetails;
-import org.springframework.data.domain.AuditorAware;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
-public class UserAuditorAware implements AuditorAware<UUID> {		// createdBy 및 lastModifiedBy 필드를 자동으로 채울 수 있도록 함
+public class UserAuditorAware implements AuditorAware<UUID> {
 
 	private final String ANONYMOUS_USER = "anonymousUser";
 
@@ -23,10 +24,9 @@ public class UserAuditorAware implements AuditorAware<UUID> {		// createdBy 및 
 			return Optional.empty();
 		}
 
-		// UserDetails를 활용하여 UUID 반환 (UserDetailsImpl을 직접 참조하지 않음)
-		if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
-			return Optional.of(userDetails.getUserId());
-		}
+		//        if (authentication.getPrincipal() instanceof UserDetailsImpl userDetails) {
+		//            return Optional.of(userDetails.getUserId());
+		//        }
 
 		return Optional.empty();
 	}

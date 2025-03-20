@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -23,14 +25,27 @@ public class UserController {
 
     private final UserService userService;
 
-    // 회원가입 (POST /users)
-//    @PostMapping
-//    public ResponseEntity<CommonResponse<UserDetailResponseDto>> createUser(
-//            @RequestBody UserCreateRequestDto requestDto
-//    ) {
-//        UserDetailResponseDto userDetail = userService.createUser(requestDto);
-//        return ResponseEntity.ok(CommonResponse.success(userDetail, "회원가입이 완료되었습니다."));
+//    // ✅ 모든 모듈이 공통으로 사용할 수 있는 사용자 검증 API (GET /users/{userId}/validate?fields=userId,isDeleted)
+//    @GetMapping("/{userId}/validate")
+//    public ResponseEntity<CommonResponse<Map<String, Object>>> validateUser(
+//            @PathVariable UUID userId,
+//            @RequestParam(required = false) List<String> fields) {
+//
+//        Map<String, Object> userInfo = userService.getUserInfo(userId, fields);
+//        return ResponseEntity.ok(CommonResponse.success(userInfo, "사용자 검증 성공"));
 //    }
+
+    // 회원가입 (POST /users)
+    @PostMapping
+    public ResponseEntity<CommonResponse<UserDetailResponseDto>> createUser(
+            @RequestBody UserCreateRequestDto requestDto,
+            @RequestParam String encodedPassword // 추가된 부분 (Auth 서비스에서 전달)
+    ) {
+        return ResponseEntity.ok(CommonResponse.success(
+                userService.createUser(requestDto, encodedPassword),
+                "회원가입이 완료되었습니다.")
+        );
+    }
 
     // 특정 사용자 조회 - ID 기반 (GET /users/{userId})
     @GetMapping("/{userId}")
