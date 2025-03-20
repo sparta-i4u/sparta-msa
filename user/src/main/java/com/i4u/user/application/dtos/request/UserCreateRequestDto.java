@@ -14,13 +14,14 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserCreateRequestDto { // 회원가입 요청 DTO
+public class UserCreateRequestDto {
 
     @NotBlank(message = "Username은 필수 입력값입니다.")
     @Size(min = 4, max = 10, message = "Username은 4자 이상 10자 이하로 입력해야 합니다.")
     private String username;
 
-    // password 필드를 제거하여 AuthService에서 처리할 수 있도록 수정
+    @NotBlank(message = "비밀번호는 필수 입력값입니다.") // ✅ 비밀번호 필드 추가
+    private String password;
 
     @NotBlank(message = "닉네임은 필수 입력값입니다.")
     private String nickname;
@@ -32,6 +33,6 @@ public class UserCreateRequestDto { // 회원가입 요청 DTO
     @NotBlank(message = "Slack ID는 필수 입력값입니다.")
     private String slackId;
 
-    @NotNull(message = "역할(Role)은 필수 입력값입니다.") // `@NotNull` 적용
+    @NotNull(message = "역할(Role)은 필수 입력값입니다.")
     private UserRole role; // String → UserRole 변경하여 문제 해결
 }
