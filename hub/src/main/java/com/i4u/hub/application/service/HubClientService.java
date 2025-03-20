@@ -2,6 +2,7 @@ package com.i4u.hub.application.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -43,13 +44,13 @@ public class HubClientService {
 	 * @return : 검증된 허브 내용
 	 */
 	public ShipperHubResponse confirmHubFromShipper(UUID hubId) {
-		Hub hub = hubRepository.findById(hubId).filter(h -> !h.getIsDeleted())
-			.orElseThrow(() -> new IllegalArgumentException("해당 허브가 존재하지 않습니다. "));
+		Hub hub = hubRepository.findById(hubId).orElse(null);
 
-		ShipperHubResponse response = ShipperHubResponse.builder()
-			.hubId(hub.getHubId()).isDeleted(false).build();
-
-		return response;
+		return ShipperHubResponse.builder()
+			.hubId(hub != null ? hub.getHubId() : hubId)
+			.isDeleted(hub == null)
+			// .hubManagerId(hub.getHubManagerId())
+			.build();
 	}
 
 	/**
@@ -61,15 +62,18 @@ public class HubClientService {
 	 */
 	public DeliveryHubCreateResponse confirmHubsFromDelivery(UUID recipientHubId, UUID supplierHubId) {
 		// 목적지 허브 (업체로 가기 전 마지막 허브)
-		Hub recipientHub = hubRepository.findById(recipientHubId).filter(h -> !h.getIsDeleted())
-			.orElseThrow(() -> new IllegalArgumentException("해당 허브가 존재하지 않습니다. "));
+		Hub recipientHub = hubRepository.findById(recipientHubId).orElse(null);
 
 		// 출발 허브 (물건을 공급할 허브)
-		Hub supplierHub = hubRepository.findById(supplierHubId).filter(h -> !h.getIsDeleted())
-			.orElseThrow(() -> new IllegalArgumentException("해당 허브가 존재하지 않습니다. "));
+		Hub supplierHub = hubRepository.findById(supplierHubId).orElse(null);
+
+		// 둘 중 하나라도 없으면 isDeleted = true
+		boolean isDeleted = (recipientHub == null || supplierHub == null);
 
 		return DeliveryHubCreateResponse.builder()
-			.recipientHubId(recipientHub.getHubId()).supplierHubId(supplierHub.getHubId()).isDeleted(false)
+			.recipientHubId(recipientHub != null ? recipientHub.getHubId() : recipientHubId) // null이면 원래 ID 반환
+			.supplierHubId(supplierHub != null ? supplierHub.getHubId() : supplierHubId) // null이면 원래 ID 반환
+			.isDeleted(isDeleted)
 			.build();
 	}
 
@@ -81,11 +85,11 @@ public class HubClientService {
 	 */
 	public DeliveryHubUpdateResponse updateConfirmHubsFromDelivery(UUID recipientHubId) {
 		// 목적지 허브만 검증 (업체로 가기 전 마지막 허브)
-		Hub recipientHub = hubRepository.findById(recipientHubId).filter(h -> !h.getIsDeleted())
-			.orElseThrow(() -> new IllegalArgumentException("해당 허브가 존재하지 않습니다. "));
+		Hub recipientHub = hubRepository.findById(recipientHubId).orElse(null);
 
 		return DeliveryHubUpdateResponse.builder()
-			.arriveHubId(recipientHub.getHubId()).isDeleted(false)
+			.arriveHubId(recipientHub != null ? recipientHub.getHubId() : recipientHubId)
+			.isDeleted(recipientHub == null)
 			.build();
 	}
 
