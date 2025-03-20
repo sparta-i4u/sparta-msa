@@ -7,7 +7,7 @@ import com.i4u.company.application.dto.response.CompanySearchResponse;
 import com.i4u.company.domain.entity.Company;
 import com.i4u.company.domain.repository.CompanyQueryRepository;
 import com.i4u.company.domain.repository.CompanyRepository;
-import com.i4u.company.exceptiion.CompanyNotFoundException;
+import com.i4u.company.exception.CompanyNotFoundException;
 import com.i4u.company.presentation.client.AuthClient;
 import com.i4u.company.presentation.client.HubClient;
 import com.i4u.company.presentation.dtos.response.ConfirmUserResponse;
