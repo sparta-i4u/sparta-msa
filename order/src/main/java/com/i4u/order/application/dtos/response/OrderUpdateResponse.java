@@ -28,7 +28,6 @@ public class OrderUpdateResponse {
 
 	// 요청 사항
 	public String requirement;
-
 	// 주문 상태
 	public String orderState;
 
