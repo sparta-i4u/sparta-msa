@@ -37,21 +37,15 @@ public class HubClientService {
 		return null;
 	}
 
-	/**
-	 * 허브 검증 요청 (Shipper)
-	 * 
-	 * @param hubId : 검증할 허브 ID
-	 * @return : 검증된 허브 내용
-	 */
-	public ShipperHubResponse confirmHubFromShipper(UUID hubId) {
-		Hub hub = hubRepository.findById(hubId).orElse(null);
-
-		return ShipperHubResponse.builder()
-			.hubId(hub != null ? hub.getHubId() : hubId)
-			.isDeleted(hub == null)
-			// .hubManagerId(hub.getHubManagerId())
-			.build();
-	}
+	// public ShipperHubResponse confirmHubFromShipper(UUID hubId) {
+	// 	Hub hub = hubRepository.findById(hubId).orElse(null);
+	//
+	// 	return ShipperHubResponse.builder()
+	// 		.hubId(hub != null ? hub.getHubId() : hubId)
+	// 		.isDeleted(hub == null)
+	// 		// .hubManagerId(hub.getHubManagerId())
+	// 		.build();
+	// }
 
 	/**
 	 * 허브 검증 요청 (Delivery Create)
