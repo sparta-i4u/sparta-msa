@@ -33,7 +33,8 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public PagedModel<DeliveryGetListResponse> searchDeliveries(Pageable pageable, DeliverySearchRequest request) {
+    public PagedModel<DeliveryGetListResponse> searchDeliveries(Pageable pageable, DeliverySearchRequest request,
+		String userId, String role, UUID hubManagerHubId) {
         List<OrderSpecifier<?>> orders = getAllOrderSpecifiers(pageable);
         long pageSize = getPageSize(pageable.getPageSize(), pageable.getOffset());
 
@@ -52,7 +53,7 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
             ))
             .from(delivery)
             .where(
-                // confirmRole(role),
+                confirmRole(role, userId, hubManagerHubId),
                 orderId(request.getOrderId()),
                 deliveryState(request.getDeliveryState()),
                 shipperId(request.getShipperId()),
@@ -152,15 +153,24 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
 
     /**
      * 권한 확인
-     * @param role : 사용자 권한 확인
+     *
+     * @param role            : 사용자 권한 확인
+     * @param userId
+     * @param hubManagerHubId
      * @return : 권한에 따른 결과 리턴
      */
-    private BooleanExpression confirmRole(String role) {
-        // if (role.equals("마스터")) {
-        //     return stores.isDeleted.eq(false);
-        // } else {
-        //     return null;
-        // }
+    private BooleanExpression confirmRole(String role, String userId, UUID hubManagerHubId) {
+        if (role.equals("ROLE_MASTER") || role.equals("ROLE_COMPANY_MANAGER")) {
+            return null;
+        } else {
+            if (role.equals("ROLE_HUB_MANAGER")) {
+                return delivery.arriveHubId.eq(hubManagerHubId)
+                    .or(delivery.departHubId.eq(hubManagerHubId));
+            }
+            if (role.equals("ROLE_DELIVERY_MANAGER")) {
+               return delivery.shipperId.eq(UUID.fromString(userId));
+            }
+        }
         return null;
     }
 
