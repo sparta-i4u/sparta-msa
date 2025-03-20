@@ -31,13 +31,14 @@ public class Company extends Basic {
     @Enumerated(EnumType.STRING)
     private CompanyType type;
 
-    private String owner;
+    //private String owner;
+    private UUID owner; // hub -> hubmanagerId ()
 
     private String address;
 
     private String number;
 
-    public Company(UUID hubId, String name,CompanyType type, String owner, String address, String number) {
+    public Company(UUID hubId, String name, CompanyType type, UUID owner, String address, String number) {
         this.hubId = hubId;
         this.name = name;
         this.type = type;
@@ -51,7 +52,6 @@ public class Company extends Basic {
     public void update(final CompanyUpdateRequest newCompany) {
         this.name = newCompany.name();
         this.type = newCompany.type();
-        this.owner = newCompany.owner();
         this.address = newCompany.address();
         this.number = newCompany.number();
     }

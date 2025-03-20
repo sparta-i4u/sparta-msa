@@ -30,8 +30,10 @@ public class CompanyController {
     //MASTER, 담당 허브 관리자
     @PostMapping("")
     public ResponseEntity<CommonResponse> createCompany(
-            @Valid @RequestBody final CompanyCreateRequest request) {
-        CompanyResponse response = companyService.createCompany(request);
+            @Valid @RequestBody final CompanyCreateRequest request,
+            @RequestHeader(name = "X-User-Id") String userId,
+            @RequestHeader(name = "X-User-Role") String role) {
+        CompanyResponse response = companyService.createCompany(request, userId, role);
         return new ResponseEntity<>(CommonResponse.success(response, "상품 등록이 정상 수행되었습니다"), HttpStatus.CREATED);
     }
 
@@ -41,8 +43,10 @@ public class CompanyController {
     public ResponseEntity<CommonResponse> getCompany (
             @RequestParam final int page,
             @RequestParam final int size,
-            @RequestParam(required = false) final String sort) {
-        CompanySearchResponse response = companyService.findAll(page, size, sort);
+            @RequestParam(required = false) final String sort,
+            @RequestHeader(name = "X-User-Id") String userId,
+            @RequestHeader(name = "X-User-Role") String role) {
+        CompanySearchResponse response = companyService.findAll(page, size, sort, userId, role);
         return new ResponseEntity<>(CommonResponse.success(response, "업체 목록이 정상 조회되었습니다"), HttpStatus.OK);
     }
 
@@ -52,8 +56,10 @@ public class CompanyController {
             @RequestParam final String keyword,
             @RequestParam final int page,
             @RequestParam final int size,
-            @RequestParam(required = false) final String sort) {
-        CompanySearchResponse response = companyService.findCompanyByKeyword(keyword, page, size, sort);
+            @RequestParam(required = false) final String sort,
+            @RequestHeader(name = "X-User-Id") String userId,
+            @RequestHeader(name = "X-User-Role") String role) {
+        CompanySearchResponse response = companyService.findCompanyByKeyword(keyword, page, size, sort, userId, role);
         return new ResponseEntity<>(CommonResponse.success(response, "업체 키워드로 검색하였습니다"), HttpStatus.OK);
     }
 
@@ -63,8 +69,10 @@ public class CompanyController {
     @PutMapping("/{companyId}")
     public ResponseEntity<CommonResponse> updateCompany(
             @PathVariable UUID companyId,
-            @Valid @RequestBody final CompanyUpdateRequest request) {
-        CompanyResponse response = companyService.updateCompany(companyId, request);
+            @Valid @RequestBody final CompanyUpdateRequest request,
+            @RequestHeader(name = "X-User-Id") String userId,
+            @RequestHeader(name = "X-User-Role") String role) {
+        CompanyResponse response = companyService.updateCompany(companyId, request, userId, role);
         return new ResponseEntity<>(CommonResponse.success(response, "업체 정보가 수정되었습니다"), HttpStatus.OK);
     }
 
@@ -74,10 +82,10 @@ public class CompanyController {
     //MASTER, 담당허브
     @DeleteMapping("")
     public ResponseEntity<CommonResponse> softDeleteCompanies(
-            @RequestBody final List<UUID> companyIds) {
-        //TODO 임시 설정
-        String deletedBy = "root";
-        companyService.softDeleteCompanies(companyIds, deletedBy);
+            @RequestBody final List<UUID> companyIds,
+            @RequestHeader(name = "X-User-Id") String userId,
+            @RequestHeader(name = "X-User-Role") String role) {
+        companyService.softDeleteCompanies(companyIds, userId, role);
         return new ResponseEntity<>(CommonResponse.success("", "상품이 정상적으로 삭제되었습니다"), HttpStatus.OK);
     }
 }
