@@ -1,6 +1,7 @@
 package com.i4u.order.domain.entity;
 
 public enum OrderStatus {
+
 	PAID,              // 결제 완료
 	SCHEDULED,         // 배송 예정
 	SHIPPED,           // 배송 시작
