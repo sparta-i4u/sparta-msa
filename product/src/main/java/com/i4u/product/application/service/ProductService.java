@@ -10,6 +10,8 @@ import com.i4u.product.domain.Product;
 import com.i4u.product.domain.repository.ProductQueryRepository;
 import com.i4u.product.domain.repository.ProductRepository;
 import com.i4u.product.exception.ProductNotFoundException;
+import com.i4u.product.presentation.client.CompanyClient;
+import com.i4u.product.presentation.client.HubClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,15 +29,41 @@ public class ProductService {
 
     private final ProductQueryRepository productQueryRepository;  // QueryDSL 용도
     private final ProductRepository productRepository;  // CRUD 용도
+    private final HubClient hubClient;
+    private final CompanyClient companyClient;
 
     //상품 생성
     @Transactional
-    public ProductResponse createProduct(final ProductCreateRequest request){
-
+    public ProductResponse createProduct(final ProductCreateRequest request, String userId, String role) {
         //TODO 허브아이디와 컴퍼니 아이디 받아오기
+        //요청을 보낸 사람(product 외부에서 (client) product로 요청을 보낸 사람- 권한 검증)
+
+        // 허브 id를 - 요청을 할 때 이 업체에다가 상품을 만들거야, 요청 보낸 사용자가 보낸 hubId와 companyId
         final UUID hubId = request.hubId();
         final UUID companyId = request.companyId();
 
+        // 권한 - 요청을 한 사람 - 상품 생성을 한 사용자의 권한 , 즉 요청을 보낸 사용자의 권한
+        // 권한 확인 로직 - 본인hub인지 | 본인 company인지
+        UUID companyOrHubId = confirmRole(userId, role);
+
+        //해당하는 hub나 company ID가 없으면 - id가 있냐 없느냐만 확인
+        if (companyOrHubId == null || role.equals("ROLE_DELIVERY_MANAGER")) {
+            throw new IllegalArgumentException("권한이 없습니다");
+        }
+
+        // 허브 모듈에서 이 로직 만들기
+        // hubRepositroy.findById();  - 이거 해달라는 요청
+        // 업체 모듈에서 이 로직 만들기
+        // companyRepository.findById();
+
+        //권한검증
+        //본인 업체가 아니고 and 본인이 담당하는 허브아이디가 아니면 - 정말 본인것이 맞는지 확인하는 로직
+        if ( !(role.equals("ROLE_COMPANY_MANAGER") && companyOrHubId.equals(companyId)) ||
+             !(role.equals("ROLE_HUB_MANAGER") && companyOrHubId.equals(hubId)) ) {
+            throw new IllegalArgumentException("권한이 없습니다");
+        }
+
+        // 각각 받아온 hub와 company가 존재하는지 확인
         //TODO 상품 관리 허브 id 확인해 존재하는지 확인
         //        if (!hubRepository.existsById(hubId)) {
         //            throw new IllegalArgumentException("허브가 존재하지 않습니다: " + hubId);
@@ -52,13 +80,13 @@ public class ProductService {
 
     //모든 상품 전체 조회
     //모든 조회 및 검색에서 deleted_at 필드가 null인 데이터만을 대상으로 처리
-    public ProductSearchResponse findAll(final int page, final int size, final String sort) {
+    public ProductSearchResponse findAll(final int page, final int size, String s, String userId, final String sort) {
         Pageable pageable = getPageable(page, size, sort);
         return ProductSearchResponse.of(productQueryRepository.findAll(pageable));
     }
 
     //상품 이름 검색 Service
-    public ProductSearchResponse findProudctByKeyword(final String keyword, final int page, final int size, final String sort){
+    public ProductSearchResponse findProudctByKeyword(final String keyword, final int page, final int size, String s, String userId, final String sort) {
         Pageable pageable = getPageable(page, size, sort);
         // 상품 이름으로 필터링
         if (keyword != null || !keyword.isBlank()) {  //keyword가 있으면
@@ -101,7 +129,7 @@ public class ProductService {
 
     //상품 수정
     @Transactional
-    public ProductResponse updateProduct(final UUID productId, final ProductUpdateRequest request) {
+    public ProductResponse updateProduct(final UUID productId, final ProductUpdateRequest request, String userId, String role) {
         final Product product = findProductById(productId);
         product.update(request);
         return ProductResponse.of(product);
@@ -117,12 +145,30 @@ public class ProductService {
     //상품 엔티티의 deleted_at, deleted_by 필드를 이용하여 논리적 삭제를 관리합니다.
     //상품이 삭제될 때 연관된 데이터(주문 등)도 삭제 관련 필드를 통해 관리합니다.
     @Transactional
-    public void softDeleteProducts(final List<UUID> productIds, final String deletedBy){
+    public void softDeleteProducts(final List<UUID> productIds, String userId, final String deletedBy) {
         List<Product> products = productRepository.findAllById(productIds);
         if (products.isEmpty()) { // 조회된 상품들이 없으면 예외 처리하거나, 빈 리스트 처리 가능
             throw new ProductNotFoundException("해당하는 상품이 없습니다.");
         }
         // 각 상품에 대해 논리 삭제 처리
         products.forEach(product -> product.softDelete(deletedBy));
+    }
+
+    // 권한 확인 SERVICE - ROLE_MASTER, ROLE_HUB_MANAGER(담당 허브), ROLE_COMPANY_MANAGER(본인 업체)
+    private UUID confirmRole(String userId, String role) {
+        switch (role) {
+            case "ROLE_COMPANY_MANAGER":
+                // companyClient (companyId - 없으면 null)
+                return companyClient.getCompanyId(UUID.fromString(userId));
+            case "ROLE_DELIVERY_MANAGER":
+                return null;
+            case "ROLE_HUB_MANAGER":
+                // hubClient (hubId - 없으면 null)
+                return hubClient.getHubId(UUID.fromString(userId));  //userId가 이미 UUID 형식의 문자열이라면, 이를 UUID 객체로 바꿔주는 역
+            default:  // ROLE_MASTER
+                // 걍 통과
+                break;
+        }
+        return null;
     }
 }

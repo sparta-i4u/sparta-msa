@@ -24,75 +24,73 @@ public class ProductController {
 
     private final ProductService productService;
 
-    // 	@RequestHeader(name = "X-User-Id") String userId,
-    //	@RequestHeader(name = "X-User-Email") String email,
-    //	@RequestHeader(name = "X-User-Role") String role
+    // @RequestHeader(name = "X-User-Id") String userId
+    // @RequestHeader(name = "X-User-Role") String role
 
-    //상품 등록
-    //담당허브와 본인업체만 가능하게
+    // 상품 등록
+    // 담당허브와 본인업체만 가능하게
     // MASTER, HUB_MANAGER(담당 허브), COMPANY_MANAGER(본인 업체)
-   //@Secured({"ROLE_COMPANY_MANAGER", "ROLE_HUB_MANAGER", "Authority" ,"ROLE_MASTER"})
     @PostMapping("")
     public ResponseEntity<CommonResponse> createProduct(
-            @Valid @RequestBody final ProductCreateRequest request){
-        ProductResponse response = productService.createProduct(request);
+            @Valid @RequestBody final ProductCreateRequest request,
+            @RequestHeader(name = "X-User-Id") String userId,
+            @RequestHeader(name = "X-User-Role") String role){
+        ProductResponse response = productService.createProduct(request, userId, role);
         return new ResponseEntity<>(CommonResponse.success(response, "상품 등록이 정상 수행되었습니다"),
                 HttpStatus.CREATED);
     }
 
-    //상품 목록 전체 조회 - 누구나 다 조회 가능
-    //@Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    // 상품 목록 전체 조회 - 누구나 다 조회 가능
     // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER, COMPANY_MANAGER
     @GetMapping("/search")
     public ResponseEntity<CommonResponse> getProducts(
             @RequestParam final int page,
             @RequestParam final int size,
-            @RequestParam(required = false) final String sort) {
-        ProductSearchResponse response = productService.findAll(page, size, sort);
+            @RequestParam(required = false) final String sort,
+            @RequestHeader(name = "X-User-Id") String userId,
+            @RequestHeader(name = "X-User-Role") String role) {
+        ProductSearchResponse response = productService.findAll(page, size, sort, userId, role);
         return new ResponseEntity<>(CommonResponse.success(response, "상품 목록이 정상 조회되었습니다"), HttpStatus.OK);
     }
 
-    //상품이름으로 검색 - 키워드로 검색 기능
-    //누구나 다 검색 가능
-    //@Secured({Authority.ROLE_DELIVERY_MANAGER, Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    // 상품이름으로 검색 - 키워드로 검색 기능
+    // 누구나 다 검색 가능
     // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER, COMPANY_MANAGER
     @GetMapping("/search/keyword")
     public ResponseEntity<CommonResponse> findProudctByKeyword(
             @RequestParam final String keyword,
             @RequestParam final int page,
             @RequestParam final int size,
-            @RequestParam(required = false) final String sort) {
-        ProductSearchResponse response = productService.findProudctByKeyword(keyword, page, size, sort);
+            @RequestParam(required = false) final String sort,
+            @RequestHeader(name = "X-User-Id") String userId,
+            @RequestHeader(name = "X-User-Role") String role) {
+        ProductSearchResponse response = productService.findProudctByKeyword(keyword, page, size, sort, userId, role);
         return new ResponseEntity<>(CommonResponse.success(response, "상품 키워드로 검색하였습니다"), HttpStatus.OK);
     }
 
-    //상품 전체 정보 수정
-    //본인 업체와 담당 허브만
-    //@Secured({Authority.ROLE_COMPANY_MANAGER, Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    // 상품 전체 정보 수정
+    // 본인 업체와 담당 허브만
     // ROLE_MASTER, ROLE_HUB_MANAGER(담당 허브), COMPANY_MANAGER(본인 업체)
     @PutMapping("/{productId}")
     public ResponseEntity<CommonResponse> updateProduct(
             @PathVariable final UUID productId,
-            @Valid @RequestBody final ProductUpdateRequest request) {
-        ProductResponse response = productService.updateProduct(productId, request);
+            @Valid @RequestBody final ProductUpdateRequest request,
+            @RequestHeader(name = "X-User-Id") String userId,
+            @RequestHeader(name = "X-User-Role") String role) {
+        ProductResponse response = productService.updateProduct(productId, request, userId, role);
         return new ResponseEntity<>(CommonResponse.success(response, "상품 정보가 수정되었습니다"), HttpStatus.OK);
     }
 
-    //상품 삭제 - 여러상품도 가능
-    //담당허브만 가능
-    //API 요청시 [] 리스트형태로 전송
-    //@Secured({Authority.ROLE_HUB_MANAGER, Authority.ROLE_MASTER})
+    // 상품 삭제 - 여러상품도 가능
+    // 담당허브만 가능
+    // API 요청시 [] 리스트형태로 전송
     // ROLE_MASTER, ROLE_HUB_MANAGER(담당 허브)
-    @DeleteMapping("")
+    @DeleteMapping
     public ResponseEntity<CommonResponse> softDeleteProducts(
-            @RequestBody final List<UUID> productIds
-            //TODO 로그인 한 사람 정보 받아오기
-            //@AuthenticationPrincipal CustomUserDetails userDetails
-            ){
-        //TODO 로그인 한 사람 정보 받아오기
-        //String deletedBy = userDetails.getUsername();
-        String deletedBy = "root"; //임시 설정
-        productService.softDeleteProducts(productIds, deletedBy);
+            @RequestBody final List<UUID> productIds,
+            @RequestHeader(name = "X-User-Id") String userId,
+            @RequestHeader(name = "X-User-Role") String role){
+        productService.softDeleteProducts(productIds, userId, role);
         return new ResponseEntity<>(CommonResponse.success("", "상품이 정상적으로 삭제되었습니다"), HttpStatus.OK);
     }
 }
