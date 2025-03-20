@@ -4,7 +4,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.i4u.common.entity.Basic;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -90,4 +89,5 @@ public class Order extends Basic {
 		this.deliveryId = deliveryId;
 		this.orderStatus = orderStatus;
 	}
+
 }
