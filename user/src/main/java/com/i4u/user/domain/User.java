@@ -11,7 +11,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA만 사용 가능
-@Builder(access = AccessLevel.PRIVATE) // 빌더 직접 사용 방지
+@Builder //(access = AccessLevel.PRIVATE) // 빌더 직접 사용 방지
 @Table(name = "p_user", uniqueConstraints = {@UniqueConstraint(name = "unique_email", columnNames = "email")})
 public class User extends Basic {
 
