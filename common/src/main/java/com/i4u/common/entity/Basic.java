@@ -3,8 +3,6 @@ package com.i4u.common.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -19,7 +17,6 @@ import lombok.Getter;
 @Getter
 @MappedSuperclass
 @Where(clause = "is_deleted = false") // 조회 시, 삭제된 데이터 자동 필터링
-@SQLRestriction("deletedAt IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 public abstract class Basic {
 

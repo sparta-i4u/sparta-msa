@@ -32,11 +32,8 @@ dependencies {
 	// User 모듈 FeignClient 참조 추가
 	implementation project(':user')
 
-	// Eureka Client
-	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
 	// Actuator
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	// Zipkin

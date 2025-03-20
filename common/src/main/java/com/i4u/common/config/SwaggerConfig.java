@@ -14,7 +14,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 
 @Configuration
-public class SwaggerConfig {		// SpringDoc을 사용하여 OpenAPI(Swagger)를 설정
+public class SwaggerConfig {
 
 	@Bean
 	public OpenAPI openAPI() {

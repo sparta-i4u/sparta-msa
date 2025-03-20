@@ -24,6 +24,25 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+//    // ✅ 사용자 정보를 특정 필드 기준으로 조회하는 메서드 (모든 모듈에서 사용 가능)
+//    public Map<String, Object> getUserInfo(UUID userId, List<String> fields) {
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
+//
+//        Map<String, Object> userInfo = new HashMap<>();
+//        if (fields == null || fields.isEmpty()) {
+//            // 기본적으로 모든 데이터 반환
+//            userInfo.put("userId", user.getUserId());
+//            userInfo.put("userSlackId", user.getSlackId());
+//            userInfo.put("isDeleted", user.getIsDeleted());
+//        } else {
+//            if (fields.contains("userId")) userInfo.put("userId", user.getUserId());
+//            if (fields.contains("userSlackId")) userInfo.put("userSlackId", user.getSlackId());
+//            if (fields.contains("isDeleted")) userInfo.put("isDeleted", user.getIsDeleted());
+//        }
+//        return userInfo;
+//    }
+
     // ✅ 역할 문자열을 UserRole Enum으로 변환하는 유틸리티 메서드
     private UserRole convertToUserRole(String role) {
         if (role == null || role.isBlank()) {
@@ -59,19 +78,13 @@ public class UserService {
     // ✅ userId를 기반으로 사용자 조회
     public Optional<UserDetailResponseDto> getUserById(UUID userId) {
         return userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .map(UserDetailResponseDto::from)
-                .or(() -> {
-                    throw new UserException(UserException.UserErrorType.USER_NOT_FOUND);
-                });
+                .map(UserDetailResponseDto::from);
     }
 
     // ✅ Slack ID를 기반으로 사용자 조회
     public Optional<UserDetailResponseDto> getUserBySlackId(String slackId) {
         return userRepository.findBySlackIdAndIsDeletedFalse(slackId)
-                .map(UserDetailResponseDto::from)
-                .or(() -> {
-                    throw new UserException(UserException.UserErrorType.USER_NOT_FOUND);
-                });
+                .map(UserDetailResponseDto::from);
     }
 
     // ✅ 사용자 검색 기능 (페이징 포함)

@@ -1,0 +1,13 @@
+### POST
+POST http://localhost:19020/api/v1/companies
+Content-Type: application/json
+
+{
+  "hubId": "961e6198-9d62-422d-88c6-2ccf934ace92",
+  "shipperType": "COMPANY",
+  "userId": "0b2df911-8887-476d-b226-b8a6bfb5c719"
+}
+
+### GET
+ GET http://localhost:19050/api/v1/shippers
+    Accept: application/json

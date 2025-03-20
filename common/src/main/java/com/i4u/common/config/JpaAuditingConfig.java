@@ -9,10 +9,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import java.util.UUID;
 
 @Configuration
-@EnableJpaAuditing(auditorAwareRef = "userAuditorAware") // JpaAuditing 활성화
+@EnableJpaAuditing(auditorAwareRef = "userAuditorAware")
 public class JpaAuditingConfig {
 
-	@Bean(name = "userAuditorAware")
+	@Bean(name = "jpaAuditorAware")
 	public AuditorAware<UUID> userAuditorAware() {
 		return new UserAuditorAware();
 	}
