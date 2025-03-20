@@ -26,10 +26,17 @@ import com.i4u.order.presentation.client.DeliveryClient;
 import com.i4u.order.presentation.client.ProductClient;
 import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
+import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
+import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
+import com.i4u.order.presentation.dtos.request.OrderProductRequest;
+import com.i4u.order.presentation.dtos.request.OrderProductStateUpdateRequest;
+import com.i4u.order.presentation.dtos.request.OrderProductUpdateRequest;
+import com.i4u.order.presentation.dtos.response.OrderProductUpdateResponse;
 import com.i4u.order.presentation.dtos.request.OrderStatusUpdateByDeliveryRequest;
 import com.i4u.order.presentation.dtos.response.OrderCompanyResponse;
 import com.i4u.order.presentation.dtos.response.OrderCompanyUpdateResponse;
 import com.i4u.order.presentation.dtos.response.OrderDeliveryResponse;
+import com.i4u.order.presentation.dtos.response.OrderProductResponse;
 
 import com.i4u.order.presentation.client.HubClient;
 
@@ -68,17 +75,17 @@ public class OrderService {
 
 		// 2. [productClient] 상품 쪽으로 검증 요청 필요 (상품의 개수랑 상품 ID를 같이 넘김)
 		// 재고가 없거나 상품이 없다면 Exception
-		// OrderProductResponse responseProduct = productClient.confirmProduct(OrderProductRequest.builder()
-		// 	.productId(request.getProductId()).productQuantity(request.getProductQuantity()).build());
-		//
-		// if (responseProduct.getIsDeleted()) {
-		// 	throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
-		// }
+		ResponseEntity<CommonResponse<OrderProductResponse>> responseProduct = productClient.confirmProduct(OrderProductRequest.builder()
+			.productId(request.getProductId()).productQuantity(request.getProductQuantity()).build());
+
+		if (responseProduct.getBody().getData().getIsDeleted()) {
+			throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+		}
 
 		// 3. 주문 생성 (일단은 DeliveryId 없이 생성 후 저장) → 주문 상태는 PAID로 지정
-		Long productTotalPrice = 100L;
-		// Long productTotalPrice = responseProduct.getProductTotalPrice();
-		Order order = request.toOrder(productTotalPrice);
+		Long productTotalPrice = responseProduct.getBody().getData().getProductTotalPrice();
+		Order order = request.toOrder(productTotalPrice, responseCompany.getBody().getData().getSupplierHubId(), responseCompany.getBody().getData().getRecipientHubId(),
+			UUID.fromString(userId));
 
 		// 4. 생성한 주문 저장
 		Order savedOrder = orderRepository.save(order);
@@ -87,10 +94,10 @@ public class OrderService {
 		OrderCompanyResponse company = responseCompany.getBody().getData();
 		ResponseEntity<CommonResponse<OrderDeliveryResponse>> response = deliveryClient.createDelivery(OrderDeliveryRequest.builder()
 				.orderId(savedOrder.getOrderId())
-				.supplierHubId(company.getSupplierHubId())
-				.recipientHubId(company.getRecipientHubId())
+				.arriveHubId(company.getSupplierHubId())
+				.departHubId(company.getRecipientHubId())
 				.address(company.getAddress())
-				// .userId(userId)
+				// .recipientId(userId)
 			.build());
 
 		// 6. 받아온 내용으로 order Update
@@ -183,24 +190,24 @@ public class OrderService {
 		}
 
 		// 4-2. [productClient] 상품 검증
-		// OrderProductUpdateResponse responseProduct = productClient.confirmProductUpdate(OrderProductUpdateRequest.builder()
-		// 	.beforeProductId(order.getProductId()).beforeProductQuantity(order.getProductQuantity())
-		// 	.afterProductId(request.getProductId()).afterProductQuantity(request.getProductQuantity()).build());
-		//
-		// if (responseProduct.getIsDeleted()) {
-		// 	throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
-		// }
+		ResponseEntity<CommonResponse<OrderProductUpdateResponse>> responseProduct = productClient.confirmProductUpdate(OrderProductUpdateRequest.builder()
+			.beforeProductId(order.getProductId()).beforeProductQuantity(order.getProductQuantity())
+			.afterProductId(request.getProductId()).afterProductQuantity(request.getProductQuantity()).build());
+
+		if (responseProduct.getBody().getData().getIsDeleted()) {
+			throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+		}
 
 		Long productTotalPrice = 100L;
-		// Long productTotalPrice = responseProduct.getProductTotalPrice();
+		// Long productTotalPrice = responseProduct.getBody().getData().getProductTotalPrice();
 
 		// 5. 주문 상태 수정
-		Order updateOrder = request.toOrder(productTotalPrice);
+		Order updateOrder = request.toOrder(productTotalPrice, responseCompany.getBody().getData().getSupplierHubId());
 		order.updateOrder(updateOrder);
 
 		// 6. [deliveryClient] 변경 사항에 대한 배송 수정 요청 전송 (공급 업체가 바뀌어서 허브도 바뀜)
-		// deliveryClient.updateDelivery(OrderDeliveryUpdateRequest.builder()
-		// 	.orderId(updateOrder.getOrderId()).supplierHubId(responseCompany.getSupplierHubId()).build());
+		deliveryClient.updateDeliveryByOrder(OrderDeliveryUpdateRequest.builder()
+			.orderId(updateOrder.getOrderId()).supplierHubId(responseCompany.getBody().getData().getSupplierHubId()).build());
 
 		return OrderUpdateResponse.fromOrder(order);
 	}
@@ -234,22 +241,25 @@ public class OrderService {
 		order.updateOrderState(updateOrder);
 
 		// 4. 주문을 취소했다면 delivery, product 측으로 요청 전송 필요
-		// if (updateOrder.getOrderStatus().equals(OrderStatus.ORDER_CANCELED)) {
-		// 	// [deliveryClient] 주문이 취소되었으므로 배송 update 필요 (deliveryId가 null 이면 ..?)
-		// 	deliveryClient.updateDeliveryState(OrderDeliveryStateUpdateRequest.builder()
-		// 		.orderId(order.getOrderId()).orderState("ORDER_CANCELED").deliveryId(order.getDeliveryId()).build());
-		//
-		// 	// [productClient] 주문이 취소되었으므로 재고 update 필요
-		// 	productClient.updateProductState(OrderProductStateUpdateRequest.builder()
-		// 		.productId(order.getProductId()).productQuantity(order.getProductQuantity()).build());
-		// }
+		if (updateOrder.getOrderStatus().equals(OrderStatus.ORDER_CANCELED) &&
+			order.getDeliveryId() != null) {
 
+			// 4-1. [deliveryClient] 주문이 취소되었으므로 배송 update 필요
+			deliveryClient.updateDeliveryStateByOrder(OrderDeliveryStateUpdateRequest.builder()
+				.orderId(order.getOrderId()).deliveryId(order.getDeliveryId()).build());
+
+			// 4-2. [productClient] 주문이 취소되었으므로 재고 update 필요
+			productClient.updateProductState(OrderProductStateUpdateRequest.builder()
+				.productId(order.getProductId()).productQuantity(order.getProductQuantity()).build());
+
+		}
+		
 		return OrderStatusUpdateResponse.fromOrder(order);
 	}
 
 	/**
 	 * Delivery 측에서 요청을 받아 수정할 주문 상태 (검증 X)
-	 *
+	 * 
 	 * @param orderId : 상태를 변경할 주문 ID
 	 * @param request : 변경할 상태 정보
 	 * @return : 변경된 주문 정보
@@ -263,7 +273,6 @@ public class OrderService {
 		Order updateOrder = request.toOrder(switchIntoOrderStatus(request.getDeliveryState()));
 		order.updateOrderState(updateOrder);
 	}
-
 
 	/**
 	 * 주문 삭제
@@ -279,23 +288,15 @@ public class OrderService {
 
 		// 2. 권한 검증 필수
 		if (! ( role.equals("ROLE_HUB_MANAGER") &&
-			confirmHubId(UUID.fromString(userId), order.getRecipientHubId(), order.getSupplierHubId())) ) {
+			  confirmHubId(UUID.fromString(userId), order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 		if (!role.equals("ROLE_MASTER")) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-
+		
 		// 3. 삭제 진행
 		order.softDelete(UUID.fromString(userId));
-	}
-
-	private Boolean confirmHubId(UUID userId, UUID realHubId1, UUID realHubId2) {
-		UUID hubId = hubClient.getHubIdFromOrder(userId);
-		if (hubId == null || ! hubId.equals(realHubId1) || ! hubId.equals(realHubId2)) {
-			return false;
-		}
-		return true;
 	}
 
 	private Boolean confirmHubId(UUID userId, UUID realHubId1, UUID realHubId2) {
@@ -336,5 +337,5 @@ public class OrderService {
 		return orderRepository.findById(orderId)
 			.orElseThrow(() -> new OrderException("해당 주문을 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
 	}
-
+	
 }
