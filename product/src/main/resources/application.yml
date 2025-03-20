@@ -31,7 +31,12 @@ eureka:
 
 logging:
   level:
+    com:
+      i4u:
+        product: DEBUG
     org:
+      springframework:
+        web: DEBUG
       hibernate:
         orm:
           jdbc:
