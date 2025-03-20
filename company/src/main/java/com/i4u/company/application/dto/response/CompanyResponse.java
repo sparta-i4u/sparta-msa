@@ -10,7 +10,7 @@ public record CompanyResponse(
         UUID hubId,
         String name,
         CompanyType type,
-        String owner,
+        UUID owner,
         String address,
         String number
 ) {
