@@ -3,7 +3,6 @@ package com.i4u.auth.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
 import java.util.UUID;
 
 @Entity
@@ -27,17 +26,25 @@ public class AuthUser {
     @Column(nullable = false)
     private AuthUserRole role; // 인증된 사용자 역할
 
-    // 정적 팩토리 메서드 - 회원가입 시 계정 생성 (`userId` 추가)
-    public static AuthUser createAuthUser(UUID userId, String email, String rawPassword, AuthUserRole role, BCryptPasswordEncoder encoder) {
+    @Column(nullable = false, unique = true, length = 100)
+    private String slackId; // Slack ID 추가
+
+    @Column(nullable = false)
+    private boolean isDeleted = false; // 삭제 여부 (기본값: false)
+
+    // ✅ 정적 팩토리 메서드 - 회원가입 시 계정 생성 (`userId` 추가)
+    public static AuthUser createAuthUser(UUID userId, String email, String rawPassword, String slackId, AuthUserRole role, BCryptPasswordEncoder encoder) {
         return AuthUser.builder()
                 .userId(userId) // User 서비스에서 받은 `userId` 저장
                 .email(email)
                 .password(encoder.encode(rawPassword)) // 비밀번호 암호화 저장
                 .role(role)
+                .slackId(slackId)
+                .isDeleted(false)
                 .build();
     }
 
-    // 비밀번호 변경
+    // ✅ 비밀번호 변경
     public void updatePassword(String newRawPassword, BCryptPasswordEncoder encoder) {
         this.password = encoder.encode(newRawPassword);
     }

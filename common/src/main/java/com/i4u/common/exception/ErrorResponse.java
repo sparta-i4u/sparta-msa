@@ -1,28 +1,25 @@
+// 📌 ErrorResponse.java 수정 (Common 모듈)
 package com.i4u.common.exception;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-/**
- * ✅ 모든 예외 응답을 통일된 형식으로 반환하는 클래스
- */
 @Getter
 @AllArgsConstructor
+@JsonPropertyOrder({"status", "code", "message"}) // ✅ JSON 필드 순서 유지
 public class ErrorResponse {
 
-    private final String errorCode; // 예외 코드
-    private final String message;   // 예외 메시지
-    private final int status;       // HTTP 상태 코드
+    private final int status;
+    private final String code;
+    private final String message;
 
-    //`CustomException`을 기반으로 `ErrorResponse` 생성
     public static ErrorResponse from(CustomException ex) {
-        return new ErrorResponse(ex.getErrorCode(), ex.getMessage(), ex.getStatus().value());
+        return new ErrorResponse(ex.getStatus().value(), ex.getErrorCode(), ex.getMessage());
     }
 
-    //  기본적인 예외 응답 생성
-
     public static ErrorResponse of(String errorCode, String message, HttpStatus status) {
-        return new ErrorResponse(errorCode, message, status.value());
+        return new ErrorResponse(status.value(), errorCode, message);
     }
 }

@@ -3,50 +3,38 @@ package com.i4u.common.exception;
 import feign.FeignException;
 import feign.Response;
 import feign.codec.ErrorDecoder;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 
-// FeignClient 및 공통 예외 처리 핸들러
+@Slf4j
 @RestControllerAdvice
-@RequiredArgsConstructor
 public class GlobalFeignExceptionHandler implements ErrorDecoder {
 
     @Override
     public Exception decode(String methodKey, Response response) {
-        HttpStatus status = HttpStatus.valueOf(response.status());
-        String message = getErrorMessage(response);
+        int statusCode = response.status();
+        String errorMessage = getErrorMessage(response);
 
-        return new CustomException(status.name(), message, status);
-    }
+        log.error("요청 실패 - Method: {}, Status: {}, Message: {}", methodKey, statusCode, errorMessage);
 
-    // `CustomException` 처리 핸들러
-    @ExceptionHandler(CustomException.class)
-    public ErrorResponse handleCustomException(CustomException ex) {
-        return ErrorResponse.from(ex); // ✅ `ErrorResponse` 사용
-    }
-
-    // `FeignException` 처리 핸들러
-    @ExceptionHandler(FeignException.class)
-    public ErrorResponse handleFeignException(FeignException ex) {
-        return ErrorResponse.of("FEIGN_ERROR", "FeignClient 오류 발생: " + ex.getMessage(), HttpStatus.BAD_GATEWAY);
-    }
-
-    // 기타 모든 예외 처리
-    @ExceptionHandler(Exception.class)
-    public ErrorResponse handleGlobalException(Exception ex) {
-        return ErrorResponse.of("GLOBAL_ERROR", "서버 내부 오류 발생: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new CustomException("FEIGN_" + statusCode, errorMessage, HttpStatus.valueOf(statusCode));
     }
 
     private String getErrorMessage(Response response) {
+        if (response == null || response.body() == null) {
+            log.error("응답이 `null`이거나 본문이 비어 있음");
+            return "FeignClient 호출 중 오류 발생 (응답이 비어 있음)";
+        }
         try {
-            if (response.body() != null) {
-                return new String(response.body().asInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            }
-        } catch (Exception ignored) {}
-        return "FeignClient 호출 중 오류 발생";
+            return new String(response.body().asInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.error("응답 본문을 읽을 수 없음: {}", e.getMessage());
+            return "FeignClient 오류 발생 (응답 본문을 읽을 수 없음)";
+        }
     }
 }

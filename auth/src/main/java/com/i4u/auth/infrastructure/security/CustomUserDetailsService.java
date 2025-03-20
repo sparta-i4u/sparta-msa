@@ -17,7 +17,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        AuthUser authUser = authUserRepository.findByEmail(email)
+        // findByEmail을 호출할 때 논리 삭제된 계정 제외 처리
+        AuthUser authUser = authUserRepository.findByEmailAndIsDeletedFalse(email)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
         return new CustomUserDetailsImpl(authUser);

@@ -17,9 +17,9 @@ public class GlobalFallbackHandler {
         String errorMessage = (throwable != null) ? throwable.getMessage() : "서비스를 사용할 수 없습니다. 나중에 다시 시도해주세요.";
 
         // 장애 발생 시 로깅 추가
-        log.error("⛔ Gateway Fallback 발생: {}", errorMessage);
+        log.error("Gateway Fallback 발생: {}", errorMessage);
 
-        CommonResponse<String> response = CommonResponse.fail("503", errorMessage);
+        CommonResponse<String> response = CommonResponse.fail("503", errorMessage, HttpStatus.SERVICE_UNAVAILABLE.value());
 
         return ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .contentType(MediaType.APPLICATION_JSON)
