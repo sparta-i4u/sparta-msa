@@ -55,10 +55,9 @@ public class OrderService {
 	 * @param userId : 주문을 요청한 사용자
 	 * @return : 생성한 주문 내용
 	 */  // MASTER, HUB_MANAGER, DELIVERY_MANAGER, COMPANY_MANAGER (ALL) -> 권한 검증 과정 X
+	@Transactional
 	public OrderCreateResponse createOrder(OrderCreateRequest request, String userId) {
-		// 1. 권한 검증 필수 - 여기는 없음
-
-		// 2. [companyClient] 업체 쪽으로 검증 요청 필요
+		// 1. [companyClient] 업체 쪽으로 검증 요청 필요
 		ResponseEntity<CommonResponse<OrderCompanyResponse>> responseCompany = companyClient.confirmCompany(OrderCompanyRequest.builder()
 			.supplierId(request.getSupplierId()).recipientId(request.getRecipientId()).build());
 
@@ -67,7 +66,7 @@ public class OrderService {
 			throw new OrderException("해당 업체가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
-		// 3. [productClient] 상품 쪽으로 검증 요청 필요 (상품의 개수랑 상품 ID를 같이 넘김)
+		// 2. [productClient] 상품 쪽으로 검증 요청 필요 (상품의 개수랑 상품 ID를 같이 넘김)
 		// 재고가 없거나 상품이 없다면 Exception
 		// OrderProductResponse responseProduct = productClient.confirmProduct(OrderProductRequest.builder()
 		// 	.productId(request.getProductId()).productQuantity(request.getProductQuantity()).build());
@@ -76,15 +75,15 @@ public class OrderService {
 		// 	throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		// }
 
-		// 4. 주문 생성 (일단은 DeliveryId 없이 생성 후 저장) → 주문 상태는 PAID로 지정
+		// 3. 주문 생성 (일단은 DeliveryId 없이 생성 후 저장) → 주문 상태는 PAID로 지정
 		Long productTotalPrice = 100L;
 		// Long productTotalPrice = responseProduct.getProductTotalPrice();
 		Order order = request.toOrder(productTotalPrice);
 
-		// 5. 생성한 주문 저장
+		// 4. 생성한 주문 저장
 		Order savedOrder = orderRepository.save(order);
 
-		// 6. delivery 쪽으로 요청 전송 필요 (생성한 order의 정보와, 지금 주문을 요청한 사용자의 정보)
+		// 5. delivery 쪽으로 요청 전송 필요 (생성한 order의 정보와, 지금 주문을 요청한 사용자의 정보)
 		OrderCompanyResponse company = responseCompany.getBody().getData();
 		ResponseEntity<CommonResponse<OrderDeliveryResponse>> response = deliveryClient.createDelivery(OrderDeliveryRequest.builder()
 				.orderId(savedOrder.getOrderId())
@@ -94,8 +93,8 @@ public class OrderService {
 				// .userId(userId)
 			.build());
 
-		// 7. 받아온 내용으로 order Update
-		// savedOrder.updateOrderStateFromDelivery(response.getDeliveryId(), switchIntoOrderStatus(response.getDeliveryState()));
+		// 6. 받아온 내용으로 order Update
+		savedOrder.updateOrderStateFromDelivery(response.getBody().getData().getDeliveryId(), switchIntoOrderStatus(response.getBody().getData().getDeliveryState()));
 
 		return OrderCreateResponse.fromOrder(savedOrder);
 	}
@@ -226,7 +225,7 @@ public class OrderService {
 			confirmHubId(UUID.fromString(userId), order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (!role.equals("ROLE_MASTER")) {
+		if (!role.equals("ROLE_MASTER") || !role.equals("ROLE_HUB_MANAGER")) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 

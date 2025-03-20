@@ -1,12 +1,17 @@
 package com.i4u.delivery.application.service;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.i4u.common.utils.CommonResponse;
 import com.i4u.delivery.domain.entity.Delivery;
 import com.i4u.delivery.domain.entity.DeliveryState;
 import com.i4u.delivery.domain.repository.DeliveryRepository;
+import com.i4u.delivery.presentation.client.ShipperClient;
+import com.i4u.delivery.presentation.dtos.request.DeliveryShipperRequest;
 import com.i4u.delivery.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.delivery.presentation.dtos.request.OrderDeliveryUpdateRequest;
+import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DeliveryClientService {
 
 	private final DeliveryRepository deliveryRepository;
+	private final ShipperClient shipperClient;
 
 	/**
 	 * 주문 수정에 따른 배송 수정
@@ -35,10 +41,14 @@ public class DeliveryClientService {
 			// hub가 같으니까 바꿀 필요가 없음
 			throw new IllegalArgumentException("허브가 변경되지 않았습니다. ");
 		}
-		// hubClient 요청 보내기
 		
 		// 3. [shipperClient] 재배정 필요
 		// shipperClient 호출해서 재배정 받고, shipperId 변경하기
+		ResponseEntity<CommonResponse<DeliveryShipperResponse>> response = shipperClient.assignShipper(
+			DeliveryShipperRequest.builder().recipientHubId(request.getSupplierHubId()).build()
+		);
+
+		delivery.updateDeliveryShipperByOrder(response.getBody().getData().getShipperId());
 
 		// 4. 배송 내역이 수정되었으므로 배송 상태도 수정 (출고 준비 중으로 변경)
 		delivery.updateDeliveryStateByOrder(DeliveryState.PREPARING);
