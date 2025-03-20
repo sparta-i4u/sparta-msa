@@ -45,7 +45,7 @@ public class ProductService {
         //            throw new IllegalArgumentException("업체가 존재하지 않습니다: " + companyId);
         //        }
 
-        final Product product = new Product(hubId, companyId, request.name(), request.price(), request.content());
+        final Product product = new Product(hubId, companyId, request.name(), request.price(), request.content(), request.count());
         Product saved = productRepository.save(product);
         return ProductResponse.of(saved);
     }
