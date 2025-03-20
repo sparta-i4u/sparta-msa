@@ -12,7 +12,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 	ManagementWebSecurityAutoConfiguration.class
 })
 @EnableFeignClients
-@EnableJpaAuditing
 public class DeliveryApplication {
 
 	public static void main(String[] args) {

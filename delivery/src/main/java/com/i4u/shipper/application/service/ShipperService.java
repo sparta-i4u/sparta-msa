@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.i4u.client.HubClient;
-import com.i4u.client.HubUserClient;
 import com.i4u.client.AuthClient;
 import com.i4u.shipper.application.dtos.request.ShipperCreateRequest;
 import com.i4u.shipper.application.dtos.request.ShipperSearchRequest;
@@ -37,7 +36,7 @@ public class ShipperService {
 	private final ShipperRepository shipperRepository;
 	private final HubClient hubClient;
 	private final AuthClient authClient;
-	private final HubUserClient hubUserClient;
+	// private final HubUserClient hubUserClient;
 
 	@Value("${whole.hub.id}")
 	private UUID wholeHubId;

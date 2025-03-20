@@ -9,7 +9,7 @@ import com.i4u.common.utils.CommonResponse;
 import com.i4u.delivery.presentation.dtos.request.DeliveryShipperRequest;
 import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
 
-@FeignClient(name = "shipper")
+@FeignClient(name = "shipper-service")
 public interface ShipperClient {
 
 	@GetMapping("/api/v1/deliveries/shippers")
