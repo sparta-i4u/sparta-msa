@@ -1,7 +1,6 @@
 package com.i4u.order.application.service;
 
 import com.i4u.order.application.dtos.request.OrderCreateRequest;
-import com.i4u.order.application.dtos.request.OrderSearchRequest;
 import com.i4u.order.application.dtos.request.OrderStatusUpdateRequest;
 import com.i4u.order.application.dtos.request.OrderUpdateRequest;
 import com.i4u.order.application.dtos.response.*;
@@ -210,13 +209,13 @@ public class OrderService {
 		// 	productClient.updateProductState(OrderProductStateUpdateRequest.builder()
 		// 		.productId(order.getProductId()).productQuantity(order.getProductQuantity()).build());
 		// }
-		
+
 		return OrderStatusUpdateResponse.fromOrder(order);
 	}
 
 	/**
 	 * Delivery 측에서 요청을 받아 수정할 주문 상태
-	 * 
+	 *
 	 * @param orderId : 상태를 변경할 주문 ID
 	 * @param request : 변경할 상태 정보
 	 * @return : 변경된 주문 정보
@@ -248,7 +247,7 @@ public class OrderService {
 
 		// 2. 권한 검증 필수
 		// {권한을 보고 주문 조회 권한이 있는지 확인하기 - 없으면 Exception}
-		
+
 		// 3. 삭제 진행
 		// order.softDelete(userId);
 	}
