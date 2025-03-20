@@ -30,9 +30,7 @@ public class DeliveryEndpoint {
 	@PatchMapping("/api/v1/deliveries/updatestate-byorder")
 	ResponseEntity<CommonResponse> updateDeliveryState(@RequestBody OrderDeliveryStateUpdateRequest orderCanceled) {
 		deliveryClientService.updateDeliveryStateByOrder(orderCanceled);
-		return ResponseEntity.ok(CommonResponse.success("", "배송 수정 성공"));
+		return ResponseEntity.ok(CommonResponse.success("", "배송 상태 수정 성공"));
 	}
-
-
 
 }

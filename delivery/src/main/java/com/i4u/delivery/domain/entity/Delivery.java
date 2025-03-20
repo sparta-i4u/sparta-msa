@@ -78,4 +78,8 @@ public class Delivery extends Basic {
 	public void updateDeliveryStateByOrder(DeliveryState deliveryState) {
 		this.deliveryState = deliveryState;
 	}
+
+	public void updateDeliveryShipperByOrder(UUID shipperId) {
+		this.shipperId = shipperId;
+	}
 }
