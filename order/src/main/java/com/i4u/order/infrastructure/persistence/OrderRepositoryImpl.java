@@ -33,7 +33,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public PagedModel<OrderGetListResponse> searchOrder(Pageable pageable, OrderSearchRequest request) {
+	public PagedModel<OrderGetListResponse> searchOrder(Pageable pageable, OrderSearchRequest request, UUID userId, String role) {
 		List<OrderSpecifier<?>> orders = getAllOrderSpecifiers(pageable);
 
 		long pageSize = getPageSize(pageable.getPageSize(), pageable.getOffset());

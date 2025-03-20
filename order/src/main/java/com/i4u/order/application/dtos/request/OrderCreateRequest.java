@@ -30,16 +30,18 @@ public class OrderCreateRequest {
 	// 요청 사항
 	public String requirement;
 
-	public Order toOrder(Long productTotalPrice/*, UUID userId*/) {
+	public Order toOrder(Long productTotalPrice, UUID supplierHubId, UUID recipientHUbId, UUID userId) {
 		return Order.builder()
 			.supplierId(this.supplierId)
+			.supplierHubId(supplierHubId)
 			.recipientId(this.recipientId)
+			.recipientHubId(recipientHUbId)
 			.productId(this.productId)
 			.productQuantity(this.productQuantity)
 			.productTotalPrice(productTotalPrice)
 			.requirement(this.requirement)
 			.orderStatus(OrderStatus.PAID)  // 생성 시에는 결제 완료 상태로 주문 생성
-			// .userId(userId)
+			.userId(userId)
 			.build();
 	}
 }
