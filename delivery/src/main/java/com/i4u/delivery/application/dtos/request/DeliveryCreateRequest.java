@@ -17,9 +17,6 @@ public class DeliveryCreateRequest {
 	// 주문 ID
 	private UUID orderId;
 
-	// orderState = PAID 인 경우만 배송 생성
-	private String orderState;
-
 	// 출발 허브 ID (배송하는 업체의 허브 ID를 받아와야 함)
 	private UUID departHubId;
 

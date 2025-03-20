@@ -3,6 +3,8 @@ package com.i4u.order.domain.entity;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.hibernate.annotations.SQLRestriction;
+
 import com.i4u.common.entity.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,6 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "p_order")
+@SQLRestriction("is_deleted IS NULL OR is_deleted = false")
 public class Order extends Basic {
 
 	// 주문 ID
