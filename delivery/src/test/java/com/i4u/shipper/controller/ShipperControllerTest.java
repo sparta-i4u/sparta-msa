@@ -8,7 +8,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -21,8 +20,7 @@ import com.i4u.common.utils.CommonResponse;
 import com.i4u.shipper.application.dtos.request.ShipperCreateRequest;
 import com.i4u.shipper.domain.entity.ShipperType;
 import com.i4u.client.HubClient;
-import com.i4u.client.UserClient;
-import com.i4u.shipper.presentation.dtos.request.ShipperHubRequest;
+import com.i4u.client.AuthClient;
 import com.i4u.shipper.presentation.dtos.request.ShipperUserRequest;
 import com.i4u.shipper.presentation.dtos.response.ShipperHubResponse;
 import com.i4u.shipper.presentation.dtos.response.ShipperUserResponse;
@@ -47,7 +45,7 @@ public class ShipperControllerTest {
 	private HubClient hubClient;
 
 	@MockitoBean
-	private UserClient userClient;
+	private AuthClient authClient;
 
 	@Test
 	@DisplayName("배송 담당자 생성 성공")
@@ -60,7 +58,7 @@ public class ShipperControllerTest {
 
 		// when
 		Mockito.when(hubClient.confirmHub(hubId)).thenReturn(createFeignClientHubResponse(hubId));
-		Mockito.when(userClient.confirmUser(createFeignClientUser(userId))).thenReturn(createFeignClientUserResponse(userId));
+		// Mockito.when(authClient.confirmUser(createFeignClientUser(userId))).thenReturn(createFeignClientUserResponse(userId));
 
 		// when&then
 		mockMvc.perform(
