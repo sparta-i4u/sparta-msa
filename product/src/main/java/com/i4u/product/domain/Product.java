@@ -36,12 +36,15 @@ public class Product extends Basic {
 
     private String content;
 
-    public Product(final UUID hubId, final UUID companyId, final String name, final Integer price , final String content) {
+    private Integer count;
+
+    public Product(final UUID hubId, final UUID companyId, final String name, final Integer price , final String content, final Integer count) {
         this.hubId = hubId;
         this.companyId = companyId;
         this.name =  name;
         this.content = content;
         this.price = price;
+        this.count = count;
         this.isDeleted = false;
     }
 
@@ -50,6 +53,7 @@ public class Product extends Basic {
         this.name = newProduct.name();
         this.content = newProduct.content();
         this.price = newProduct.price();
+        this.count= newProduct.count();
     }
 
     //상품 여러개 삭제 함수
@@ -57,5 +61,15 @@ public class Product extends Basic {
         this.isDeleted = true;
         this.deletedAt = LocalDateTime.now();  // 삭제 일시를 현재 시간으로 설정
         //this.deletedBy = deletedBy;  // 삭제한 사용자의 정보를 설정
+    }
+    
+    //상품 개수 증가 함수 - order에서 요청시
+    public void increaseCount(Integer inCount) {
+        this.count += inCount;
+    }
+
+    //상품 개수 감소 함수 - order에서 요청시
+    public void decreaseCount(Integer deCount) {
+        this.count -= deCount;
     }
 }
