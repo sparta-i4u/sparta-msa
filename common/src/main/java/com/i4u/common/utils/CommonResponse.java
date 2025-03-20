@@ -37,16 +37,4 @@ public class CommonResponse<T> {
 				.message(message != null ? message : "요청 처리 중 오류가 발생했습니다.")
 				.build();
 	}
-<<<<<<< HEAD
-
-	public static <T> CommonResponse<T> created(T data, String message) {
-		return CommonResponse.<T>builder()
-				.code(CREATED_CODE)
-				.data(data)
-				.message(message)
-				.build();
-	}
 }
-=======
-}
->>>>>>> feat/user
