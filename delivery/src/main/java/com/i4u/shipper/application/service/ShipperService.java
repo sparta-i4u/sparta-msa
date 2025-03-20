@@ -71,7 +71,7 @@ public class ShipperService {
 		if (request.getShipperType().equals(ShipperType.HUB)) {
 			// 타입이 허브 배송 담당자라면 hubId가 null 이므로 전체 허브 담당 ID 배정
 			hubId = wholeHubId;
-		} 
+		}
 
 		// 4. 배송 담당자 순서 지정
 		Integer shipperOrder = shipperRepository.confirmShipperOrder(hubId);
@@ -93,7 +93,7 @@ public class ShipperService {
 	 */
 	// MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 정보)
 	public PagedModel<ShipperListResponse> getAllShippers(Pageable pageable, ShipperSearchRequest request,
-		String userId, String role) {
+														  String userId, String role) {
 		// 1. Role에 따른 조회 권한 확인
 		if (role.equals("ROLE_COMPANY_MANAGER")) {
 			throw new ShipperException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
@@ -213,7 +213,7 @@ public class ShipperService {
 				throw new ShipperException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
 	/**
 	 * 배송 담당자 검색
 	 *
@@ -222,7 +222,7 @@ public class ShipperService {
 	 */
 	private Shipper findShipper(UUID shipperId) {
 		return shipperRepository.findById(shipperId)
-			.orElseThrow(() -> new ShipperException("해당 배송 담당자를 찾을 수 없습니다", HttpStatus.BAD_REQUEST));
+				.orElseThrow(() -> new ShipperException("해당 배송 담당자를 찾을 수 없습니다", HttpStatus.BAD_REQUEST));
 	}
 
 }
