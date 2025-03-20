@@ -34,14 +34,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+
 @Slf4j
 @RequestMapping("/api/v1/orders")
 @RestController
 @RequiredArgsConstructor
 public class OrderController {
-	
+
 	private final OrderService orderService;
-	
+
 	// TODO : 사용자 정보 받아오는 로직 전부 추가
 
 	/**
@@ -120,5 +121,12 @@ public class OrderController {
 		orderService.deleteOrder(orderId);
 		return ResponseEntity.ok(CommonResponse.success(orderId, "주문 삭제 성공"));
 	}
+
+	/*
+	* 주문 상태
+	* 결제 완료, 배송 확인 (?), 출고 전, 배송 전, 배송 중, 배송 완료, 주문 취소
+	*
+	* Order와 OrderItem을 하나의 Aggregate로 가져간다고 생각하기 (일단 스코프가 크지 않으니까)
+	*/
 
 }
