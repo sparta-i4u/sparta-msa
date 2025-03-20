@@ -14,7 +14,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 })
 @EnableFeignClients
 @ComponentScan(basePackages = {"com.i4u.common", "com.i4u.order"})
-@EnableJpaAuditing
 public class OrderApplication {
 
 	public static void main(String[] args) {

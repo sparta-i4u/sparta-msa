@@ -27,9 +27,10 @@ public class OrderUpdateRequest {
 	// 요청 사항
 	public String requirement;
 
-	public Order toOrder(Long productTotalPrice) {
+	public Order toOrder(Long productTotalPrice, UUID supplierHubId) {
 		return Order.builder()
 			.supplierId(this.supplierId)
+			.supplierHubId(supplierHubId)
 			.productId(this.productId)
 			.productQuantity(this.productQuantity)
 			.productTotalPrice(productTotalPrice)
