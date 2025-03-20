@@ -4,6 +4,7 @@ import com.i4u.auth.application.AuthService;
 import com.i4u.auth.application.dtos.request.AuthSignInRequestDto;
 import com.i4u.auth.application.dtos.request.AuthSignUpRequestDto;
 import com.i4u.auth.application.dtos.response.AuthResponseDto;
+import com.i4u.auth.application.dtos.response.AuthUserInfoResponseDto;
 import com.i4u.common.utils.CommonResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
