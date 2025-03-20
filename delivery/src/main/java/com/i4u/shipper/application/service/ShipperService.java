@@ -1,6 +1,5 @@
 package com.i4u.shipper.application.service;
 
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -25,8 +24,7 @@ import com.i4u.shipper.application.exception.ShipperException;
 import com.i4u.shipper.domain.entity.Shipper;
 import com.i4u.shipper.domain.entity.ShipperType;
 import com.i4u.shipper.domain.repository.ShipperRepository;
-import com.i4u.shipper.presentation.dtos.request.ShipperUserRequest;
-import com.i4u.shipper.presentation.dtos.response.ShipperUserResponse;
+import com.i4u.shipper.presentation.dtos.response.ConfirmUserResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,11 +64,15 @@ public class ShipperService {
 			}
 		}
 
-		// 2. [userClient] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기
-		ShipperUserResponse responseUser = authClient.confirmUser(UUID.fromString(userId));
+		// 2. [authClient] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기
+		ConfirmUserResponse responseUser = authClient.confirmUser(UUID.fromString(userId));
 		if (responseUser.getIsDeleted()) {
 			throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
 		}
+		if (! responseUser.getUserRole().equals("ROLE_DELIVERY_MANAGER")) {
+			throw new ShipperException("권한이 배송 담당자가 아니므로 배송 담당자로 지정할 수 없습니다.", HttpStatus.BAD_REQUEST);
+		}
+
 		String shipperSlackId = responseUser.getUserSlackId();
 
 		// 3. [hubClient] 허브 쪽으로 허브 검증 요청 보내기 -> 추후 Caching으로 전환 예정
@@ -191,14 +193,7 @@ public class ShipperService {
 			throw new ShipperException("변경 사항이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
-		// 3. [userClient] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기 (이 사용자 검증이 지금 필요할까 ? -> 일단은 skip)
-		// ShipperUserResponse responseUser = userClient.confirmUser(
-		// 	ShipperUserRequest.builder().userId(beforeShipper.getUserId()).build()/* userId, userRole 혹은 JWT 넣어주기 */);
-		// if (responseUser.getIsDeleted()) {
-		// 	throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
-		// }
-
-		// 4. [hubClient] 허브로 검증 요청 전송
+		// 3. [hubClient] 허브로 검증 요청 전송
 		// 허브 배송 담당자가 아니라, 업체 배송 담당자의 경우는 허브 검증이 필요함
 		if (!hubId.equals(wholeHubId)) {
 			// 업체 배송 담당자의 경우만 검증 필요
@@ -209,7 +204,7 @@ public class ShipperService {
 			}
 		}
 
-		// 5. 변경된 내용에 따라 배송 담당자 순서도 재지정 필요
+		// 4. 변경된 내용에 따라 배송 담당자 순서도 재지정 필요
 		Integer shipperOrder = shipperRepository.confirmShipperOrder(hubId);
 		if (shipperOrder == 0) {
 			throw new ShipperException("해당 허브에는 더 이상 배송 담당자를 배정할 수 없습니다.", HttpStatus.BAD_REQUEST);
