@@ -32,7 +32,7 @@ ext {
     set('springCloudVersion', "2024.0.0")
 }
 
-bootJar { enabled = false }
+bootJar { enabled = true }
 jar { enabled = true }
 
 dependencies {

@@ -22,13 +22,18 @@ ext {
 	set('querydslVersion', "5.0.0")  // QueryDSL 버전 명시적으로 설정
 }
 
-bootJar { enabled = false }
+bootJar { enabled = true }	// true
 jar { enabled = true }
 
 dependencies {
 	// common 추가
 	implementation project(':common')
 
+	// User 모듈 FeignClient 참조 추가
+	implementation project(':user')
+
+	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	// Actuator
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	// Zipkin
@@ -68,12 +73,17 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 
 	// JWT
-	compileOnly group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.12.6'
-	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.12.6'
-	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.12.6'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
 	// JSON
 	implementation 'org.json:json:20230227'
+
+	// BCrypt 비밀번호 암호화
+	implementation 'org.springframework.security:spring-security-crypto'
+
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -93,5 +103,3 @@ clean {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-
-tasks.register("prepareKotlinBuildScriptModel"){}
