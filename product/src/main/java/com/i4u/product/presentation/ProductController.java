@@ -81,7 +81,7 @@ public class ProductController {
         return new ResponseEntity<>(CommonResponse.success(response, "상품 정보가 수정되었습니다"), HttpStatus.OK);
     }
 
-    // 상품 삭제 - 여러상품도 가능
+    // 상품 삭제 - 단건 상품만 하도록
     // 담당허브만 가능
     // API 요청시 [] 리스트형태로 전송
     // ROLE_MASTER, ROLE_HUB_MANAGER(담당 허브)

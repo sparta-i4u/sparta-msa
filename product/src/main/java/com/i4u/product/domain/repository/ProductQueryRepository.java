@@ -3,6 +3,7 @@ package com.i4u.product.domain.repository;
 
 import com.i4u.product.domain.Product;
 import com.i4u.product.domain.QProduct;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,10 +32,11 @@ public class ProductQueryRepository {
     }
 
     //상품 전체 조회 쿼리DSL
-    public Page<Product> findAll(Pageable pageable) {
+    public Page<Product> findAll(Pageable pageable, String role, UUID hubManagerHubId) {
         List<Product> products = queryFactory
                 .selectFrom(product)
-                .where(product.isDeleted.isFalse()) // deleted_at이 null인 데이터만 조회
+                .where(product.isDeleted.isFalse(),
+                        confirmRole(role, hubManagerHubId)) // deleted_at이 null인 데이터만 조회
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -50,12 +52,13 @@ public class ProductQueryRepository {
     }
 
     //상품 검색 쿼리DSL
-    public Page<Product> findByNameContaining(Pageable pageable, String keyword) {
+    public Page<Product> findByNameContaining(Pageable pageable, String keyword, String role, UUID hubManagerHubId) {
         // 상품 목록을 가져옵니다.
         List<Product> products = queryFactory
                 .selectFrom(product)
                 .where(product.name.containsIgnoreCase(keyword)  // 상품 이름에 이름이 포함된 데이터를 조회
-                        .and(product.deletedAt.isNull()))
+                        .and(product.deletedAt.isNull()),
+                        confirmRole(role, hubManagerHubId))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();  // 결과 리스트 반환
@@ -68,5 +71,14 @@ public class ProductQueryRepository {
                 .fetchOne();  // fetchOne()은 단일 값 반환
 
         return new PageImpl<>(products, pageable, total);  // PageImpl로 반환
+    }
+
+    private BooleanExpression confirmRole(String role, UUID hubManagerHubId) {
+        switch (role) {
+            case "ROLE_HUB_MANAGER" :   //허브매니저는 담당 허브만 볼 수 있게
+                return product.hubId.eq(hubManagerHubId);  //담당 허브에 해당하는 상품만 볼 수 있게
+            default :
+                return null;
+        }
     }
 }
