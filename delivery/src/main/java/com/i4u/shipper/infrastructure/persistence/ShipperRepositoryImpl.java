@@ -10,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Repository;
 
 import com.i4u.shipper.application.dtos.request.ShipperSearchRequest;
@@ -36,7 +35,8 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public Page<ShipperListResponse> searchShippers(Pageable pageable, ShipperSearchRequest request/*, String role*/) {
+	public Page<ShipperListResponse> searchShippers(Pageable pageable, ShipperSearchRequest request,
+		String userId, String role, UUID hubManagerHubId) {
 		List<OrderSpecifier<?>> orders = getAllOrderSpecifiers(pageable);
 
 		long pageSize = getPageSize(pageable.getPageSize(), pageable.getOffset());
@@ -52,7 +52,7 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 			))
 			.from(shipper)
 			.where(
-				// confirmUserRole(role),
+				confirmUserRole(userId, role, hubManagerHubId),
 				shipperType(request.getShipperType()),
 				hubId(request.getHubId()),
 				userId(request.getUserId()),
@@ -221,10 +221,19 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 	/**
 	 * 사용자 권한에 따른 조건
 	 *
-	 * @param role : 사용자의 권한
+	 * @param userId
+	 * @param role            : 사용자의 권한
+	 * @param hubManagerHubId
 	 * @return : 권한에 따른 필터링 여부 반환
 	 */
-	private BooleanExpression confirmUserRole(String role) {
+	private BooleanExpression confirmUserRole(String userId, String role, UUID hubManagerHubId) {
+		if (role.equals("ROLE_MASTER")) {
+			return null;
+		} else if (role.equals("ROLE_HUB_MANAGER")) {
+			return shipper.hubId.eq(hubManagerHubId);
+		} else if (role.equals("ROLE_DELIVERY_MANAGER")) {
+			return shipper.shipperId.eq(UUID.fromString(userId));
+		}
 		return null;
 	}
 

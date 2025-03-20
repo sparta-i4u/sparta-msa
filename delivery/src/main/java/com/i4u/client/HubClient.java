@@ -18,9 +18,13 @@ import com.i4u.shipper.presentation.dtos.response.ShipperHubResponse;
 @FeignClient(name = "hub-service")
 public interface HubClient {
 
+	// 요청을 보낸 사용자 (허브 담당자의 경우) 담당하는 허브의 ID 가 무엇인지 / 없으면 NULL
+	@GetMapping("/api/v1/hubs/shippers/{userId}")
+	UUID confirmHubFromUser(@PathVariable UUID uuid);
+
 	// Shipper -> Hub 로 해당 허브가 존재하는지 여부 확인
 	@GetMapping("/api/v1/hubs/{hubId}/shippers")
-	ResponseEntity<CommonResponse<ShipperHubResponse>> confirmHub(@PathVariable UUID hubId/*userId, userRole or JWT 필요*/);
+	ResponseEntity<CommonResponse<ShipperHubResponse>> confirmHub(@PathVariable UUID hubId);
 
 	@GetMapping("/api/v1/hubs/deliveries/confirm")
 	ResponseEntity<CommonResponse<DeliveryHubCreateResponse>> confirmHubsFromDelivery(@ModelAttribute DeliveryHubCreateRequest request);
