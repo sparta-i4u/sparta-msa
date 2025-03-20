@@ -84,8 +84,7 @@ public class OrderService {
 		}
 
 		// 3. 주문 생성 (일단은 DeliveryId 없이 생성 후 저장) → 주문 상태는 PAID로 지정
-		Long productTotalPrice = 100L;
-		// Long productTotalPrice = responseProduct.getBody().getData().getProductTotalPrice();
+		Long productTotalPrice = responseProduct.getBody().getData().getProductTotalPrice();
 		Order order = request.toOrder(productTotalPrice, responseCompany.getBody().getData().getSupplierHubId(), responseCompany.getBody().getData().getRecipientHubId(),
 			UUID.fromString(userId));
 
