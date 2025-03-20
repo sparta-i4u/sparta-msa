@@ -23,7 +23,7 @@ import com.i4u.client.HubClient;
 import com.i4u.client.AuthClient;
 import com.i4u.shipper.presentation.dtos.request.ShipperUserRequest;
 import com.i4u.shipper.presentation.dtos.response.ShipperHubResponse;
-import com.i4u.shipper.presentation.dtos.response.ShipperUserResponse;
+import com.i4u.shipper.presentation.dtos.response.ConfirmUserResponse;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*; // post(), get(), put(), delete() 등
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;  // status().isOk(), status().isBadRequest(), jsonPath() 등
@@ -107,8 +107,8 @@ public class ShipperControllerTest {
 		return ShipperUserRequest.builder().userId(userId).build();
 	}
 
-	ShipperUserResponse createFeignClientUserResponse(UUID userId) {
-		return ShipperUserResponse.builder().userId(userId).isDeleted(false).build();
+	ConfirmUserResponse createFeignClientUserResponse(UUID userId) {
+		return ConfirmUserResponse.builder().userId(userId).isDeleted(false).build();
 	}
 
 	ResponseEntity<CommonResponse<ShipperHubResponse>> createFeignClientHubResponse(UUID hubId) {
