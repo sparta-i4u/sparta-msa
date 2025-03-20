@@ -52,16 +52,7 @@ public class ShipperService {
 	// MASTER, HUB_MANAGER(담당 허브)
 	public ShipperCreateResponse createShipper(ShipperCreateRequest request, String userId, String role) {
 		// 1. Role에 따른 배송 담당자 생성 권한 확인
-		if (!role.equals("ROLE_MASTER")) {
-			if (role.equals("ROLE_HUB_MANAGER")) {
-				UUID hubManagerHubId = hubClient.confirmHubFromUser(UUID.fromString(userId));
-				if (!hubManagerHubId.equals(UUID.fromString(userId))) {
-					throw new ShipperException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
-				}
-			} else {
-				throw new ShipperException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
-			}
-		}
+		confirmRequestUser(userId, role, request.getHubId());
 
 		// 2. [authClient] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기
 		ConfirmUserResponse responseUser = authClient.confirmUser(UUID.fromString(userId));
@@ -80,14 +71,7 @@ public class ShipperService {
 		if (request.getShipperType().equals(ShipperType.HUB)) {
 			// 타입이 허브 배송 담당자라면 hubId가 null 이므로 전체 허브 담당 ID 배정
 			hubId = wholeHubId;
-		} else {
-			// 업체 배송 담당자의 경우만 검증 필요
-			Boolean hubExists = hubClient.confirmHub(hubId).getBody().getData().getIsDeleted();
-
-			if (!hubExists){
-				throw new ShipperException("존재하지 않는 허브입니다.", HttpStatus.BAD_REQUEST);
-			}
-		}
+		} 
 
 		// 4. 배송 담당자 순서 지정
 		Integer shipperOrder = shipperRepository.confirmShipperOrder(hubId);
@@ -174,17 +158,7 @@ public class ShipperService {
 		Shipper beforeShipper = findShipper(shipperId);
 
 		// 2. Role에 따른 배송 담당자 수정 권한 확인
-		//    허브 담당자면
-		if (role.equals("ROLE_HUB_MANAGER")) {
-			UUID hubManagerHubId = hubClient.confirmHubFromUser(UUID.fromString(userId));
-			if (!hubManagerHubId.equals(beforeShipper.getHubId())) {
-				throw new ShipperException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
-			}
-		}
-		//    마스터 사용자/허브 관리자가 아니면 수정 불가능
-		if (! (role.equals("ROLE_MASTER") || role.equals("ROLE_HUB_MANAGER")) ) {
-			throw new ShipperException("삭제 권한이 없습니다.", HttpStatus.BAD_REQUEST);
-		}
+		confirmRequestUser(userId, role, beforeShipper.getHubId());
 
 		UUID hubId = (request.getHubId() == null) ? wholeHubId : request.getHubId();
 
@@ -192,18 +166,7 @@ public class ShipperService {
 			throw new ShipperException("변경 사항이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
-		// 3. [hubClient] 허브로 검증 요청 전송
-		// 허브 배송 담당자가 아니라, 업체 배송 담당자의 경우는 허브 검증이 필요함
-		if (!hubId.equals(wholeHubId)) {
-			// 업체 배송 담당자의 경우만 검증 필요
-			Boolean hubExists = hubClient.confirmHub(hubId).getBody().getData().getIsDeleted();
-
-			if (!hubExists){
-				throw new ShipperException("존재하지 않는 허브입니다.", HttpStatus.BAD_REQUEST);
-			}
-		}
-
-		// 4. 변경된 내용에 따라 배송 담당자 순서도 재지정 필요
+		// 3. 변경된 내용에 따라 배송 담당자 순서도 재지정 필요
 		Integer shipperOrder = shipperRepository.confirmShipperOrder(hubId);
 		if (shipperOrder == 0) {
 			throw new ShipperException("해당 허브에는 더 이상 배송 담당자를 배정할 수 없습니다.", HttpStatus.BAD_REQUEST);
@@ -227,20 +190,28 @@ public class ShipperService {
 		Shipper shipper = findShipper(shipperId);
 
 		// 1. 권한 확인
-		//    허브 담당자면
-		if (role.equals("ROLE_HUB_MANAGER")) {
-			UUID hubManagerHubId = hubClient.confirmHubFromUser(UUID.fromString(userId));
-			if (!hubManagerHubId.equals(shipper.getHubId())) {
-				throw new ShipperException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
-			}
-		}
-		//    마스터 사용자/허브 관리자가 아니면 수정 불가능
-		if (!(role.equals("ROLE_MASTER") || role.equals("ROLE_HUB_MANAGER"))) {
-			throw new ShipperException("삭제 권한이 없습니다.", HttpStatus.BAD_REQUEST);
-		}
+		confirmRequestUser(userId, role, shipper.getHubId());
 
 		// 2. 삭제 진행
 		shipper.softDelete(UUID.fromString(userId));
+	}
+
+	//권한 검증 함수
+	private void confirmRequestUser(String userId, String role, UUID hubId) {
+		switch (role) {
+			case "ROLE_MASTER":
+				break;
+
+			case "ROLE_HUB_MANAGER":
+				UUID hubManagerHubId = hubClient.confirmHubFromUser(UUID.fromString(userId));
+				if (!hubManagerHubId.equals(hubId)) {
+					throw new ShipperException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
+				}
+				break;
+
+			default:
+				throw new ShipperException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
+		}
 	}
 	
 	/**

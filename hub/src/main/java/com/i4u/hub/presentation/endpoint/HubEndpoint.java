@@ -40,17 +40,11 @@ public class HubEndpoint {
 		return hubId;
 	}
 
-	/**
-	 * Shipper에서 보내는 허브 검증 요청
-	 *
-	 * @param hubId : 검증을 요청한 HubId
-	 * @return : 검증이 완료된 정보
-	 */
-	@GetMapping("/{hubId}/shipper")
-	ResponseEntity<CommonResponse<ShipperHubResponse>> confirmHubFromShipper(@PathVariable UUID hubId) {
-		ShipperHubResponse response = hubClientService.confirmHubFromShipper(hubId);
-		return ResponseEntity.ok(CommonResponse.success(response, "허브 검증 완료"));
-	}
+	// @GetMapping("/{hubId}/shipper")
+	// ResponseEntity<CommonResponse<ShipperHubResponse>> confirmHubFromShipper(@PathVariable UUID hubId) {
+	// 	ShipperHubResponse response = hubClientService.confirmHubFromShipper(hubId);
+	// 	return ResponseEntity.ok(CommonResponse.success(response, "허브 검증 완료"));
+	// }
 
 	/**
 	 * Delivery에서 보내는 허브 검증 요청 (create)
