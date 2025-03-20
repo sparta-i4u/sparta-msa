@@ -27,12 +27,13 @@ public class HubController {
      * @return 허브 생성 응답 DTO
      */
     @PostMapping
-    public ResponseEntity<CommonResponse<HubDetailResDto>> createHub(@RequestBody CreateHubReqDto createHubReqDto) {
-        HubDetailResDto responseDto = hubService.createHub(createHubReqDto);
+    public ResponseEntity<CommonResponse<HubDetailResDto>> createHub(@RequestBody CreateHubReqDto createHubReqDto,
+                                                                      @RequestHeader(value = "X-User-Id") UUID userId) {
+        HubDetailResDto responseDto = hubService.createHub(createHubReqDto, userId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.created(responseDto, "허브가 등록되었습니다."));
-
     }
+
     /**
      * 허브 조회 API
      *
@@ -78,8 +79,9 @@ public class HubController {
      * @return 허브 삭제 응답 DTO
      */
     @DeleteMapping("/{hubId}")
-    public ResponseEntity<CommonResponse<HubDetailResDto>> deleteHub(@PathVariable UUID hubId) {
-        hubService.deleteHub(hubId);
+    public ResponseEntity<CommonResponse<HubDetailResDto>> deleteHub(@PathVariable UUID hubId,
+                                                                     @RequestHeader(value = "X-User-Id") UUID userId) {
+        hubService.deleteHub(hubId, userId);
 
         return ResponseEntity.ok(CommonResponse.success(null, "허브 삭제가 완료되었습니다."));
     }

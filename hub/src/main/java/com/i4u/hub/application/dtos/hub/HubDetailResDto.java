@@ -23,6 +23,7 @@ public class HubDetailResDto {
     private Double longitude;        // 요청에서 받은 경도
     private LocalDateTime createdAt; // 생성 시간
     private LocalDateTime updatedAt; // 수정 시간
+    private UUID managerId;
 
     public static HubDetailResDto from (Hub hub) {
         return HubDetailResDto.builder()

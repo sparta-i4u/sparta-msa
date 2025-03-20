@@ -2,6 +2,8 @@ package com.i4u.hub.application.dtos.hub;
 
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -11,4 +13,5 @@ public class UpdateHubReqDto {
     private String address;
     private Double latitude;
     private Double longitude;
+    private UUID managerId;
 }

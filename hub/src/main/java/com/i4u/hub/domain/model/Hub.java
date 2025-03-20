@@ -34,6 +34,9 @@ public class Hub extends Basic {
     @Column(nullable = false)
     private Double longitude;
 
+    @Column(nullable = true)
+    private UUID managerId;
+
     public void update(UpdateHubReqDto dto) {
         if (dto.getHubName() != null) {
             this.hubName = dto.getHubName();
@@ -46,6 +49,10 @@ public class Hub extends Basic {
         }
         if (dto.getLongitude() != null) {
             this.longitude = dto.getLongitude();
+        }
+
+        if (dto.getManagerId() != null) {
+            this.managerId = dto.getManagerId();
         }
     }
 }

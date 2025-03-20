@@ -19,8 +19,8 @@ public class HubService {
 
     private final HubRepository hubRepository;
 
-    public HubDetailResDto createHub(CreateHubReqDto hubReqDto) {
-        Hub savedHub = hubRepository.save(hubReqDto.toEntity());
+    public HubDetailResDto createHub(CreateHubReqDto hubReqDto, UUID userId) {
+        Hub savedHub = hubRepository.save(hubReqDto.toEntity(userId));
         return HubDetailResDto.from(savedHub);
     }
 
@@ -47,12 +47,11 @@ public class HubService {
         return HubDetailResDto.from(updatehub);
     }
 
-    public void deleteHub(UUID hubId) {
+    public void deleteHub(UUID hubId, UUID userId) {
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new IllegalArgumentException("허브를 찾을 수 없습니다."));
 
-        // 유저정보 가져와야함
-        hub.softDelete(null);
+        hub.softDelete(userId);
         hubRepository.save(hub);
     }
 
