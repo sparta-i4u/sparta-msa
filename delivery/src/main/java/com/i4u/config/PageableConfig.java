@@ -1,4 +1,4 @@
-package com.i4u.delivery.infrastructure.config;
+package com.i4u.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.PageRequest;
