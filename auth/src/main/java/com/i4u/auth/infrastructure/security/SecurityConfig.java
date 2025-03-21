@@ -31,8 +31,16 @@ public class SecurityConfig {
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
 
-        return authenticationConfiguration.getAuthenticationManager(); // ✅ Spring Security의 설정을 따름
+        return new ProviderManager(List.of(provider));
     }
+//return authenticationConfiguration.getAuthenticationManager();
+//    @Bean
+//    public AuthenticationManager authenticationManager(CustomUserDetailsService userDetailsService) {
+//        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+//        provider.setUserDetailsService(userDetailsService);
+//        provider.setPasswordEncoder(passwordEncoder());
+//        return new ProviderManager(List.of(provider));
+//    }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http

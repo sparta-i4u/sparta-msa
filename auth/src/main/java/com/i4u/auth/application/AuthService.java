@@ -41,8 +41,6 @@ public class AuthService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-
-    // ✅ 사용자 정보 조회 메서드 (다른 모듈에서 호출 가능)
     @RequiresAuth
     public AuthUserInfoResponseDto getAuthUserInfo(UUID userId) {
         // 데이터베이스에서 사용자 존재 여부 및 논리삭제 여부를 먼저 확인
@@ -79,13 +77,13 @@ public class AuthService {
         UserDetailResponseDto userResponse = userClient.createUser(userRequest);
         UUID userId = userResponse.getUserId();
 
+        // ❀ 수정: 중복 인코딩 제거 → rawPassword 전달
         // AuthUser 저장
         AuthUser authUser = AuthUser.createAuthUser(
-                userId, userResponse.getEmail(), encodedPassword, request.getSlackId(), request.getRole(), passwordEncoder
+                userId, userResponse.getEmail(), request.getPassword(), request.getSlackId(), request.getRole(), passwordEncoder
         );
         authUserRepository.save(authUser);
 
-        // JWT 토큰 생성
         String accessToken = jwtTokenProvider.createAccessToken(userId, userResponse.getEmail(), request.getRole().name());
         String refreshToken = jwtTokenProvider.createRefreshToken(userId, userResponse.getEmail());
 

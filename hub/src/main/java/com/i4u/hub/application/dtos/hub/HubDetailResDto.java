@@ -34,6 +34,7 @@ public class HubDetailResDto {
                 .longitude(hub.getLongitude())
                 .createdAt(hub.getCreatedAt())
                 .updatedAt(hub.getUpdatedAt())
+                .managerId(hub.getManagerId())
                 .build();
     }
 
