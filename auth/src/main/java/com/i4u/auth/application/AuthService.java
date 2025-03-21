@@ -83,7 +83,6 @@ public class AuthService {
         );
         authUserRepository.save(authUser);
 
-        // JWT 토큰 생성
         String accessToken = jwtTokenProvider.createAccessToken(userId, userResponse.getEmail(), request.getRole().name());
         String refreshToken = jwtTokenProvider.createRefreshToken(userId, userResponse.getEmail());
 
