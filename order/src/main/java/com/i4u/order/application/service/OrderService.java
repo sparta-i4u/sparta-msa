@@ -26,6 +26,7 @@ import com.i4u.order.presentation.client.CompanyClient;
 import com.i4u.order.presentation.client.DeliveryClient;
 import com.i4u.order.presentation.client.ProductClient;
 import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
+import com.i4u.order.application.dtos.request.OrderSearchRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;

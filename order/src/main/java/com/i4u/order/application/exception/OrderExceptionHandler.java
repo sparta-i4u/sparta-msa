@@ -23,7 +23,9 @@ public class OrderExceptionHandler {
 	public ResponseEntity<CommonResponse<OrderException>> errorResponse(OrderException exception) {
 		log.error("[ErrorCode] = {} , [ErrorMessage] = {}", exception.getErrorCode(), exception.getMessage());
 		// CommonResponse.fail 메소드 수정 가능한지 확인하기
-		return ResponseEntity.status(exception.getStatus()).body(CommonResponse.fail());
+		return ResponseEntity.status(exception.getStatus()).body(CommonResponse.fail(
+			"400", exception.getMessage(), HttpStatus.BAD_REQUEST.value()
+		));
 	}
 
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -34,7 +36,7 @@ public class OrderExceptionHandler {
 		log.error("[ErrorCode] = {} , [ErrorMessage] = {}", exception.getErrorCode(), error);
 
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(CommonResponse.fail(/*"잘못된 요청", "올바른 요청이 아닙니다."*/));
+			.body(CommonResponse.fail("400", exception.getMessage(), HttpStatus.BAD_REQUEST.value()));
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
@@ -47,14 +49,14 @@ public class OrderExceptionHandler {
 		log.warn("[Validation 오류]: {}", errors);
 
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(CommonResponse.fail(/*"요청 오류", errors*/));
+			.body(CommonResponse.fail("400", exception.getMessage(), HttpStatus.BAD_REQUEST.value()));
 	}
 
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<CommonResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException exception) {
 		log.warn("[Invalid request body] = {}", exception.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(CommonResponse.fail(/*"잘못된 요청", "올바른 요청 데이터가 아닙니다."*/));
+			.body(CommonResponse.fail("400", exception.getMessage(), HttpStatus.BAD_REQUEST.value()));
 	}
 
 }
