@@ -40,7 +40,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final BCryptPasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private UserRepository userRepository;
+
 
     // ✅ 사용자 정보 조회 메서드 (다른 모듈에서 호출 가능)
     @RequiresAuth
@@ -60,51 +60,32 @@ public class AuthService {
         );
     }
 
-
-    public UserDetailResponseDto createUser(UserCreateRequestDto requestDTO) { // ✅ `encodedPassword` 제거
-        if (userRepository.findBySlackIdAndIsDeletedFalse(requestDTO.getSlackId()).isPresent()) {
-            throw new UserException(UserException.UserErrorType.DUPLICATE_USERNAME);
-        }
-
-        // ✅ DTO에서 암호화된 비밀번호를 그대로 사용
-        User newUser = User.createUser(
-                requestDTO.getUsername(),
-                requestDTO.getPassword(),  // ✅ 변경된 부분: DTO에서 가져옴
-                requestDTO.getNickname(),
-                requestDTO.getEmail(),
-                requestDTO.getSlackId(),
-                requestDTO.getRole()
-        );
-
-        userRepository.save(newUser);
-        return UserDetailResponseDto.from(newUser);
-    }
-
     // ✅ 회원가입 (User 서비스에 회원 정보 저장 & JWT 발급)
     public AuthResponseDto signUp(AuthSignUpRequestDto request) {
-        // ✅ 비밀번호 암호화
+        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        // ✅ User 모듈로 회원 생성 요청
+        // User 모듈로 회원 생성 요청
         UserCreateRequestDto userRequest = new UserCreateRequestDto(
                 request.getUsername(),
-                encodedPassword, // ✅ 암호화된 비밀번호 전달
+                encodedPassword,
                 request.getNickname(),
                 request.getEmail(),
                 request.getSlackId(),
                 request.toUserRole()
         );
 
+        // 💡 user-service 내부에서 중복 확인 등 처리
         UserDetailResponseDto userResponse = userClient.createUser(userRequest);
         UUID userId = userResponse.getUserId();
 
-        // ✅ AuthUser 저장
+        // AuthUser 저장
         AuthUser authUser = AuthUser.createAuthUser(
                 userId, userResponse.getEmail(), encodedPassword, request.getSlackId(), request.getRole(), passwordEncoder
         );
         authUserRepository.save(authUser);
 
-        // ✅ JWT 토큰 생성
+        // JWT 토큰 생성
         String accessToken = jwtTokenProvider.createAccessToken(userId, userResponse.getEmail(), request.getRole().name());
         String refreshToken = jwtTokenProvider.createRefreshToken(userId, userResponse.getEmail());
 
