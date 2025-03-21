@@ -122,7 +122,9 @@ public class ShipperService {
 
 		// 2. Role에 따른 조회 권한 확인
 		//    배송 담당자는 본인 정보만
-		if (role.equals("ROLE_DELIVERY_MANAGER") && !shipper.getShipperId().equals(userId)) {
+		if (role.equals("ROLE_DELIVERY_MANAGER") && !shipper.getShipperId().equals(UUID.fromString(userId))) {
+			System.out.println(shipper.getShipperId());
+			System.out.println(UUID.fromString(userId));
 			throw new ShipperException("조회 권한이 없습니다", HttpStatus.BAD_REQUEST);
 		}
 
@@ -134,8 +136,8 @@ public class ShipperService {
 			}
 		}
 
-		//    그리고 마스터가 아니면 불가능
-		if (!role.equals("ROLE_MASTER")) {
+		//    그리고 업체 담당자면
+		if (role.equals("ROLE_COMPANY_MANAGER")) {
 			throw new ShipperException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -158,7 +160,7 @@ public class ShipperService {
 		Shipper beforeShipper = findShipper(shipperId);
 
 		// 2. Role에 따른 배송 담당자 수정 권한 확인
-		confirmRequestUser(userId, role, beforeShipper.getHubId());
+		confirmRequestUser(userId, role, request.getHubId());
 
 		UUID hubId = (request.getHubId() == null) ? wholeHubId : request.getHubId();
 
@@ -196,7 +198,7 @@ public class ShipperService {
 		shipper.softDelete(UUID.fromString(userId));
 	}
 
-	//권한 검증 함수
+	// 권한 검증 함수
 	private void confirmRequestUser(String userId, String role, UUID hubId) {
 		switch (role) {
 			case "ROLE_MASTER":

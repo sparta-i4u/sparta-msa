@@ -3,6 +3,8 @@ package com.i4u.common.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.Where;
@@ -19,7 +21,6 @@ import lombok.Getter;
 @Getter
 @MappedSuperclass
 @Where(clause = "is_deleted = false") // 조회 시, 삭제된 데이터 자동 필터링
-@SQLRestriction("deletedAt IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 public abstract class Basic {
 
@@ -41,9 +42,26 @@ public abstract class Basic {
 
 	protected Boolean isDeleted;
 
-	public void softDelete(UUID deletedByUser) {
-		this.deletedAt = LocalDateTime.now();
-		this.deletedBy = deletedByUser;
+	public void softDelete(UUID deletedBy) {
 		this.isDeleted = true;
+		this.deletedBy = deletedBy;
 	}
-}
+	@PrePersist
+	public void prePersist() {
+		if (isDeleted) {
+			throw new IllegalStateException("Cannot persist a deleted entity");
+		}
+	}
+
+	@PreUpdate
+	public void preUpdate() {
+		if (isDeleted) {
+			throw new IllegalStateException("Cannot update a deleted entity");
+		}
+	}
+	}
+//	public void softDelete(UUID deletedByUser) {
+//		this.deletedAt = LocalDateTime.now();
+//		this.deletedBy = deletedByUser;
+//		this.isDeleted = true;
+//	}

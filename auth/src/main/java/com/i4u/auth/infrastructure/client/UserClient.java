@@ -8,11 +8,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-@FeignClient(name = "user-service", path = "/api/v1/users", fallback = UserClientFallback.class)
+@FeignClient(name = "USER-SERVICE", path = "/api/v1/users", fallback = UserClientFallback.class)
 public interface UserClient {
 
     @PostMapping
     UserDetailResponseDto createUser(@RequestBody UserCreateRequestDto request); // ✅ encodedPassword 제거
+
 
     @GetMapping("/auth-user-info/{userId}")
     AuthUserInfoResponseDto getUserInfo(@PathVariable UUID userId);

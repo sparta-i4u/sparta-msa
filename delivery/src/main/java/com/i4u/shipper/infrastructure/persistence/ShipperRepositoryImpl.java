@@ -83,7 +83,7 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 		Tuple result = queryFactory
 			.select(
 				shipper.count(),
-				shipper.shipperOrder.max()
+				shipper.shipperOrder.max() // QueryDSL에서는 기본적으로 Long을 반환할 가능성이 높음
 			)
 			.from(shipper)
 			.where(
@@ -92,22 +92,23 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 			)
 			.fetchOne();
 
-		// 해당 hubId에 해당하는 배송 담당자가 없으면 기본값 1 반환
+		// 해당 hubId에 배송 담당자가 없으면 기본값 1 반환
 		if (result == null) {
 			return 1;
 		}
 
 		Long shipperCount = result.get(shipper.count());
-		Integer maxShipperOrder = result.get(shipper.shipperOrder.max());
+		Long maxShipperOrder = Long.valueOf(result.get(shipper.shipperOrder.max())); // Long으로 받아야 함
 
-		// shipper가 10명 이상이면 등록 불가능
-		if (shipperCount >= 10) {
+		// shipperCount가 10명 이상이면 등록 불가능
+		if (shipperCount != null && shipperCount >= 10) {
 			return 0;
 		}
 
-		// 새 배송 순서는 max 값 + 1
-		return maxShipperOrder != null ? maxShipperOrder + 1 : 1;
+		// maxShipperOrder가 null이면 1부터 시작, 아니면 +1 해서 반환
+		return maxShipperOrder != null ? maxShipperOrder.intValue() + 1 : 1;
 	}
+
 
 	@Override
 	public Shipper assignShipper(UUID hubId) {

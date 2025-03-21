@@ -12,6 +12,7 @@ import com.i4u.user.domain.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -22,15 +23,14 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
-
+    private final PasswordEncoder passwordEncoder;
     // 회원가입 (POST /users)
-//    @PostMapping
-//    public ResponseEntity<CommonResponse<UserDetailResponseDto>> createUser(
-//            @RequestBody UserCreateRequestDto requestDto
-//    ) {
-//        UserDetailResponseDto userDetail = userService.createUser(requestDto);
-//        return ResponseEntity.ok(CommonResponse.success(userDetail, "회원가입이 완료되었습니다."));
-//    }
+    @PostMapping
+    public ResponseEntity<UserDetailResponseDto> createUser(@RequestBody UserCreateRequestDto requestDto) {
+//        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+        UserDetailResponseDto responseDto = userService.createUser(requestDto, requestDto.getPassword());
+        return ResponseEntity.ok(responseDto);
+    }
 
     // 특정 사용자 조회 - ID 기반 (GET /users/{userId})
     @GetMapping("/{userId}")
@@ -97,5 +97,20 @@ public class UserController {
                 userService.deleteUser(adminUserId, userId, deletedBy),
                 "사용자가 삭제되었습니다.")
         );
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<CommonResponse<UserListResponseDto>> getAllUsers(
+            @RequestHeader("X-User-Role") String userRole,
+            Pageable pageable) {
+
+        if (!UserRole.MASTER.name().equalsIgnoreCase(userRole)) {
+            throw new UserException(UserException.UserErrorType.PERMISSION_DENIED);
+        }
+
+        return ResponseEntity.ok(CommonResponse.success(
+                userService.getAllUsers(pageable),
+                "전체 사용자 조회 성공"
+        ));
     }
 }

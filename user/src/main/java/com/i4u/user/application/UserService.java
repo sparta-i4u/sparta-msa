@@ -12,6 +12,7 @@ import com.i4u.user.application.exception.UserException;
 import com.i4u.user.infrastructure.security.aop.RequiresMasterRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +20,6 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UserService {
 
     private final UserRepository userRepository;
@@ -37,12 +37,13 @@ public class UserService {
     }
 
     // ✅ 신규 사용자 생성 메서드
+    @Transactional
     public UserDetailResponseDto createUser(UserCreateRequestDto requestDTO, String encodedPassword) {
         if (userRepository.findBySlackIdAndIsDeletedFalse(requestDTO.getSlackId()).isPresent()) {
             throw new UserException(UserException.UserErrorType.DUPLICATE_USERNAME);
         }
 
-        UserRole userRole = requestDTO.getRole();
+        UserRole userRole = UserRole.fromString(requestDTO.getRole().name());
 
         User newUser = User.createUser(
                 requestDTO.getUsername(),
@@ -55,7 +56,6 @@ public class UserService {
         userRepository.save(newUser);
         return UserDetailResponseDto.from(newUser);
     }
-
     // ✅ userId를 기반으로 사용자 조회
     public Optional<UserDetailResponseDto> getUserById(UUID userId) {
         return userRepository.findByUserIdAndIsDeletedFalse(userId)
@@ -140,4 +140,9 @@ public class UserService {
 
         return UserDetailResponseDto.from(user);
     }
+    public UserListResponseDto getAllUsers(Pageable pageable) {
+        Page<User> users = userRepository.findAllByIsDeletedFalse(pageable);
+        return new UserListResponseDto(users);
+    }
+
 }

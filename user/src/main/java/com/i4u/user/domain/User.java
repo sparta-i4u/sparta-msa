@@ -18,7 +18,7 @@ public class User extends Basic {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name="user_id", columnDefinition = "UUID", updatable = false, nullable = false) // PostgreSQL의 UUID 타입 적용
+    @Column(name="user_id", updatable = false, nullable = false) // PostgreSQL의 UUID 타입 적용
     private UUID userId;        // long으로 하는 이유 ? userid 겹칠 일이 없다보니 long해보는거 좋다.
 
     @Column(name="username", nullable = false, length = 100, unique = true)
@@ -42,8 +42,7 @@ public class User extends Basic {
 
     // 정적 팩토리 메서드 - User 생성 (회원가입 시 역할 선택 가능)
     public static User createUser(String username, String password, String nickname, String email, String slackId, UserRole role) {
-        return User.builder()
-                .userId(UUID.randomUUID()) // UUID 자동 생성
+        User user = User.builder()
                 .username(username)
                 .password(password)
                 .nickname(nickname)
@@ -51,6 +50,13 @@ public class User extends Basic {
                 .slackId(slackId)
                 .role(role)
                 .build();
+
+        user.updateDelete(false);
+        return user;
+    }
+
+    public void updateDelete(boolean isDelete) {
+        this.isDeleted = isDelete;
     }
 
     // 사용자 정보 수정 (본인 또는 관리자만 가능)
