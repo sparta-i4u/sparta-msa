@@ -34,8 +34,10 @@ dependencies {
 
 	// Eureka Client
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// JPA 및 Transactional 지원 (필수)
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
 	// AOP 및 AspectJ 지원 (필수)
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -49,6 +51,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 	implementation 'io.github.openfeign:feign-micrometer'
+//	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 //	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 
 	// QueryDSL
