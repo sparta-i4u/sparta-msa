@@ -78,6 +78,7 @@ public class AuthService {
         UUID userId = userResponse.getUserId();
 
         // ❀ 수정: 중복 인코딩 제거 → rawPassword 전달
+        // AuthUser 저장
         AuthUser authUser = AuthUser.createAuthUser(
                 userId, userResponse.getEmail(), request.getPassword(), request.getSlackId(), request.getRole(), passwordEncoder
         );
