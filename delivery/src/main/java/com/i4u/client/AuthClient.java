@@ -13,7 +13,7 @@ import com.i4u.delivery.presentation.dtos.request.DeliveryUserUpdateRequest;
 import com.i4u.delivery.presentation.dtos.response.DeliveryUserUpdateResponse;
 import com.i4u.shipper.presentation.dtos.response.ConfirmUserResponse;
 
-@FeignClient(name = "auth-service")
+@FeignClient(name = "AUTH-SERVICE")
 public interface AuthClient {
 
 	// Shipper/Delivery -> User/Auth 로 해당 사용자가 존재하는지 + 권한이 무엇인지 확인

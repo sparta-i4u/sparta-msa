@@ -13,7 +13,7 @@ import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
 import com.i4u.order.presentation.dtos.response.OrderCompanyResponse;
 import com.i4u.order.presentation.dtos.response.OrderCompanyUpdateResponse;
 
-@FeignClient(name = "company")
+@FeignClient(name = "COMPANY-SERVICE")
 public interface CompanyClient {
 
 	@GetMapping("/api/v1/companies/orders")

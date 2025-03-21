@@ -2,15 +2,18 @@ package com.i4u.shipper.application.dtos.request;
 
 import java.util.UUID;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
 import com.i4u.shipper.domain.entity.ShipperType;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@Builder
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ShipperSearchRequest {

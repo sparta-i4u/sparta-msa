@@ -11,7 +11,7 @@ import com.i4u.shipper.domain.entity.Shipper;
 
 public interface ShipperRepositoryCustom {
 	Page<ShipperListResponse> searchShippers(Pageable pageable, ShipperSearchRequest request,
-		String userId, String role, UUID hubManagerHubId);
+		UUID userId, String role, UUID hubManagerHubId);
 	Integer confirmShipperOrder(UUID hubId);
 	Shipper assignShipper(UUID hubId);
 	Shipper assignNewShipper(UUID hubId, Integer shipperOrder);
