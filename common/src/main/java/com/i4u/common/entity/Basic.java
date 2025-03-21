@@ -45,21 +45,23 @@ public abstract class Basic {
 	public void softDelete(UUID deletedBy) {
 		this.isDeleted = true;
 		this.deletedBy = deletedBy;
+		this.deletedAt = LocalDateTime.now();
 	}
+
 	@PrePersist
 	public void prePersist() {
-		if (isDeleted) {
+		if (this.isDeleted != null && this.isDeleted) {
 			throw new IllegalStateException("Cannot persist a deleted entity");
 		}
 	}
 
 	@PreUpdate
 	public void preUpdate() {
-		if (isDeleted) {
+		if (this.isDeleted != null && this.isDeleted) {
 			throw new IllegalStateException("Cannot update a deleted entity");
 		}
 	}
-	}
+}
 //	public void softDelete(UUID deletedByUser) {
 //		this.deletedAt = LocalDateTime.now();
 //		this.deletedBy = deletedByUser;
