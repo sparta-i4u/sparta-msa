@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.i4u.common.utils.CommonResponse;
@@ -17,18 +18,19 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
+@RequestMapping("/api/v1/deliveries")
 @RequiredArgsConstructor
 public class DeliveryEndpoint {
 
 	private final DeliveryClientService deliveryClientService;
 
-	@PutMapping("/api/v1/deliveries/update-byorder")
+	@PutMapping("/update-byorder")
 	ResponseEntity<CommonResponse> updateDeliveryByOrder(@RequestBody OrderDeliveryUpdateRequest request){
 		deliveryClientService.updateDeliveryByOrder(request);
 		return ResponseEntity.ok(CommonResponse.success("", "배송 수정 성공"));
 	}
 
-	@PatchMapping("/api/v1/deliveries/updatestate-byorder")
+	@PatchMapping("/updatestate-byorder")
 	ResponseEntity<CommonResponse> updateDeliveryState(@RequestBody OrderDeliveryStateUpdateRequest orderCanceled) {
 		deliveryClientService.updateDeliveryStateByOrder(orderCanceled);
 		return ResponseEntity.ok(CommonResponse.success("", "배송 상태 수정 성공"));

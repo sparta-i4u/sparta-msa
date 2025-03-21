@@ -12,7 +12,7 @@ import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
 @FeignClient(name = "SHIPPER-SERVICE")
 public interface ShipperClient {
 
-	@GetMapping("/api/v1/deliveries/shippers")
+	@GetMapping("/api/v1/shippers/deliveries")
 	ResponseEntity<CommonResponse<DeliveryShipperResponse>> assignShipper(@ModelAttribute DeliveryShipperRequest request);
 
 }
