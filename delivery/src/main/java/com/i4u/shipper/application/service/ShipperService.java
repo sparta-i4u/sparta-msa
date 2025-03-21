@@ -55,7 +55,7 @@ public class ShipperService {
 		confirmRequestUser(userId, role, request.getHubId());
 
 		// 2. [authClient] 사용자 쪽으로 사용자 검증 (ID, 삭제여부, 권한) 요청 보내기
-		ConfirmUserResponse responseUser = authClient.confirmUser(userId);
+		ConfirmUserResponse responseUser = authClient.confirmUser(request.getUserId());
 		if (responseUser.getIsDeleted()) {
 			throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
 		}
