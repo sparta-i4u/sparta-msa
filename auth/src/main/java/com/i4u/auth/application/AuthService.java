@@ -41,15 +41,11 @@ public class AuthService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-
-    // ✅ 사용자 정보 조회 메서드 (다른 모듈에서 호출 가능)
     @RequiresAuth
     public AuthUserInfoResponseDto getAuthUserInfo(UUID userId) {
-        // 데이터베이스에서 사용자 존재 여부 및 논리삭제 여부를 먼저 확인
         AuthUser authUser = authUserRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new AuthException(AuthException.AuthErrorType.USER_NOT_FOUND));
 
-        // 외부 UserClient를 통해 상세 정보를 조회
         AuthUserInfoResponseDto userDetail = userClient.getUserInfo(userId);
 
         return new AuthUserInfoResponseDto(
@@ -60,12 +56,9 @@ public class AuthService {
         );
     }
 
-    // ✅ 회원가입 (User 서비스에 회원 정보 저장 & JWT 발급)
     public AuthResponseDto signUp(AuthSignUpRequestDto request) {
-        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        // User 모듈로 회원 생성 요청
         UserCreateRequestDto userRequest = new UserCreateRequestDto(
                 request.getUsername(),
                 encodedPassword,
@@ -75,24 +68,21 @@ public class AuthService {
                 request.toUserRole()
         );
 
-        // 💡 user-service 내부에서 중복 확인 등 처리
         UserDetailResponseDto userResponse = userClient.createUser(userRequest);
         UUID userId = userResponse.getUserId();
 
-        // AuthUser 저장
+        // ❀ 수정: 중복 인코딩 제거 → rawPassword 전달
         AuthUser authUser = AuthUser.createAuthUser(
-                userId, userResponse.getEmail(), encodedPassword, request.getSlackId(), request.getRole(), passwordEncoder
+                userId, userResponse.getEmail(), request.getPassword(), request.getSlackId(), request.getRole(), passwordEncoder
         );
         authUserRepository.save(authUser);
 
-        // JWT 토큰 생성
         String accessToken = jwtTokenProvider.createAccessToken(userId, userResponse.getEmail(), request.getRole().name());
         String refreshToken = jwtTokenProvider.createRefreshToken(userId, userResponse.getEmail());
 
         return new AuthResponseDto(accessToken, refreshToken, userResponse.getEmail(), request.getRole());
     }
 
-    // ✅ 로그인 (이메일 & 비밀번호 검증 후 JWT 토큰 발급)
     public AuthResponseDto signIn(AuthSignInRequestDto request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -109,17 +99,14 @@ public class AuthService {
         return new AuthResponseDto(accessToken, refreshToken, authUser.getEmail(), authUser.getRole());
     }
 
-    // ✅ 로그아웃 (JWT 블랙리스트 저장 가능)
     public void logout(String token) {
         log.info("✅ 로그아웃 완료: token={}", token);
     }
 
-    // ✅ 토큰 검증
     public boolean validateToken(String token) {
         return jwtTokenProvider.validateToken(token);
     }
 
-    // ✅ 토큰 갱신 (리프레시 토큰을 사용하여 새로운 액세스 토큰 발급)
     public AuthResponseDto refreshToken(String refreshToken) {
         String email = jwtTokenProvider.getEmailFromToken(refreshToken);
 
