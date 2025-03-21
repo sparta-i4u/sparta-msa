@@ -60,6 +60,7 @@ public class AuthService {
 
     // ✅ 회원가입 (User 서비스에 회원 정보 저장 & JWT 발급)
     public AuthResponseDto signUp(AuthSignUpRequestDto request) {
+        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
         // User 모듈로 회원 생성 요청
@@ -83,6 +84,7 @@ public class AuthService {
         );
         authUserRepository.save(authUser);
 
+        // JWT 토큰 생성
         String accessToken = jwtTokenProvider.createAccessToken(userId, userResponse.getEmail(), request.getRole().name());
         String refreshToken = jwtTokenProvider.createRefreshToken(userId, userResponse.getEmail());
 
