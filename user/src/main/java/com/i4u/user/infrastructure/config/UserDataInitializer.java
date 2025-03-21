@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-@Configuration
+//@Configuration
 @RequiredArgsConstructor
 public class UserDataInitializer {
 
@@ -42,7 +42,7 @@ public class UserDataInitializer {
             // 허브 관리자 생성
             List<User> users = Arrays.asList(
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub1Uuid)
                             .username("hub_manager1")
                             .password("password123!")
                             .nickname("서울 관리자")
@@ -51,7 +51,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub2Uuid)
                             .username("hub_manager2")
                             .password("password123!")
                             .nickname("경기북부 관리자")
@@ -60,7 +60,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub3Uuid)
                             .username("hub_manager3")
                             .password("password123!")
                             .nickname("경기남부 관리자")
@@ -69,7 +69,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub4Uuid)
                             .username("hub_manager4")
                             .password("password123!")
                             .nickname("부산 관리자")
@@ -78,7 +78,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub5Uuid)
                             .username("hub_manager5")
                             .password("password123!")
                             .nickname("대구 관리자")
@@ -87,7 +87,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub6Uuid)
                             .username("hub_manager6")
                             .password("password123!")
                             .nickname("인천 관리자")
@@ -96,7 +96,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub7Uuid)
                             .username("hub_manager7")
                             .password("password123!")
                             .nickname("광주 관리자")
@@ -105,7 +105,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub8Uuid)
                             .username("hub_manager8")
                             .password("password123!")
                             .nickname("대전 관리자")
@@ -114,7 +114,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub9Uuid)
                             .username("hub_manager9")
                             .password("password123!")
                             .nickname("울산 관리자")
@@ -123,7 +123,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub10Uuid)
                             .username("hub_manager10")
                             .password("password123!")
                             .nickname("세종 관리자")
@@ -132,7 +132,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub11Uuid)
                             .username("hub_manager11")
                             .password("password123!")
                             .nickname("강원 관리자")
@@ -141,7 +141,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub12Uuid)
                             .username("hub_manager12")
                             .password("password123!")
                             .nickname("충북 관리자")
@@ -150,7 +150,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub13Uuid)
                             .username("hub_manager13")
                             .password("password123!")
                             .nickname("충남 관리자")
@@ -159,7 +159,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub14Uuid)
                             .username("hub_manager14")
                             .password("password123!")
                             .nickname("전북 관리자")
@@ -168,7 +168,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub15Uuid)
                             .username("hub_manager15")
                             .password("password123!")
                             .nickname("전남 관리자")
@@ -177,7 +177,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub16Uuid)
                             .username("hub_manager16")
                             .password("password123!")
                             .nickname("경북 관리자")
@@ -186,7 +186,7 @@ public class UserDataInitializer {
                             .role(UserRole.HUB_MANAGER)
                             .build(),
                     User.builder()
-                            .userId(UUID.randomUUID())
+                            .userId(hub17Uuid)
                             .username("hub_manager17")
                             .password("password123!")
                             .nickname("경남 관리자")
@@ -196,8 +196,12 @@ public class UserDataInitializer {
                             .build()
             );
 
-            userRepository.saveAll(users);
-
+            // 중복 등록을 방지하기 위해 각 사용자를 저장하기 전에 존재 여부를 체크
+            for (User user : users) {
+                if (!userRepository.existsById(user.getUserId())) {
+                    userRepository.save(user);
+                }
+            }
             System.out.println("사용자 초기 데이터 로딩 완료");
         };
     }
