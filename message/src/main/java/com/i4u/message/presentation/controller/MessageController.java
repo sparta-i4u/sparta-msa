@@ -23,7 +23,7 @@ public class MessageController {
             MessageResDto messageResDto = messageService.sendMessage(message, slackId);
             return ResponseEntity.ok(CommonResponse.success(messageResDto, "메시지가 성공적으로 전송되었습니다!"));
         } catch (IOException | SlackApiException e) {
-            return ResponseEntity.badRequest().body(CommonResponse.fail());
+            return ResponseEntity.badRequest().body(CommonResponse.fail("F000", "메시지 전송 중 오류가 발생했습니다.", 400));
         }
     }
 
@@ -34,7 +34,7 @@ public class MessageController {
             MessageResDto messageResDto = messageService.sendAIMessage(aiMessageReqDto);
             return ResponseEntity.ok(CommonResponse.success(messageResDto, "메시지가 성공적으로 전송되었습니다!"));
         } catch (IOException | SlackApiException e) {
-            return ResponseEntity.badRequest().body(CommonResponse.fail());
+            return ResponseEntity.badRequest().body(CommonResponse.fail("F000", "AI 메시지 전송 중 오류가 발생했습니다.", 400));
         }
     }
 }

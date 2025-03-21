@@ -64,17 +64,16 @@ public class MessageService {
 
         // 슬랙 메시지 전송
         String slackId = aiMessageReqDto.getSlackId();
-        MessageResDto messageResDto = sendMessage(aiResponse, slackId);
+        sendMessage(aiResponse, slackId);
 
         // 메시지 엔티티 저장
         Message message = Message.builder()
-                .messageId(messageResDto.getMessageId())
                 .messageContent(aiResponse)
                 .slackId(slackId)
                 .build();
 
-        messageRepository.save(message);
+        Message savedmessage = messageRepository.save(message);
 
-        return messageResDto;
+        return MessageResDto.from(savedmessage);
     }
 }
