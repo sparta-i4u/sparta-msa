@@ -1,18 +1,15 @@
 package com.i4u.hub.application.service;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.i4u.hub.domain.model.Hub;
 import com.i4u.hub.domain.repository.HubRepository;
-import com.i4u.hub.presentation.dtos.request.DeliveryHubCreateRequest;
-import com.i4u.hub.presentation.dtos.request.DeliveryHubUpdateRequest;
 import com.i4u.hub.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.hub.presentation.dtos.response.DeliveryHubUpdateResponse;
-import com.i4u.hub.presentation.dtos.response.ShipperHubResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,9 +28,8 @@ public class HubClientService {
 	 * @return : 허브 관리자의 허브 ID 반환
 	 */
 	public UUID confirmHubFromUser(UUID userId) {
-		// findByHubManagerId(userId) 메서드 생성 필요
-		// 담당 허브가 없거나 삭제됐다면 null을 반환하기
-		return null;
+		Hub hub = hubRepository.findByManagerId(userId).orElse(null);
+		return hub.getHubId() != null ? hub.getHubId() : null;
 	}
 
 	// public ShipperHubResponse confirmHubFromShipper(UUID hubId) {
