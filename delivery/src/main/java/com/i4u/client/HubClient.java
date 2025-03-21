@@ -12,7 +12,7 @@ import com.i4u.delivery.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubUpdateResponse;
 import com.i4u.shipper.presentation.dtos.response.ShipperHubResponse;
 
-@FeignClient(name = "hub-service")
+@FeignClient(name = "HUB-SERVICE")
 public interface HubClient {
 
 	// 요청을 보낸 사용자 (허브 담당자의 경우) 담당하는 허브의 ID 가 무엇인지 / 없으면 NULL

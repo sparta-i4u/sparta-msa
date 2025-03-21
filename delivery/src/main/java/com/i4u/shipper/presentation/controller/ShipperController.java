@@ -1,13 +1,16 @@
 package com.i4u.shipper.presentation.controller;
 
+import java.beans.PropertyEditorSupport;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,6 +41,16 @@ public class ShipperController {
 
 	private final ShipperService shipperService;
 
+	@InitBinder
+	public void initBinder(WebDataBinder binder) {
+		binder.registerCustomEditor(UUID.class, new PropertyEditorSupport() {
+			@Override
+			public void setAsText(String text) throws IllegalArgumentException {
+				setValue(UUID.fromString(text));
+			}
+		});
+	}
+
 	/**
 	 * 배송 담당자 생성
 	 *
@@ -47,9 +60,10 @@ public class ShipperController {
 	@PostMapping // MASTER, HUB_MANAGER(담당 허브)
 	public ResponseEntity<CommonResponse<ShipperCreateResponse>> createShipper(
 		@RequestBody ShipperCreateRequest shipperCreateRequest,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("배송 담당자 생성 요청 들어옴");
+		log.info("userId: " + userId);
 		ShipperCreateResponse response = shipperService.createShipper(shipperCreateRequest, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 담당자 생성 성공"));
 	}
@@ -63,7 +77,7 @@ public class ShipperController {
 	@GetMapping // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 정보)
 	public ResponseEntity<CommonResponse<PagedModel<ShipperListResponse>>> getAllShippers(
 		Pageable pageable, @ModelAttribute ShipperSearchRequest request,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("배송 담당자 전제 조회 요청 들어옴");
 		PagedModel<ShipperListResponse> shipperList = shipperService.getAllShippers(pageable, request, userId, role);
@@ -79,7 +93,7 @@ public class ShipperController {
 	@GetMapping("/{shipperId}") // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 정보)
 	public ResponseEntity<CommonResponse<ShipperGetOneResponse>> getOneShipper(
 		@PathVariable UUID shipperId,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("배송 담당자 단건 조회 요청 들어옴 : " + shipperId);
 		ShipperGetOneResponse response = shipperService.getOneShipper(shipperId, userId, role);
@@ -95,7 +109,7 @@ public class ShipperController {
 	@PutMapping("/{shipperId}") // MASTER, HUB_MANAGER(담당 허브)
 	public ResponseEntity<CommonResponse<ShipperUpdateResponse>> putShipper(
 		@PathVariable UUID shipperId, @RequestBody ShipperUpdateRequest shipperUpdateRequest,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("배송 담당자 수정 요청 들어옴 : " + shipperId);
 		log.info(shipperUpdateRequest.getShipperType().toString());
@@ -112,7 +126,7 @@ public class ShipperController {
 	@DeleteMapping("/{shipperId}") // MASTER, HUB_MANAGER(담당 허브)
 	public ResponseEntity<CommonResponse> deleteShipper(
 		@PathVariable UUID shipperId,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("배송 담당자 삭제 요청 들어옴 : " + shipperId);
 		shipperService.deleteShipper(shipperId, userId, role);

@@ -13,7 +13,7 @@ import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
 import com.i4u.order.presentation.dtos.response.OrderDeliveryResponse;
 
-@FeignClient(name = "delivery")
+@FeignClient(name = "DELIVERY-SERVICE")
 public interface DeliveryClient {
 
 	// 배송 controller로 요청 전송

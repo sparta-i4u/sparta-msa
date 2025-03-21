@@ -22,6 +22,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
@@ -30,13 +31,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
+public class ShipperRepositoryImpl implements ShipperRepositoryCustom {
 
 	private final JPAQueryFactory queryFactory;
 
 	@Override
 	public Page<ShipperListResponse> searchShippers(Pageable pageable, ShipperSearchRequest request,
-		String userId, String role, UUID hubManagerHubId) {
+		UUID userId, String role, UUID hubManagerHubId) {
 		List<OrderSpecifier<?>> orders = getAllOrderSpecifiers(pageable);
 
 		long pageSize = getPageSize(pageable.getPageSize(), pageable.getOffset());
@@ -53,10 +54,10 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 			.from(shipper)
 			.where(
 				confirmUserRole(userId, role, hubManagerHubId),
-				shipperType(request.getShipperType()),
-				hubId(request.getHubId()),
-				userId(request.getUserId()),
-				shipperOrderBetween(request.getMinShipperOrder(), request.getMaxShipperOrder())
+				confirmShipperType(request.getShipperType()),
+				confirmHubId(request.getHubId()),
+				confirmUserId(request.getUserId()),
+				confirmShipperOrderBetween(request.getMinShipperOrder(), request.getMaxShipperOrder())
 			)
 			.orderBy(orders.toArray(new OrderSpecifier[0]))
 			.offset(pageable.getOffset())
@@ -64,12 +65,10 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 			.fetch();
 
 		// 전체 데이터 개수 계산
-		long totalCount = results.isEmpty() ? 0 : countTotalCount(request);
+		long totalCount = results.isEmpty() ? 0 : countTotalCount(request, userId, role, hubManagerHubId);
 
 		// 반환
-		/*Page<ShipperListResponse> pageResult =*/
 		return new PageImpl<>(results, pageable, totalCount);
-		// return new PagedModel<>(pageResult);
 	}
 
 	/**
@@ -83,7 +82,7 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 		Tuple result = queryFactory
 			.select(
 				shipper.count(),
-				shipper.shipperOrder.max() // QueryDSL에서는 기본적으로 Long을 반환할 가능성이 높음
+				shipper.shipperOrder.max()
 			)
 			.from(shipper)
 			.where(
@@ -92,23 +91,22 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 			)
 			.fetchOne();
 
-		// 해당 hubId에 배송 담당자가 없으면 기본값 1 반환
+		// 해당 hubId에 해당하는 배송 담당자가 없으면 기본값 1 반환
 		if (result == null) {
 			return 1;
 		}
 
 		Long shipperCount = result.get(shipper.count());
-		Long maxShipperOrder = Long.valueOf(result.get(shipper.shipperOrder.max())); // Long으로 받아야 함
+		Integer maxShipperOrder = result.get(shipper.shipperOrder.max());
 
-		// shipperCount가 10명 이상이면 등록 불가능
-		if (shipperCount != null && shipperCount >= 10) {
+		// shipper가 10명 이상이면 등록 불가능
+		if (shipperCount >= 10) {
 			return 0;
 		}
 
-		// maxShipperOrder가 null이면 1부터 시작, 아니면 +1 해서 반환
-		return maxShipperOrder != null ? maxShipperOrder.intValue() + 1 : 1;
+		// 새 배송 순서는 max 값 + 1
+		return maxShipperOrder != null ? maxShipperOrder + 1 : 1;
 	}
-
 
 	@Override
 	public Shipper assignShipper(UUID hubId) {
@@ -152,16 +150,16 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 	 * @param request : 검색어 여부 확인
 	 * @return : 전체 데이터 개수
 	 */
-	private Long countTotalCount(ShipperSearchRequest request) {
+	private Long countTotalCount(ShipperSearchRequest request, UUID userId, String role, UUID hubManagerHubId) {
 		return queryFactory
 			.select(shipper.count())
 			.from(shipper)
 			.where(
-				// confirmUserRole(role),
-				shipperType(request.getShipperType()),
-				hubId(request.getHubId()),
-				userId(request.getUserId()),
-				shipperOrderBetween(request.getMinShipperOrder(), request.getMaxShipperOrder())
+				confirmUserRole(userId, role, hubManagerHubId),
+				confirmShipperType(request.getShipperType()),
+				confirmHubId(request.getHubId()),
+				confirmUserId(request.getUserId()),
+				confirmShipperOrderBetween(request.getMinShipperOrder(), request.getMaxShipperOrder())
 			)
 			.fetchOne();
 	}
@@ -174,7 +172,7 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 	 * @param type : 배송 담당자 타입
 	 * @return : 배송 담당자 타입과 동일 여부 반환
 	 */
-	private BooleanExpression shipperType(ShipperType type) {
+	private BooleanExpression confirmShipperType(ShipperType type) {
 		return type != null ? shipper.shipperType.eq(type) : null;
 	}
 
@@ -184,8 +182,9 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 	 * @param hubId : 허브 ID
 	 * @return : 배송 담당자 타입과 동일 여부 반환
 	 */
-	private BooleanExpression hubId(UUID hubId) {
-		return hubId != null ? shipper.hubId.eq(hubId) : null;
+	private BooleanExpression confirmHubId(UUID hubId) {
+		System.out.println("hubId : " + hubId);
+		return hubId != null ? shipper.hubId.eq(hubId) : Expressions.asBoolean(true).isTrue();
 	}
 
 	/**
@@ -194,7 +193,7 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 	 * @param userId : 사용자의 ID
 	 * @return : 사용자 ID 동일 여부 반환
 	 */
-	private BooleanExpression userId(UUID userId) {
+	private BooleanExpression confirmUserId(UUID userId) {
 		return userId != null ? shipper.userId.eq(userId) : null;
 	}
 
@@ -205,7 +204,7 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 	 * @param maxShipperOrder : 배송 담당자 순서 최댓값
 	 * @return : 최소, 최대 범위 조건이 있는지 여부 반환
 	 */
-	private BooleanExpression shipperOrderBetween(Integer minShipperOrder, Integer maxShipperOrder) {
+	private BooleanExpression confirmShipperOrderBetween(Integer minShipperOrder, Integer maxShipperOrder) {
 		if (minShipperOrder == null && maxShipperOrder == null) {
 			return null;
 		}
@@ -227,13 +226,13 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom { /**/
 	 * @param hubManagerHubId
 	 * @return : 권한에 따른 필터링 여부 반환
 	 */
-	private BooleanExpression confirmUserRole(String userId, String role, UUID hubManagerHubId) {
+	private BooleanExpression confirmUserRole(UUID userId, String role, UUID hubManagerHubId) {
 		if (role.equals("ROLE_MASTER")) {
 			return null;
 		} else if (role.equals("ROLE_HUB_MANAGER")) {
 			return shipper.hubId.eq(hubManagerHubId);
 		} else if (role.equals("ROLE_DELIVERY_MANAGER")) {
-			return shipper.shipperId.eq(UUID.fromString(userId));
+			return shipper.shipperId.eq(userId);
 		}
 		return null;
 	}
