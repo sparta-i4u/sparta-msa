@@ -3,12 +3,14 @@ package com.i4u.message.application.dto;
 import com.i4u.message.domain.model.Message;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class MessageResDto {
-    private String messageId;
+    private UUID messageId;
     private String messageContent;
     private String slackId;
 

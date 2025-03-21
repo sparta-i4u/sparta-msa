@@ -4,6 +4,8 @@ import com.i4u.common.entity.Basic;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @Builder
@@ -15,9 +17,10 @@ public class Message extends Basic {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "uuid", nullable = false, updatable = false)
-    private String messageId;
+    private UUID messageId;
 
-    @Column(nullable = false)
+    @Lob
+    @Column(nullable = false, columnDefinition = "CLOB")
     private String messageContent;
 
     @Column(nullable = false)

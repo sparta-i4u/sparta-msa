@@ -21,9 +21,11 @@ public class AI {
     @Column(nullable = false)
     private String aiName;
 
-    @Column(nullable = false)
+    @Lob
+    @Column(nullable = false, columnDefinition = "CLOB")
     private String question;
 
-    @Column(nullable = false)
+    @Lob
+    @Column(nullable = false, columnDefinition = "CLOB")
     private String answer;
 }
