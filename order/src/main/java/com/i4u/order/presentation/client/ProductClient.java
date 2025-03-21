@@ -15,7 +15,7 @@ import com.i4u.order.presentation.dtos.request.OrderProductUpdateRequest;
 import com.i4u.order.presentation.dtos.response.OrderProductResponse;
 import com.i4u.order.presentation.dtos.response.OrderProductUpdateResponse;
 
-@FeignClient(name = "product")
+@FeignClient(name = "PRODUCT-SERVICE")
 public interface ProductClient {
 
 	@GetMapping("/api/v1/products/order")
