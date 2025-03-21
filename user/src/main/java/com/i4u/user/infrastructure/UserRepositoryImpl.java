@@ -1,4 +1,3 @@
-// 📌 UserRepositoryImpl.java 수정 (User 모듈)
 package com.i4u.user.infrastructure;
 
 import com.i4u.user.domain.QUser;
@@ -19,6 +18,7 @@ import java.util.List;
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
+    
 
     @Autowired
     public UserRepositoryImpl(JPAQueryFactory queryFactory) {

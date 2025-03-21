@@ -36,7 +36,7 @@ dependencies {
     // Zipkin
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     implementation 'io.github.openfeign:feign-micrometer'
-    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+//    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 
     // JPA & QueryDSL
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -50,8 +50,8 @@ dependencies {
 
     // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+//    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+//    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     // Open Feign
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
@@ -65,8 +65,8 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
 
     // Database (H2는 테스트 환경에서만 실행)
-    testRuntimeOnly 'com.h2database:h2'
-    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.h2database:h2'
+//    runtimeOnly 'org.postgresql:postgresql'
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'

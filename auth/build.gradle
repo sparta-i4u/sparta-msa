@@ -22,7 +22,7 @@ ext {
 	set('querydslVersion', "5.0.0")  // QueryDSL 버전 명시적으로 설정
 }
 
-bootJar { enabled = true }	// true
+bootJar { enabled = true }
 jar { enabled = true }
 
 dependencies {
@@ -37,15 +37,19 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
-	// Actuator
+	// AOP 및 AspectJ 지원 (필수)
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	implementation 'org.aspectj:aspectjweaver:1.9.22'
+
+	// Jakarta Persistence API (필수)
+	compileOnly 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+
+	// Actuator 및 Zipkin (옵션, 권장)
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	// Zipkin
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 	implementation 'io.github.openfeign:feign-micrometer'
-	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
-
-	// JPA
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+//	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 
 	// QueryDSL
 	implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
@@ -55,9 +59,6 @@ dependencies {
 
 	// Web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-
-	// Eureka Client
-	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
 	// Open Feign
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
@@ -69,12 +70,6 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	// H2
-	runtimeOnly 'com.h2database:h2'
-
-	// PostgreSQL
-	runtimeOnly 'org.postgresql:postgresql'
-
 	// JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
@@ -83,10 +78,13 @@ dependencies {
 	// JSON
 	implementation 'org.json:json:20230227'
 
-	// BCrypt 비밀번호 암호화
+	// BCrypt (비밀번호 암호화)
 	implementation 'org.springframework.security:spring-security-crypto'
-
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	// Database Driver (사용하는 DB에 따라 활성화)
+	 runtimeOnly 'com.h2database:h2'
+	// runtimeOnly 'org.postgresql:postgresql'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
