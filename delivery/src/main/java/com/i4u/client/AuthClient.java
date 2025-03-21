@@ -17,7 +17,7 @@ import com.i4u.shipper.presentation.dtos.response.ConfirmUserResponse;
 public interface AuthClient {
 
 	// Shipper/Delivery -> User/Auth 로 해당 사용자가 존재하는지 + 권한이 무엇인지 확인
-	@GetMapping("/api/v1/auth/{userId}")
+	@GetMapping("/api/v1/auth/user-info/{userId}")
 	ConfirmUserResponse confirmUser(@PathVariable UUID userId);
 
 	@GetMapping("/api/v1/auth/validate-user/{userId}")
