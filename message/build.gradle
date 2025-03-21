@@ -35,6 +35,7 @@ dependencies {
     // common 추가
     implementation project(':common')
 
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'com.slack.api:slack-api-client:1.45.3'
