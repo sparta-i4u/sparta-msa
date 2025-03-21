@@ -98,5 +98,4 @@ public class Order extends Basic {
 		this.deliveryId = deliveryId;
 		this.orderStatus = orderStatus;
 	}
-
 }
