@@ -3,24 +3,38 @@ package com.i4u.user.infrastructure.config;
 import com.i4u.user.domain.User;
 import com.i4u.user.domain.UserRole;
 import com.i4u.user.domain.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-//@Configuration
+@Configuration
 @RequiredArgsConstructor
 public class UserDataInitializer {
 
     private final UserRepository userRepository;
+    private final EntityManager entityManager;
+    private final PlatformTransactionManager transactionManager;
 
     @Bean
     public CommandLineRunner initUserData() {
         return args -> {
+
+
+            // 이미 데이터가 있는지 확인
+            if (userRepository.count() > 0) {
+                System.out.println("사용자 데이터가 이미 존재합니다. 초기화를 건너뜁니다.");
+                return;
+            }
+
             UUID hub1Uuid = UUID.fromString("00000000-0000-0000-0000-000000000001");
             UUID hub2Uuid = UUID.fromString("00000000-0000-0000-0000-000000000002");
             UUID hub3Uuid = UUID.fromString("00000000-0000-0000-0000-000000000003");
@@ -196,12 +210,33 @@ public class UserDataInitializer {
                             .build()
             );
 
-            // 중복 등록을 방지하기 위해 각 사용자를 저장하기 전에 존재 여부를 체크
             for (User user : users) {
-                if (!userRepository.existsById(user.getUserId())) {
-                    userRepository.save(user);
-                }
+                TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+                transactionTemplate.execute(status -> {
+                    try {
+                        // 네이티브 SQL 쿼리 사용
+                        String sql = "INSERT INTO p_user (user_id, username, password, nickname, email, slack_id, role, is_deleted, created_at, updated_at) " +
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, false, now(), now())";
+
+                        Query query = entityManager.createNativeQuery(sql);
+                        query.setParameter(1, user.getUserId());
+                        query.setParameter(2, user.getUsername());
+                        query.setParameter(3, user.getPassword());
+                        query.setParameter(4, user.getNickname());
+                        query.setParameter(5, user.getEmail());
+                        query.setParameter(6, user.getSlackId());
+                        query.setParameter(7, user.getRole().name());
+
+                        query.executeUpdate();
+                        System.out.println("사용자 저장 완료: " + user.getUsername());
+                    } catch (Exception e) {
+                        System.err.println("사용자 저장 중 오류 발생: " + user.getUsername() + " - " + e.getMessage());
+                        status.setRollbackOnly();
+                    }
+                    return null;
+                });
             }
+
             System.out.println("사용자 초기 데이터 로딩 완료");
         };
     }
