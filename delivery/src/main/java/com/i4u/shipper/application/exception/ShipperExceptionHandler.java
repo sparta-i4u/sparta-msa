@@ -22,7 +22,9 @@ public class ShipperExceptionHandler {
 	public ResponseEntity<CommonResponse<ShipperException>> errorResponse(ShipperException exception) {
 		log.error("[ErrorCode] = {} , [ErrorMessage] = {}", exception.getErrorCode(), exception.getMessage());
 		// CommonResponse.fail 메소드 수정 가능한지 확인하기
-		return ResponseEntity.status(exception.getStatus()).body(CommonResponse.fail());
+		return ResponseEntity.status(exception.getStatus()).body(CommonResponse.fail(
+			"400", exception.getMessage(), HttpStatus.BAD_REQUEST.value()
+		));
 	}
 
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -33,14 +35,14 @@ public class ShipperExceptionHandler {
 		log.error("[ErrorCode] = {} , [ErrorMessage] = {}", exception.getErrorCode(), error);
 
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(CommonResponse.fail(/*"Invalid request format", "올바른 요청이 아닙니다."*/));
+			.body(CommonResponse.fail("400", exception.getMessage(), HttpStatus.BAD_REQUEST.value()));
 	}
 
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<CommonResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException exception) {
 		log.warn("[Invalid request body] = {}", exception.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(CommonResponse.fail(/*"Invalid request format", "올바른 요청 데이터가 아닙니다."*/));
+			.body(CommonResponse.fail("400", exception.getMessage(), HttpStatus.BAD_REQUEST.value()));
 	}
 
 }
