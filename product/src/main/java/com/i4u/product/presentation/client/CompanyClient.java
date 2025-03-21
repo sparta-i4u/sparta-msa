@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.UUID;
 
-@FeignClient(name = "company-service")
+@FeignClient(name = "COMPANY-SERVICE")
 //Company로 요청을 쏴주는 친구 Client
 public interface CompanyClient {
 
