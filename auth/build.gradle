@@ -41,6 +41,7 @@ dependencies {
 
 	// AOP 및 AspectJ 지원 (필수)
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.1.0'
 	implementation 'org.aspectj:aspectjweaver:1.9.22'
 
 	// Jakarta Persistence API (필수)

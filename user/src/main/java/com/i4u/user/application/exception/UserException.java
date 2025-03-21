@@ -21,6 +21,7 @@ public class UserException extends CustomException {
         DATABASE_ERROR("USER_007", HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 처리 중 오류가 발생했습니다."),
         AUTHENTICATION_FAILED("USER_008", HttpStatus.UNAUTHORIZED, "인증에 실패했습니다."),
         TOKEN_EXPIRED("USER_009", HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
+        USER_SERVICE_UNAVAILABLE("USER_503", HttpStatus.SERVICE_UNAVAILABLE, "User 서비스에 접근할 수 없습니다."),
         INVALID_UUID_FORMAT("USER_010", HttpStatus.BAD_REQUEST, "잘못된 UUID 형식입니다.");
 
         private final String code;

@@ -16,6 +16,7 @@ public class UserClientFallback implements UserClient {
     @Override
     public UserDetailResponseDto createUser(UserCreateRequestDto request) { // ✅ `encodedPassword` 제거
         log.error("User 서비스 장애로 회원가입 요청 실패");
+        log.error("[UserClientFallback] User 서비스 접근 불가 - 회원 생성 실패. 요청 데이터: {}", request);
         throw new UserException(UserException.UserErrorType.INTERNAL_SERVER_ERROR);
     }
 

@@ -33,7 +33,7 @@ public class JwtAuthFilter implements GlobalFilter {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private final List<String> excludedRoutes = List.of("/api/v1/auth/sign-in", "/api/v1/auth/sign-up");
+    private final List<String> excludedRoutes = List.of("/api/v1/auth/sign-in", "/api/v1/auth/sign-up", "/api/v1/users");
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {

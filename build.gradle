@@ -60,10 +60,6 @@ project(':auth') {
         implementation project(':user')
     }
 }
-project(':gateway') {
-    dependencies {
-        implementation project(':common')
-    }
 
     project(':company') {
         dependencies {
@@ -100,4 +96,4 @@ project(':gateway') {
             implementation project(':common')
         }
     }
-}
+//}
