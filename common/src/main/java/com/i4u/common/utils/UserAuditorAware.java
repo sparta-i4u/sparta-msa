@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.UUID;
 
-@Component
 public class UserAuditorAware implements AuditorAware<UUID> {		// createdBy 및 lastModifiedBy 필드를 자동으로 채울 수 있도록 함
 
 	private final String ANONYMOUS_USER = "anonymousUser";

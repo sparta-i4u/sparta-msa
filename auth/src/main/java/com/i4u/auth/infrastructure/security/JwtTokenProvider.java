@@ -55,7 +55,6 @@ public class JwtTokenProvider {
             return false;
         }
     }
-
     // ✅ 토큰에서 `email` 추출
     public String getEmailFromToken(String token) {
         return Jwts.parser()

@@ -29,8 +29,9 @@ public class AuthUser {
     @Column(nullable = false, unique = true, length = 100)
     private String slackId; // Slack ID 추가
 
+    @Builder.Default  // ✅ 추가된 부분
     @Column(nullable = false)
-    private boolean isDeleted = false; // 삭제 여부 (기본값: false)
+    private boolean isDeleted = false;  // 삭제 여부 (기본값: false)
 
     // ✅ 정적 팩토리 메서드 - 회원가입 시 계정 생성 (`userId` 추가)
     public static AuthUser createAuthUser(UUID userId, String email, String rawPassword, String slackId, AuthUserRole role, BCryptPasswordEncoder encoder) {

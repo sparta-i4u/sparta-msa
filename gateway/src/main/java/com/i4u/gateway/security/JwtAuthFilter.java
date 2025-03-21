@@ -21,7 +21,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -57,16 +56,9 @@ public class JwtAuthFilter implements GlobalFilter {
             token = token.substring(7);
 
             try {
-                // ✅ JWT 파싱 및 검증
-                JwtParser jwtParser = Jwts.parser()
-                        .setSigningKey(getSigningKey())
-                        .build();
-                Claims claims = jwtParser.parseClaimsJws(token).getBody();
-
-                // ✅ 토큰 만료 시간 검증
-                if (claims.getExpiration().before(new Date())) {
-                    return onError(response, "JWT 토큰이 만료되었습니다.", HttpStatus.UNAUTHORIZED);
-                }
+                // JWT 파싱 및 검증
+                JwtParser jwtParser = Jwts.parser().verifyWith((javax.crypto.SecretKey) getSigningKey()).build();
+                Claims claims = jwtParser.parseSignedClaims(token).getPayload();
 
                 String userId = claims.get("userId", String.class);
                 String userEmail = claims.getSubject();
@@ -76,38 +68,40 @@ public class JwtAuthFilter implements GlobalFilter {
                     return onError(response, "JWT Claims가 유효하지 않습니다.", HttpStatus.UNAUTHORIZED);
                 }
 
-                log.info("✅ 인증된 사용자: ID={}, Email={}, 역할={}", userId, userEmail, userRole);
+                log.info("인증된 사용자: ID={}, Email={}, 역할={}", userId, userEmail, userRole);
 
-                // ✅ 기존 헤더 확인 후 중복 추가 방지 (더 최적화)
-                ServerHttpRequest.Builder modifiedRequest = request.mutate();
-                modifiedRequest.headers(httpHeaders -> {
-                    httpHeaders.set("X-User-Id", userId);
-                    httpHeaders.set("X-User-Email", userEmail);
-                    httpHeaders.set("X-User-Role", userRole);
-                });
+                // 기존 헤더 확인 후 중복 추가 방지 (더 최적화)
+                ServerHttpRequest modifiedRequest = request.mutate()
+                        .headers(httpHeaders -> {
+                            httpHeaders.add("X-User-Id", userId);
+                            httpHeaders.add("X-User-Email", userEmail);
+                            httpHeaders.add("X-User-Role", userRole);
+                        })
+                        .build();
 
-                return chain.filter(exchange.mutate().request(modifiedRequest.build()).build());
+                return chain.filter(exchange.mutate().request(modifiedRequest).build())
+                        .contextWrite(context -> context.put("userId", userId).put("userEmail", userEmail).put("userRole", userRole));
             } catch (ExpiredJwtException e) {
-                log.error("⛔ JWT 토큰 만료: {}", e.getMessage());
+                log.error("JWT 토큰 만료: {}", e.getMessage());
                 return onError(response, "JWT 토큰이 만료되었습니다.", HttpStatus.UNAUTHORIZED);
             } catch (JwtException e) {
-                log.error("⛔ JWT 검증 실패: {}", e.getMessage());
+                log.error("JWT 검증 실패: {}", e.getMessage());
                 return onError(response, "JWT 검증 실패: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
             }
         }
         return chain.filter(exchange);
     }
 
-    // ✅ 인증 오류 응답을 JSON 형식으로 반환하는 메서드
+    // 인증 오류 응답을 JSON 형식으로 반환하는 메서드
     private Mono<Void> onError(ServerHttpResponse response, String message, HttpStatus status) {
-        log.error("⛔ JWT 인증 오류: {}", message);
+        log.error("JWT 인증 오류: {}", message);
         response.setStatusCode(status);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
         String errorResponse = "{\"status\": \"" + status.value() + "\", \"message\": \"" + message + "\"}";
         return response.writeWith(Mono.just(response.bufferFactory().wrap(errorResponse.getBytes())));
     }
 
-    // ✅ JWT 서명 키 반환
+    // JWT 서명 키 반환
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
