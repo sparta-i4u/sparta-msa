@@ -25,12 +25,9 @@ import com.i4u.order.domain.repository.OrderRepository;
 import com.i4u.order.presentation.client.CompanyClient;
 import com.i4u.order.presentation.client.DeliveryClient;
 import com.i4u.order.presentation.client.ProductClient;
-import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
-import com.i4u.order.application.dtos.request.OrderSearchRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
-import com.i4u.order.presentation.dtos.request.OrderProductRequest;
 import com.i4u.order.presentation.dtos.request.OrderProductStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderProductUpdateRequest;
 import com.i4u.order.presentation.dtos.response.OrderProductUpdateResponse;
@@ -67,43 +64,49 @@ public class OrderService {
 	@Transactional
 	public OrderCreateResponse createOrder(OrderCreateRequest request, String userId) {
 		// 1. [companyClient] 업체 쪽으로 검증 요청 필요
-		ResponseEntity<CommonResponse<OrderCompanyResponse>> responseCompany = companyClient.confirmCompany(OrderCompanyRequest.builder()
-				.supplierId(request.getSupplierId()).recipientId(request.getRecipientId()).build());
+		OrderCompanyResponse responseCompany = companyClient.confirmCompany(
+			request.getSupplierId(), request.getRecipientId());
 
-		if (responseCompany.getBody().getData().getIsDeleted()) {
+		System.out.println("supplierHubId" + responseCompany.getSupplierHubId());
+		System.out.println("recipientHubId" +responseCompany.getRecipientHubId());
+
+		if (responseCompany.getIsDeleted()) {
 			// 업체가 둘 중 하나라도 없다면 Exception
 			throw new OrderException("해당 업체가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
+		System.out.println("company : " + request.getSupplierId());
+		System.out.println("company : " + request.getRecipientId());
+
 		// 2. [productClient] 상품 쪽으로 검증 요청 필요 (상품의 개수랑 상품 ID를 같이 넘김)
 		// 재고가 없거나 상품이 없다면 Exception
-		ResponseEntity<CommonResponse<OrderProductResponse>> responseProduct = productClient.confirmProduct(OrderProductRequest.builder()
-				.productId(request.getProductId()).productQuantity(request.getProductQuantity()).build());
+		OrderProductResponse responseProduct = productClient.confirmProduct(
+				request.getProductId(), request.getProductQuantity());
 
-		if (responseProduct.getBody().getData().getIsDeleted()) {
+		if (responseProduct.getIsDeleted()) {
 			throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		// 3. 주문 생성 (일단은 DeliveryId 없이 생성 후 저장) → 주문 상태는 PAID로 지정
-		Long productTotalPrice = responseProduct.getBody().getData().getProductTotalPrice();
-		Order order = request.toOrder(productTotalPrice, responseCompany.getBody().getData().getSupplierHubId(), responseCompany.getBody().getData().getRecipientHubId(),
+		Long productTotalPrice = responseProduct.getProductTotalPrice();
+		Order order = request.toOrder(productTotalPrice, responseCompany.getSupplierHubId(), responseCompany.getRecipientHubId(),
 				UUID.fromString(userId));
 
 		// 4. 생성한 주문 저장
 		Order savedOrder = orderRepository.save(order);
 
 		// 5. delivery 쪽으로 요청 전송 필요 (생성한 order의 정보와, 지금 주문을 요청한 사용자의 정보)
-		OrderCompanyResponse company = responseCompany.getBody().getData();
-		ResponseEntity<CommonResponse<OrderDeliveryResponse>> response = deliveryClient.createDelivery(OrderDeliveryRequest.builder()
+		OrderDeliveryResponse response = deliveryClient.createDelivery(
+			OrderDeliveryRequest.builder()
 				.orderId(savedOrder.getOrderId())
-				.arriveHubId(company.getSupplierHubId())
-				.departHubId(company.getRecipientHubId())
-				.address(company.getAddress())
-				// .recipientId(userId)
+				.recipientHubId(responseCompany.getSupplierHubId())
+				.supplierHubId(responseCompany.getRecipientHubId())
+				.address(responseCompany.getAddress())
+				.recipientId(UUID.fromString(userId))
 				.build());
 
 		// 6. 받아온 내용으로 order Update
-		savedOrder.updateOrderStateFromDelivery(response.getBody().getData().getDeliveryId(), switchIntoOrderStatus(response.getBody().getData().getDeliveryState()));
+		savedOrder.updateOrderStateFromDelivery(response.getDeliveryId(), switchIntoOrderStatus(response.getDeliveryState()));
 
 		return OrderCreateResponse.fromOrder(savedOrder);
 	}

@@ -16,8 +16,8 @@ import com.i4u.order.presentation.dtos.response.OrderCompanyUpdateResponse;
 @FeignClient(name = "COMPANY-SERVICE")
 public interface CompanyClient {
 
-	@GetMapping("/api/v1/companies/orders")
-	ResponseEntity<CommonResponse<OrderCompanyResponse>> confirmCompany(@ModelAttribute OrderCompanyRequest request /*userId, userRole or JWT 필요*/);
+	@GetMapping("/api/v1/companies/orders/{supplierCompanyId}/{recipientCompanyId}")
+	OrderCompanyResponse confirmCompany(@PathVariable UUID supplierCompanyId, @PathVariable UUID recipientCompanyId);
 
 	@GetMapping("/api/v1/companies/{companyId}/orders")
 	ResponseEntity<CommonResponse<OrderCompanyUpdateResponse>> confirmCompanyUpdate(@PathVariable UUID companyId /*userId, userRole or JWT 필요*/);

@@ -1,10 +1,13 @@
 package com.i4u.order.presentation.client;
 
+import java.util.UUID;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -18,8 +21,8 @@ import com.i4u.order.presentation.dtos.response.OrderProductUpdateResponse;
 @FeignClient(name = "PRODUCT-SERVICE")
 public interface ProductClient {
 
-	@GetMapping("/api/v1/products/order")
-	ResponseEntity<CommonResponse<OrderProductResponse>> confirmProduct(@ModelAttribute OrderProductRequest request /*userId, userRole or JWT 필요*/);
+	@GetMapping("/api/v1/products/orders/{productId}/{productQuantity}")
+	OrderProductResponse confirmProduct(@PathVariable UUID productId, @PathVariable Integer productQuantity);
 
 	@PatchMapping("/api/v1/products/{productId}/update-product")
 	ResponseEntity<CommonResponse<OrderProductUpdateResponse>> confirmProductUpdate(@RequestBody OrderProductUpdateRequest request);

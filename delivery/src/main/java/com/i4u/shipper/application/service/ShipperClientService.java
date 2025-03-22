@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 import com.i4u.shipper.application.exception.ShipperException;
 import com.i4u.shipper.domain.entity.Shipper;
 import com.i4u.shipper.domain.repository.ShipperRepository;
-import com.i4u.shipper.presentation.dtos.request.DeliveryShipperRequest;
-import com.i4u.shipper.presentation.dtos.response.DeliveryShipperResponse;
+import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,22 +28,27 @@ public class ShipperClientService {
 	/**
 	 * 배송 담당자 지정
 	 *
-	 * @param request : 지정할 배송 담당자 내용
+	 * @param recipientHubId : 지정할 배송 담당자 내용
 	 * @return : 배정된 배송 담당자 반환
 	 */
-	public DeliveryShipperResponse assignShipper(DeliveryShipperRequest request) {
+	public DeliveryShipperResponse assignShipper(UUID recipientHubId) {
+		System.out.println("Shipper's ClientService RecipientHubId : " + recipientHubId);
 		// 1. request에 도착 HubId에 해당하는 배송자가 있는지 확인
-		Integer lastOrder = shippersLastOrder.get(request.getRecipientHubId());
+		Integer lastOrder = shippersLastOrder.get(recipientHubId);
 
 		Shipper shipper = null;
 		if (lastOrder == null) {
+			System.out.println("아무도없어서 여기로 배정되어야 함");
 			// repository에서 새로 배송 담당자 탐색
-			shipper = shipperRepository.assignShipper(request.getRecipientHubId());
+			shipper = shipperRepository.assignShipper(recipientHubId);
 		} else {
 			// repository에서 (lastOrder보다 큰 값 중 가장 작은 값) 탐색
-			shipper = shipperRepository.assignNewShipper(request.getRecipientHubId(), lastOrder);
+			shipper = shipperRepository.assignNewShipper(recipientHubId, lastOrder);
 		}
-		
+
+		// Using @ExceptionHandler com.i4u.shipper.application.exception.ShipperExceptionHandler#errorResponse(ShipperException)
+		// 2025-03-22T15:05:06.303+09:00 ERROR 32340 --- [delivery] [io-19050-exec-1] c.i.s.a.e.ShipperExceptionHandler        : [ErrorCode] = 400 , [ErrorMessage] = 배송 담당자가 없습니다.
+
 		// 3. Repository에 업체 담당 배송자가 없다면 Exception
 		if (shipper == null) {
 			throw new ShipperException("배송 담당자가 없습니다.", HttpStatus.BAD_REQUEST);

@@ -7,14 +7,12 @@ import com.i4u.common.utils.CommonResponse;
 import com.i4u.delivery.domain.entity.Delivery;
 import com.i4u.delivery.domain.entity.DeliveryState;
 import com.i4u.delivery.domain.repository.DeliveryRepository;
-import com.i4u.delivery.presentation.client.ShipperClient;
-import com.i4u.delivery.presentation.dtos.request.DeliveryShipperRequest;
 import com.i4u.delivery.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.delivery.presentation.dtos.request.OrderDeliveryUpdateRequest;
 import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
+import com.i4u.shipper.application.service.ShipperClientService;
 
 import jakarta.transaction.Transactional;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 public class DeliveryClientService {
 
 	private final DeliveryRepository deliveryRepository;
-	private final ShipperClient shipperClient;
+	// private final ShipperClient shipperClient;
+	private final ShipperClientService shipperClientService;
 
 	/**
 	 * 주문 수정에 따른 배송 수정
@@ -45,11 +44,11 @@ public class DeliveryClientService {
 		
 		// 3. [shipperClient] 재배정 필요
 		// shipperClient 호출해서 재배정 받고, shipperId 변경하기
-		ResponseEntity<CommonResponse<DeliveryShipperResponse>> response = shipperClient.assignShipper(
-			DeliveryShipperRequest.builder().recipientHubId(request.getSupplierHubId()).build()
+		DeliveryShipperResponse response = shipperClientService.assignShipper(
+			request.getSupplierHubId()
 		);
 
-		delivery.updateDeliveryShipperByOrder(response.getBody().getData().getShipperId());
+		delivery.updateDeliveryShipperByOrder(response.getShipperId());
 
 		// 4. 배송 내역이 수정되었으므로 배송 상태도 수정 (출고 준비 중으로 변경)
 		delivery.updateDeliveryStateByOrder(DeliveryState.PREPARING);

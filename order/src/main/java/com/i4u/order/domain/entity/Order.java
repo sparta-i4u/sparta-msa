@@ -8,6 +8,8 @@ import org.hibernate.annotations.SQLRestriction;
 import com.i4u.common.entity.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -71,6 +73,7 @@ public class Order extends Basic {
 
 	// 주문 상태
 	@Column(name = "order_status")
+	@Enumerated(EnumType.STRING)
 	private OrderStatus orderStatus;
 
 	/**

@@ -9,7 +9,7 @@ import java.util.UUID;
 @FeignClient(name = "AUTH-SERVICE")
 public interface AuthClient {
 
-    @GetMapping("/api/v1/auth/{userId}")
+    @GetMapping("/api/v1/auth/user-info/{userId}")
     ConfirmUserResponse confirmUser(@PathVariable UUID userId);
 
 }

@@ -1,6 +1,7 @@
 package com.i4u.product.presentation.endpoint;
 
 import com.i4u.common.utils.CommonResponse;
+import com.i4u.product.application.dto.response.OrderProductResponse;
 import com.i4u.product.application.service.ProductClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +20,9 @@ public class ProductEndpoint {
     private final ProductClientService productClientService;
 
     @GetMapping("/api/v1/products/orders/{productId}/{productQuantity}")
-    public Mono<Map<String, Object>> confirmProduct(@PathVariable UUID productId, @PathVariable Integer productQuantity) {
-        Map<String, Object> response = productClientService.confirmProduct(productId, productQuantity);
-        return Mono.just(response);
+    public OrderProductResponse confirmProduct(@PathVariable UUID productId, @PathVariable Integer productQuantity) {
+        OrderProductResponse response = productClientService.confirmProduct(productId, productQuantity);
+        return response;
     }
 
     @PatchMapping("/api/v1/products/orders/{beforeProductId}/{beforeProductQuantity}/{afterProductId}/{afterProductQuentity}")

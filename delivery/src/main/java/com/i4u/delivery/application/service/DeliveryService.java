@@ -25,18 +25,11 @@ import com.i4u.delivery.domain.entity.Delivery;
 import com.i4u.delivery.domain.entity.DeliveryState;
 import com.i4u.delivery.domain.repository.DeliveryRepository;
 import com.i4u.delivery.presentation.client.OrderClient;
-import com.i4u.delivery.presentation.client.ShipperClient;
-import com.i4u.delivery.presentation.dtos.request.DeliveryHubCreateRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryHubUpdateRequest;
 import com.i4u.delivery.presentation.dtos.request.DeliveryOrderStateUpdateRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryShipperRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryUserSlackIdRequest;
-import com.i4u.delivery.presentation.dtos.request.DeliveryUserUpdateRequest;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubUpdateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
-import com.i4u.delivery.presentation.dtos.response.DeliveryUserSlackIdResponse;
-import com.i4u.delivery.presentation.dtos.response.DeliveryUserUpdateResponse;
+import com.i4u.shipper.application.service.ShipperClientService;
 import com.i4u.shipper.presentation.dtos.response.ConfirmUserResponse;
 
 import jakarta.transaction.Transactional;
@@ -51,8 +44,9 @@ public class DeliveryService {
 	private final DeliveryRepository deliveryRepository;
 	private final HubClient hubClient;
 	private final AuthClient authClient;
-	private final ShipperClient shipperClient;
 	private final OrderClient orderClient;
+	// private final ShipperClient shipperClient;
+	private final ShipperClientService shipperClientService;
 
 	/**
 	 * 배송 생성
@@ -62,31 +56,34 @@ public class DeliveryService {
 	 */ // MASTER (주문에서 생성 요청이 넘어오면 받아줄 포인트)
 	public DeliveryCreateResponse createDelivery(DeliveryCreateRequest request) {
 		// 1. [hubClient] 허브 검증
+		System.out.println("supplier: " + request.getSupplierHubId());
+		System.out.println("recipient: " + request.getRecipientHubId());
 		ResponseEntity<CommonResponse<DeliveryHubCreateResponse>> responseHub = hubClient.confirmHubsFromDelivery(
-				request.getDepartHubId(), request.getArriveHubId() );
+				request.getSupplierHubId(), request.getRecipientHubId() );
 
 		if (responseHub.getBody().getData().getIsDeleted()) {
 			throw new DeliveryException("배송할 수 있는 허브가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		// 2. [userClient] 수령인 슬랙 ID 받아오기
+		System.out.println("수령인 ID : " + request.getRecipientId());
 		ConfirmUserResponse responseUser = authClient.confirmUser(request.getRecipientId());
 
 		if (responseUser.getIsDeleted()) {
 			throw new DeliveryException("수령인이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
-		// 3. [shipperClient]  배송 담당자 배정 요청
-		ResponseEntity<CommonResponse<DeliveryShipperResponse>> responseShipper = shipperClient.assignShipper(
-				DeliveryShipperRequest.builder()
-						.recipientHubId(request.getArriveHubId()).build());
+		// 3. [shipperClient]  배송 담당자 배정 요청 (c78da64e-f56b-4bd6-aa38-98b3a820bdf9)
+		System.out.println("recipientHubId From DeliveryService: " + request.getRecipientHubId());
+		DeliveryShipperResponse responseShipper = shipperClientService.assignShipper(
+			request.getRecipientHubId());
 
-		if (responseShipper.getBody().getData().getIsDeleted()) {
+		if (responseShipper.getIsDeleted()) {
 			throw new DeliveryException("배송 가능한 배송 담당자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		// 5. 배송 생성
-		UUID shipperId = responseShipper.getBody().getData().getShipperId();
+		UUID shipperId = responseShipper.getShipperId();
 		String recipientSlackId = responseUser.getUserSlackId();
 
 		Delivery delivery = request.toDelivery(DeliveryState.PREPARING, recipientSlackId, shipperId);
@@ -186,15 +183,14 @@ public class DeliveryService {
 			// 2-2. [shipperClient] 허브 바뀌었으니까 배송 담당자 다시 주세요
 			recipientHubId = responseHub.getBody().getData().getArriveHubId();
 
-			ResponseEntity<CommonResponse<DeliveryShipperResponse>> responseShipper = shipperClient.assignShipper(
-					DeliveryShipperRequest.builder()
-							.recipientHubId(request.getArriveHubId()).build());
+			DeliveryShipperResponse responseShipper = shipperClientService.assignShipper(
+				request.getArriveHubId());
 
-			if (responseShipper.getBody().getData().getIsDeleted()) {
+			if (responseShipper.getIsDeleted()) {
 				throw new DeliveryException("배송 가능한 배송 담당자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 			}
 
-			shipperId = responseShipper.getBody().getData().getShipperId();
+			shipperId = responseShipper.getShipperId();
 
 		}
 
