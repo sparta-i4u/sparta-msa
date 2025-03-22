@@ -6,6 +6,7 @@ plugins {
 
 ext {
     springCloudVersion = "2024.0.0"
+    set('querydslVersion', "5.0.0")
 }
 
 group = 'com.i4u'
@@ -33,6 +34,12 @@ repositories {
 dependencies {
     // common 추가
     implementation project(':common')
+
+    // QueryDSL
+    implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
+    annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     // H2 데이터베이스 의존성 추가
     runtimeOnly 'com.h2database:h2'
