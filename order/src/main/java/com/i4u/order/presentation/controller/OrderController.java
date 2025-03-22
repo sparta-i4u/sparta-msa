@@ -54,7 +54,7 @@ public class OrderController {
 	@PostMapping  // MASTER, HUB_MANAGER, DELIVERY_MANAGER, COMPANY_MANAGER (ALL) -> 검증 X
 	public ResponseEntity<CommonResponse<OrderCreateResponse>> createOrder(
 		@Valid @RequestBody OrderCreateRequest request,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role){
 		log.info("주문 생성 요청");
 		OrderCreateResponse response = orderService.createOrder(request, userId);
@@ -70,7 +70,7 @@ public class OrderController {
 	@GetMapping // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 주문), COMPANY_MANAGER(본인 주문) -> 허브 매니저만 소속 확인 필요
 	public ResponseEntity<CommonResponse<PagedModel<OrderGetListResponse>>> getAllOrders(
 		Pageable pageable, @ModelAttribute OrderSearchRequest request,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		// 검색 기능 적용 예정으로 Pagination 내용으로 변경하기
 		log.info("주문 전체 조회 요청");
@@ -87,7 +87,7 @@ public class OrderController {
 	@GetMapping("/{orderId}")  // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 주문), COMPANY_MANAGER(본인 주문) -> 허브 매니저만 소속 확인 필요
 	public ResponseEntity<CommonResponse<OrderGetOneResponse>> getOneOrder(
 		@PathVariable UUID orderId,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("주문 단건 조회 요청");
 		OrderGetOneResponse response = orderService.getOneOrder(orderId, userId, role);
@@ -104,7 +104,7 @@ public class OrderController {
 	@PutMapping("/{orderId}")  // MASTER, HUB_MANAGER(담당 허브) -> 허브 매니저만 소속 확인 필요
 	public ResponseEntity<CommonResponse<OrderUpdateResponse>> putOrder(
 		@PathVariable UUID orderId, @Valid @RequestBody OrderUpdateRequest request,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		// 주문 상태 확인 필수
 		log.info("주문 수정 요청");
@@ -122,7 +122,7 @@ public class OrderController {
 	@PatchMapping("/{orderId}") // MASTER, HUB_MANAGER(담당 허브) -> 허브 매니저만 소속 확인 필요
 	public ResponseEntity<CommonResponse<OrderStatusUpdateResponse>> patchOrder(
 		@PathVariable UUID orderId, @RequestBody OrderStatusUpdateRequest request,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("주문 상태 수정 요청");
 		OrderStatusUpdateResponse response = orderService.updateOrderStatus(orderId, request, userId, role);
@@ -138,7 +138,7 @@ public class OrderController {
 	@DeleteMapping("/{orderId}") // MASTER, HUB_MANAGER(담당 허브) -> 허브 매니저만 소속 확인 필요
 	public ResponseEntity<CommonResponse> deleteOrder(
 		@PathVariable UUID orderId,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		log.info("주문 삭제 요청");
 		orderService.deleteOrder(orderId, userId, role);
