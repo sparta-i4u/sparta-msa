@@ -13,19 +13,19 @@ import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
 import com.i4u.order.presentation.dtos.response.OrderDeliveryResponse;
 
-@FeignClient(name = "DELIVERY-SERVICE")
+@FeignClient(name = "DELIVERY-SERVICE", path = "/api/v1/deliveries")
 public interface DeliveryClient {
 
 	// 배송 controller로 요청 전송
-	@PostMapping("/api/v1/deliveries")
-	ResponseEntity<CommonResponse<OrderDeliveryResponse>> createDelivery(@RequestBody OrderDeliveryRequest request);
+	@PostMapping(consumes = "application/json")
+	OrderDeliveryResponse createDelivery(@RequestBody OrderDeliveryRequest request);
 
 	// 배송 Endpoint로 요청 전송
-	@PutMapping("/api/v1/deliveries/update-byorder")
+	@PutMapping("/update-byorder")
 	ResponseEntity<CommonResponse> updateDeliveryByOrder(@RequestBody OrderDeliveryUpdateRequest request);
 
 	// 배송 Endpoint로 요청 전송
-	@PatchMapping("/api/v1/deliveries/updatestate-byorder")
+	@PatchMapping("/updatestate-byorder")
 	ResponseEntity<CommonResponse> updateDeliveryStateByOrder(@RequestBody OrderDeliveryStateUpdateRequest orderCanceled);
 
 }

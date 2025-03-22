@@ -8,9 +8,11 @@ import com.i4u.delivery.domain.entity.DeliveryState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 public class DeliveryCreateRequest {
 
@@ -18,10 +20,10 @@ public class DeliveryCreateRequest {
 	private UUID orderId;
 
 	// 출발 허브 ID (배송하는 업체의 허브 ID를 받아와야 함)
-	private UUID departHubId;
+	private UUID supplierHubId;
 
 	// 도착 허브 ID (배송받는 업체의 허브 ID를 받아와야 함)
-	private UUID arriveHubId;
+	private UUID recipientHubId;
 
 	// 배송지 주소
 	private String address;
@@ -33,8 +35,8 @@ public class DeliveryCreateRequest {
 		return Delivery.builder()
 			.orderId(this.orderId)
 			.deliveryState(deliveryState)
-			.departHubId(this.departHubId)
-			.arriveHubId(this.arriveHubId)
+			.departHubId(this.supplierHubId)
+			.arriveHubId(this.recipientHubId)
 			.address(this.address)
 			.recipientId(this.recipientId)
 			.recipientSlackId(recipientSlackId)

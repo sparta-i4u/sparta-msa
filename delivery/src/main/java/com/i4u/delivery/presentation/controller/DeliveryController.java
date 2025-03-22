@@ -40,9 +40,11 @@ public class DeliveryController {
 	 * @return : 생성된 배송 내용
 	 */ // MASTER (주문에서 생성 요청이 넘어오면 받아줄 포인트)
 	@PostMapping
-	public ResponseEntity<CommonResponse<DeliveryCreateResponse>> createDelivery(@RequestBody DeliveryCreateRequest request) {
+	DeliveryCreateResponse createDelivery(@RequestBody DeliveryCreateRequest request) {
+		System.out.println("supplierHubId: " + request.getSupplierHubId());
+		System.out.println("recipientHubId: " + request.getRecipientHubId());
 		DeliveryCreateResponse response = deliveryService.createDelivery(request);
-		return ResponseEntity.ok(CommonResponse.success(response, "배송 생성 성공"));
+		return response;
 	}
 
 	/**

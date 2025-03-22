@@ -47,7 +47,7 @@ public class CompanyService {
 
         // 2. [authClient] 실제 owner가 업체 담당자가 맞는지 검증 필요 - authClient
         ConfirmUserResponse responseUser = authClient.confirmUser(request.owner());
-        if (responseUser.getUserRole().equals("ROLE_COMPANY_MANAGER")) {
+        if (!responseUser.getUserRole().equals("ROLE_COMPANY_MANAGER")) {
             throw new IllegalArgumentException("권한이 없습니다. ");
         }
 
@@ -138,10 +138,10 @@ public class CompanyService {
     //MASTER, 담당허브
     @Transactional
     public void softDeleteCompanies(final List<UUID> companyIds, String userId, String role) {
-        UUID hubId = confirmRole(userId, role);
 
-        if (!role.equals("ROLE_MASTER") || !role.equals("ROLE_HUB_MANAGER")) {
-            throw new IllegalArgumentException("권한이 없습니다. ");
+        UUID hubId = confirmRole(userId, role);
+        if (!role.equals("ROLE_MASTER") && !role.equals("ROLE_HUB_MANAGER")) {
+            throw new IllegalArgumentException("권한이 없습니다.");
         }
 
         List<Company> companies = companyRepository.findAllById(companyIds);
@@ -156,12 +156,11 @@ public class CompanyService {
                 }
             }
         }
-
         if (companies.isEmpty()) { // 조회된 회사가 없으면 예외 처리하거나, 빈 리스트 처리 가능
             throw new CompanyNotFoundException(companyIds);
         }
         // 각 상품에 대해 논리 삭제 처리
-        companies.forEach(company -> company.softDelete(userId));
+        companies.forEach(company -> company.softDelete(UUID.fromString(userId)));
     }
 
     // 권한 확인 SERVICE - ROLE_MASTER, ROLE_HUB_MANAGER(담당 허브), ROLE_COMPANY_MANAGER(본인 업체)

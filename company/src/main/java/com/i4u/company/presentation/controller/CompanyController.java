@@ -33,7 +33,7 @@ public class CompanyController {
             @RequestHeader(name = "X-User-Id") String userId,
             @RequestHeader(name = "X-User-Role") String role) {
         CompanyResponse response = companyService.createCompany(request, userId, role);
-        return new ResponseEntity<>(CommonResponse.success(response, "상품 등록이 정상 수행되었습니다"), HttpStatus.CREATED);
+        return new ResponseEntity<>(CommonResponse.success(response, "업체 등록이 정상 수행되었습니다"), HttpStatus.CREATED);
     }
 
     //업체 전체 조회
@@ -85,6 +85,6 @@ public class CompanyController {
             @RequestHeader(name = "X-User-Id") String userId,
             @RequestHeader(name = "X-User-Role") String role) {
         companyService.softDeleteCompanies(companyIds, userId, role);
-        return new ResponseEntity<>(CommonResponse.success("", "상품이 정상적으로 삭제되었습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.success("", "업체가 정상적으로 삭제되었습니다"), HttpStatus.OK);
     }
 }

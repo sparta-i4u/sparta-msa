@@ -20,9 +20,9 @@ public class CompanyEndpoint {
     private final CompanyClientService companyClientService;
 
     @GetMapping("/orders/{supplierCompanyId}/{recipientCompanyId}")
-    ResponseEntity<CommonResponse<OrderCompanyResponse>> confirmCompany(@PathVariable UUID supplierCompanyId, @PathVariable UUID recipientCompanyId) {
+    OrderCompanyResponse confirmCompany(@PathVariable UUID supplierCompanyId, @PathVariable UUID recipientCompanyId) {
         OrderCompanyResponse response = companyClientService.confirmCompany(supplierCompanyId, recipientCompanyId);
-        return ResponseEntity.ok(CommonResponse.success(response, "업체 검증 완료"));
+        return response;
     }
 
     @GetMapping("/orders/{companyId}")

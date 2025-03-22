@@ -9,6 +9,8 @@ import com.i4u.common.entity.Basic;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,6 +37,7 @@ public class Delivery extends Basic {
 	private UUID orderId;
 
 	@Column(name = "delivery_state")
+	@Enumerated(EnumType.STRING)
 	private DeliveryState deliveryState;
 
 	@Column

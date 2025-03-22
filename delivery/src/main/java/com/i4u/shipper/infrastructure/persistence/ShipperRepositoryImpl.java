@@ -110,6 +110,7 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom {
 
 	@Override
 	public Shipper assignShipper(UUID hubId) {
+		System.out.println("hubId : " + hubId);
 		Shipper assignShipper = queryFactory
 			.selectFrom(shipper)
 			.where(

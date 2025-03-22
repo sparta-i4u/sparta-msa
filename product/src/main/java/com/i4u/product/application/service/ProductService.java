@@ -35,6 +35,7 @@ public class ProductService {
     @Transactional
     public ProductResponse createProduct(final ProductCreateRequest request, String userId, String role) {
         //요청을 보낸 사람(product 외부에서 (client) product로 요청을 보낸 사람- 권한 검증)
+        System.out.println("Role : " + role);
 
         // 허브 id를 - 요청을 할 때 이 업체에다가 상품을 만들거야, 요청 보낸 사용자가 보낸 hubId와 companyId
         final UUID hubId = request.hubId();
@@ -45,16 +46,29 @@ public class ProductService {
         UUID companyOrHubId = confirmRole(userId, role);
 
         //해당하는 hub나 company ID가 없으면 - id가 있냐 없느냐만 확인
-        if (companyOrHubId == null || role.equals("ROLE_DELIVERY_MANAGER")) {
+        if (companyOrHubId == null && role.equals("ROLE_DELIVERY_MANAGER")) {
             throw new IllegalArgumentException("권한이 없습니다");
         }
 
         //권한검증
         //본인 업체가 아니고 and 본인이 담당하는 허브아이디가 아니면 - 정말 본인것이 맞는지 확인하는 로직
         //요청과 일치하는지
-        if ( !(role.equals("ROLE_COMPANY_MANAGER") && companyOrHubId.equals(companyId)) ||
-             !(role.equals("ROLE_HUB_MANAGER") && companyOrHubId.equals(hubId)) ) {
-            throw new IllegalArgumentException("권한이 없습니다");
+
+        switch (role) {
+            case "ROLE_COMPANY_MANAGER":
+                System.out.println("여기찍히니 ? Company : " + role);
+                if (!companyOrHubId.equals(companyId)) {
+                    throw new IllegalArgumentException("권한이 없습니다");
+                }
+                break;
+            case "ROLE_HUB_MANAGER" :
+                System.out.println("여기니? Hub : " + role);
+                if (!companyOrHubId.equals(hubId)) {
+                    throw new IllegalArgumentException("권한이 없습니다");
+                }
+                break;
+            default:
+                break;
         }
 
         // 상품 생성

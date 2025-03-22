@@ -9,6 +9,8 @@ import com.i4u.common.entity.Basic;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -36,6 +38,7 @@ public class Shipper extends Basic {
 
 	// 배송 담당자의 Type
 	@Column(name = "shipper_type")
+	@Enumerated(EnumType.STRING)
 	private ShipperType shipperType;
 
 	// 배송 순서

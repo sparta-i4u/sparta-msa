@@ -17,10 +17,10 @@ public class OrderDeliveryRequest {
 	private UUID orderId;
 
 	// 출발 허브 ID (배송하는 업체의 허브 ID를 받아와야 함)
-	private UUID departHubId;
+	private UUID supplierHubId;
 
 	// 도착 허브 ID (배송받는 업체의 허브 ID를 받아와야 함)
-	private UUID arriveHubId;
+	private UUID recipientHubId;
 
 	// 배송지 주소
 	private String address;

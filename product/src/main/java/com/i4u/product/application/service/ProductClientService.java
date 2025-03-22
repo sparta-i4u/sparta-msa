@@ -1,5 +1,6 @@
 package com.i4u.product.application.service;
 
+import com.i4u.product.application.dto.response.OrderProductResponse;
 import com.i4u.product.domain.Product;
 import com.i4u.product.domain.repository.ProductQueryRepository;
 import com.i4u.product.domain.repository.ProductRepository;
@@ -20,25 +21,36 @@ public class ProductClientService {
     private final ProductRepository productRepository;
 
     // 초반 요청이 들어왔을 때, 상품을 검증하는 메서드
-    public Map<String, Object> confirmProduct(UUID productId, Integer productQuantity) {
-        Product product = productRepository.findById(productId).orElseThrow(
-                () -> new ProductNotFoundException("상품을 찾을 수 없습니다")
-        );
+    public OrderProductResponse confirmProduct(UUID productId, Integer productQuantity) {
+        // 상품 조회
+        Product product = productRepository.findById(productId).orElse(null);
 
-        if (product.getCount() < productQuantity) {
-            throw new IllegalArgumentException("재고가 없습니다");
+        // 상품이 없으면 isDeleted = true로 반환
+        if (product == null) {
+            return OrderProductResponse.builder()
+                .isDeleted(true)
+                .productId(productId)
+                .productQuantity(0)
+                .productTotalPrice(0L)
+                .build();
         }
+
+        // 재고 부족 여부 확인
+        boolean isStockInsufficient = product.getCount() < productQuantity;
 
         // 주문한 상품의 재고 감소시키기
         product.decreaseCount(productQuantity);
 
-        Map<String, Object> productResponse = new HashMap<>();
-        productResponse.put("productId", productId);
-        productResponse.put("productQuantity", productQuantity);
-        productResponse.put("productTotalPrice", productQuantity * product.getPrice());
-
-        return productResponse;
+        // 응답 객체 생성 및 반환
+        return OrderProductResponse.builder()
+            .isDeleted(false)
+            .productId(product.getId())
+            .productQuantity(productQuantity)
+            .productTotalPrice((long) (product.getPrice() * productQuantity))
+            .build();
     }
+
+
 
     // 중간에 주문 변경 요청이 들어왔을 때, 상품을 검증하는 메서드
     public Map<String, Object> confirmProductUpdate(UUID beforeProductId, Integer beforeProductQuantity, UUID afterProductId, Integer afterProductQuantity) {
