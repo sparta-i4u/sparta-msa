@@ -1,10 +1,7 @@
 package com.i4u.hub.presentation.controller;
 
 import com.i4u.common.utils.CommonResponse;
-import com.i4u.hub.application.dtos.hubConnection.CreateHubConnectionReqDto;
-import com.i4u.hub.application.dtos.hubConnection.HubConnectionListResDto;
-import com.i4u.hub.application.dtos.hubConnection.HubConnectionResDto;
-import com.i4u.hub.application.dtos.hubConnection.UpdateHubConnectionReqDto;
+import com.i4u.hub.application.dtos.hubConnection.*;
 import com.i4u.hub.application.service.HubConnectionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -86,5 +83,21 @@ public class HubConnectionController {
         hubConnectionService.deleteHubConnection(hubConnectionId);
 
         return ResponseEntity.ok(CommonResponse.success(null, "허브간 이동정보 삭제가 완료되었습니다."));
+    }
+
+    /**
+     * 허브간 이동정보 최단 경로 조회 API
+     *
+     * @param startHubName 출발 허브 이름
+     * @param endHubName 도착 허브 이름
+     * @return 최단 경로 조회 응답 DTO
+     */
+    @GetMapping("/shortest-path")
+    public ResponseEntity<CommonResponse<ShortestPathResDto>> getShortestPath(
+            @RequestParam String startHubName,
+            @RequestParam String endHubName) {
+        ShortestPathResDto responseDto = hubConnectionService.findShortestTimePath(startHubName, endHubName);
+
+        return ResponseEntity.ok(CommonResponse.success(responseDto, "허브간 최단 경로 조회가 완료되었습니다."));
     }
 }

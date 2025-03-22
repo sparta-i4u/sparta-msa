@@ -3,6 +3,7 @@ package com.i4u.hub.application.service;
 import com.i4u.hub.application.dtos.hubConnection.CreateHubConnectionReqDto;
 import com.i4u.hub.application.dtos.hubConnection.HubConnectionListResDto;
 import com.i4u.hub.application.dtos.hubConnection.HubConnectionResDto;
+import com.i4u.hub.application.dtos.hubConnection.ShortestPathResDto;
 import com.i4u.hub.application.dtos.hubConnection.UpdateHubConnectionReqDto;
 import com.i4u.hub.domain.model.Hub;
 import com.i4u.hub.domain.model.HubConnection;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,14 +29,13 @@ public class HubConnectionService {
      * @param arrivalHubName 도착 허브
      * @return 최소 이동 시간(분) 및 경로, 경로가 없으면 null 반환
      */
-    public PathResult findShortestTimePath(String departureHubName, String arrivalHubName) {
+    public ShortestPathResDto findShortestTimePath(String departureHubName, String arrivalHubName) {
         // 허브 이름으로 허브 엔티티 조회
         Hub departureHub = hubRepository.findByHubName(departureHubName)
-                .orElseThrow(() -> new IllegalArgumentException("출발 허브를 찾을 수 없��니다: " + departureHubName));
+                .orElseThrow(() -> new IllegalArgumentException("출발 허브를 찾을 수 없습니다: " + departureHubName));
 
         Hub arrivalHub = hubRepository.findByHubName(arrivalHubName)
                 .orElseThrow(() -> new IllegalArgumentException("도착 허브를 찾을 수 없습니다: " + arrivalHubName));
-
 
         // 모든 허브 연결 정보 가져오기
         List<HubConnection> connections = hubConnectionRepository.findAll();
@@ -43,7 +44,20 @@ public class HubConnectionService {
         Map<UUID, List<Edge>> graph = buildGraph(connections);
 
         // 다익스트라 알고리즘 실행
-        return dijkstra(graph, departureHub.getHubId(), arrivalHub.getHubId());
+        PathResult result = dijkstra(graph, departureHub.getHubId(), arrivalHub.getHubId());
+        
+        if (result == null) {
+            throw new IllegalArgumentException("경로를 찾을 수 없습니다");
+        }
+        
+        // 경로에 있는 허브 ID들을 Hub 객체로 변환
+        List<Hub> hubPath = result.getPath().stream()
+                .map(hubId -> hubRepository.findById(hubId)
+                        .orElseThrow(() -> new IllegalArgumentException("허브를 찾을 수 없습니다: " + hubId)))
+                .collect(Collectors.toList());
+        
+        // DTO로 변환하여 반환
+        return ShortestPathResDto.from(result.getTotalTime(), hubPath, departureHubName, arrivalHubName);
     }
 
     private Map<UUID, List<Edge>> buildGraph(List<HubConnection> connections) {
@@ -203,8 +217,8 @@ public class HubConnectionService {
         }
     }
 
-    // 결과 클래스: 최단 경로와 소요 시간
-    public static class PathResult {
+    // 내부 클래스: 결과 클래스
+    private static class PathResult {
         private final int totalTime;
         private final List<UUID> path;
 
