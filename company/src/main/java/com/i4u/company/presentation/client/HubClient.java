@@ -11,5 +11,4 @@ public interface HubClient {
 
     @GetMapping("/api/v1/hubs/companies/{hubId}")
     UUID getHubInfo(@PathVariable("hubId") UUID hubId);
-
 }

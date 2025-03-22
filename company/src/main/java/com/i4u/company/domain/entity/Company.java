@@ -56,9 +56,9 @@ public class Company extends Basic {
         this.number = newCompany.number();
     }
 
-    public void softDelete(String deletedBy) {
-        this.isDeleted = true;
-        this.deletedAt = LocalDateTime.now();  // 삭제 일시를 현재 시간으로 설정
-        //this.deletedBy = deletedBy;  // 삭제한 사용자의 정보를 설정
-    }
+//    public void softDelete(String userId) {
+//        this.isDeleted = true;
+//        this.deletedAt = LocalDateTime.now();  // 삭제 일시를 현재 시간으로 설정
+//        //this.deletedBy = userId;
+//    }
 }
