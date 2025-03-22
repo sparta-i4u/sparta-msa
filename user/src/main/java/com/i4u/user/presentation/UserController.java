@@ -27,7 +27,6 @@ public class UserController {
     // 회원가입 (POST /users)
     @PostMapping
     public ResponseEntity<UserDetailResponseDto> createUser(@RequestBody UserCreateRequestDto requestDto) {
-//        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
         String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
         UserDetailResponseDto responseDto = userService.createUser(requestDto, requestDto.getPassword());
         return ResponseEntity.ok(responseDto);
