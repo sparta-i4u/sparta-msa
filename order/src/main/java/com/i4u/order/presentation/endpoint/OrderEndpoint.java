@@ -3,6 +3,7 @@ package com.i4u.order.presentation.endpoint;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.i4u.common.utils.CommonResponse;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
+@RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
 public class OrderEndpoint {
 
@@ -25,7 +27,7 @@ public class OrderEndpoint {
 	 * @param request
 	 * @return
 	 */
-	@PatchMapping("/api/v1/deliveries/orders/noti-update")
+	@PatchMapping("/deliveries/noti-update")
 	ResponseEntity<CommonResponse> notificationDeliveryState(@RequestBody DeliveryOrderStateUpdateRequest request) {
 		orderClientService.notificationDeliveryState(request);
 		return ResponseEntity.ok(CommonResponse.success("", ""));

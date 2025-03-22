@@ -4,6 +4,7 @@ import com.i4u.auth.application.dtos.request.AuthSignInRequestDto;
 import com.i4u.auth.application.dtos.request.AuthSignUpRequestDto;
 import com.i4u.auth.application.dtos.response.AuthResponseDto;
 import com.i4u.auth.application.dtos.response.AuthUserInfoResponseDto;
+import com.i4u.auth.application.dtos.response.ConfirmUserResponse;
 import com.i4u.auth.domain.AuthUser;
 import com.i4u.auth.domain.AuthUserRole;
 import com.i4u.auth.domain.repository.AuthUserRepository;
@@ -41,21 +42,20 @@ public class AuthService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-    @RequiresAuth
-    public AuthUserInfoResponseDto getAuthUserInfo(UUID userId) {
+    // @RequiresAuth
+    public ConfirmUserResponse getAuthUserInfo(UUID userId) {
         // 데이터베이스에서 사용자 존재 여부 및 논리삭제 여부를 먼저 확인
         AuthUser authUser = authUserRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new AuthException(AuthException.AuthErrorType.USER_NOT_FOUND));
 
-        // 외부 UserClient를 통해 상세 정보를 조회
-        AuthUserInfoResponseDto userDetail = userClient.getUserInfo(userId);
+        // // 외부 UserClient를 통해 상세 정보를 조회
+        // AuthUserInfoResponseDto userDetail = userClient.getUserInfo(userId);
 
-        return new AuthUserInfoResponseDto(
-                userDetail.getUserId(),
-                userDetail.getSlackId(),
-                userDetail.getRole(),
-                userDetail.isDeleted()
-        );
+        return ConfirmUserResponse.builder()
+            .userId(authUser.getUserId())
+            .userRole(authUser.getRole().getAuthority())
+            .userSlackId(authUser.getSlackId())
+            .isDeleted(authUser.isDeleted()).build();
     }
 
     // ✅ 회원가입 (User 서비스에 회원 정보 저장 & JWT 발급)
