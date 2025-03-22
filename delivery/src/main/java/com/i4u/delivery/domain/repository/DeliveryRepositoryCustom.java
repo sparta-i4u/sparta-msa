@@ -9,5 +9,5 @@ import org.springframework.data.web.PagedModel;
 
 public interface DeliveryRepositoryCustom {
     PagedModel<DeliveryGetListResponse> searchDeliveries(Pageable pageable, DeliverySearchRequest request,
-		String userId, String role, UUID hubManagerHubId);
+		UUID userId, String role, UUID hubManagerHubId);
 }

@@ -58,10 +58,10 @@ public class DeliveryService {
 		// 1. [hubClient] 허브 검증
 		System.out.println("supplier: " + request.getSupplierHubId());
 		System.out.println("recipient: " + request.getRecipientHubId());
-		ResponseEntity<CommonResponse<DeliveryHubCreateResponse>> responseHub = hubClient.confirmHubsFromDelivery(
+		DeliveryHubCreateResponse responseHub = hubClient.confirmHubsFromDelivery(
 				request.getSupplierHubId(), request.getRecipientHubId() );
 
-		if (responseHub.getBody().getData().getIsDeleted()) {
+		if (responseHub.getIsDeleted()) {
 			throw new DeliveryException("배송할 수 있는 허브가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -98,11 +98,11 @@ public class DeliveryService {
 	 * @return : 조회한 전체 배송 내용
 	 */   // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 주문), COMPANY_MANAGER
 	public PagedModel<DeliveryGetListResponse> getAllDeliveries(Pageable pageable, DeliverySearchRequest request,
-																String userId, String role) {
+																UUID userId, String role) {
 		// 1. 사용자 권한 값 넘겨주기 (전체 조회 제한 여부 확인)
 		UUID hubManagerHubId = null;
 		if (role.equals("ROLE_HUB_MANAGER")) {
-			hubManagerHubId = hubClient.confirmHubFromUser(UUID.fromString(userId));
+			hubManagerHubId = hubClient.confirmHubFromUser(userId);
 		}
 
 		PagedModel<DeliveryGetListResponse> deliveryList = deliveryRepository.searchDeliveries(pageable, request, userId, role, hubManagerHubId);
@@ -117,21 +117,26 @@ public class DeliveryService {
 	 * @param role
 	 * @return : 조회한 배송 내용
 	 */   // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 주문), COMPANY_MANAGER
-	public DeliveryGetOneResponse getOneDelivery(UUID deliveryId, String userId, String role) {
+	public DeliveryGetOneResponse getOneDelivery(UUID deliveryId, UUID userId, String role) {
 		Delivery delivery = findDelivery(deliveryId);
 
+		log.info("role : " + role);
+
 		// 1. 해당 배송을 조회할 수 있는 사용자인지 확인
-		if ( (role.equals("ROLE_HUB_MANAGER") &&
-				confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
+		if ( (role.contains("HUB_MANAGER") &&
+				!confirmHubId(userId, delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
+			log.info("여기1");
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
-		if ( role.equals("DELIVERY_MANAGER") &&
+		if ( role.contains("DELIVERY_MANAGER") &&
 				!delivery.getShipperId().equals(userId) ) {
+			log.info("여기2");
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
-		if ( !role.equals("ROLE_MASTER") || !role.equals("ROLE_HUB_MANAGER") || !role.equals("DELIVERY_MANAGER") ) {
+		if (!(role.contains("MASTER") || role.contains("HUB_MANAGER") || role.contains("DELIVERY_MANAGER"))) {
+			log.info("여기3");
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -148,13 +153,13 @@ public class DeliveryService {
 	 * @return : 수정한 배송 내용
 	 */  // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 배송) - shipperId와 일치하면 됨
 	@Transactional
-	public DeliveryUpdateResponse updateDelivery(UUID deliveryId, DeliveryUpdateRequest request, String userId,
+	public DeliveryUpdateResponse updateDelivery(UUID deliveryId, DeliveryUpdateRequest request, UUID userId,
 												 String role) {
 		Delivery delivery = findDelivery(deliveryId);
 
 		// 1. 해당 배송을 수정할 수 있는 사용자인지 확인
 		if ( (role.equals("ROLE_HUB_MANAGER") &&
-				confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
+				confirmHubId(userId, delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -221,12 +226,12 @@ public class DeliveryService {
 	 */  // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 배송)
 	@Transactional
 	public DeliveryStateUpdateResponse updateDeliveryState(UUID deliveryId, DeliveryStatusUpdateRequest request,
-														   String userId, String role) {
+														   UUID userId, String role) {
 		Delivery delivery = findDelivery(deliveryId);
 
 		// 1. 해당 배송을 수정할 수 있는 사용자인지 확인
 		if ( (role.equals("ROLE_HUB_MANAGER") &&
-				confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
+				confirmHubId(userId, delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -260,13 +265,13 @@ public class DeliveryService {
 	 * @param role
 	 */
 	@Transactional // MASTER, HUB_MANAGER(담당 허브)
-	public void deleteDelivery(UUID deliveryId, String userId, String role) {
+	public void deleteDelivery(UUID deliveryId, UUID userId, String role) {
 		// 1. 배송 검색
 		Delivery delivery = findDelivery(deliveryId);
 
 		// 2. 사용자 권한 확인
 		if ( (role.equals("ROLE_HUB_MANAGER") &&
-				confirmHubId(UUID.fromString(userId), delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
+				confirmHubId(userId, delivery.getArriveHubId(), delivery.getDepartHubId())) ) {
 			throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -281,7 +286,7 @@ public class DeliveryService {
 		}
 
 		// 4. 삭제 처리
-		delivery.softDelete(UUID.fromString(userId));
+		delivery.softDelete(userId);
 
 		// 5. [orderClient] order 쪽으로도 요청 전송
 		orderClient.notificationDeliveryState(DeliveryOrderStateUpdateRequest.builder()
