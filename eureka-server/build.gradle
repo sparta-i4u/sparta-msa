@@ -12,6 +12,10 @@ java {
 		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
+bootJar {
+	archiveFileName = 'server-0.0.1-SNAPSHOT.jar'
+}
+jar { enabled = true }
 
 repositories {
 	mavenCentral()
