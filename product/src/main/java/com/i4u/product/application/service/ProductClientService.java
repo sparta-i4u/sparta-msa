@@ -24,6 +24,7 @@ public class ProductClientService {
     public OrderProductResponse confirmProduct(UUID productId, Integer productQuantity) {
         // 상품 조회
         Product product = productRepository.findById(productId).orElse(null);
+        System.out.println("상품이 없나요 ? " + product.getId());
 
         // 상품이 없으면 isDeleted = true로 반환
         if (product == null) {
@@ -38,6 +39,8 @@ public class ProductClientService {
 
         // 재고 부족 여부 확인 (true면 재고가 부족한거임)
         boolean isStockInsufficient = product.getCount() < productQuantity;
+        System.out.println("재고가 없나요 ? " + product.getCount() + " , 주문한 수량 : " + productQuantity);
+        System.out.println(isStockInsufficient);
 
         // 재고가 충분하면 (false) 재고 감소
         if (!isStockInsufficient) {
@@ -45,7 +48,7 @@ public class ProductClientService {
         }
 
         return OrderProductResponse.builder()
-            .isDeleted(!isStockInsufficient)
+            .isDeleted(isStockInsufficient)
             .productId(product.getId())
             .productName(product.getName())
             .productQuantity(isStockInsufficient ? 0 : productQuantity)

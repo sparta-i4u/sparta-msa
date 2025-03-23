@@ -1,27 +1,34 @@
 package com.i4u.delivery.presentation.controller;
 
-import org.springframework.data.domain.Pageable;
-import java.util.List;
 import java.util.UUID;
 
-import com.i4u.delivery.application.dtos.request.DeliverySearchRequest;
-
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.i4u.common.utils.CommonResponse;
 import com.i4u.delivery.application.dtos.request.DeliveryCreateRequest;
+import com.i4u.delivery.application.dtos.request.DeliverySearchRequest;
 import com.i4u.delivery.application.dtos.request.DeliveryStatusUpdateRequest;
 import com.i4u.delivery.application.dtos.request.DeliveryUpdateRequest;
 import com.i4u.delivery.application.dtos.response.DeliveryCreateResponse;
-import com.i4u.delivery.application.dtos.response.DeliveryGetOneResponse;
 import com.i4u.delivery.application.dtos.response.DeliveryGetListResponse;
+import com.i4u.delivery.application.dtos.response.DeliveryGetOneResponse;
 import com.i4u.delivery.application.dtos.response.DeliveryStateUpdateResponse;
 import com.i4u.delivery.application.dtos.response.DeliveryUpdateResponse;
 import com.i4u.delivery.application.service.DeliveryService;
 
-import jakarta.ws.rs.Path;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/v1/deliveries")
 @RequiredArgsConstructor
-public class DeliveryController {
+public class DeliveryController implements DeliveryApi {
 
 	private final DeliveryService deliveryService;
 
@@ -40,7 +47,7 @@ public class DeliveryController {
 	 * @return : 생성된 배송 내용
 	 */ // MASTER (주문에서 생성 요청이 넘어오면 받아줄 포인트)
 	@PostMapping
-	DeliveryCreateResponse createDelivery(@RequestBody DeliveryCreateRequest request) {
+	public DeliveryCreateResponse createDelivery(@RequestBody DeliveryCreateRequest request) {
 		System.out.println("supplierHubId: " + request.getSupplierHubId());
 		System.out.println("recipientHubId: " + request.getRecipientHubId());
 		DeliveryCreateResponse response = deliveryService.createDelivery(request);
