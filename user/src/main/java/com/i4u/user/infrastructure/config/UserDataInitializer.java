@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -23,6 +24,7 @@ public class UserDataInitializer {
     private final UserRepository userRepository;
     private final EntityManager entityManager;
     private final PlatformTransactionManager transactionManager;
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
     public CommandLineRunner initUserData() {
@@ -30,7 +32,7 @@ public class UserDataInitializer {
 
 
             // 이미 데이터가 있는지 확인
-            if (userRepository.count() > 0) {
+            if (userRepository.count() > 15) {
                 System.out.println("사용자 데이터가 이미 존재합니다. 초기화를 건너뜁니다.");
                 return;
             }
@@ -58,7 +60,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub1Uuid)
                             .username("hub_manager1")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("서울 관리자")
                             .email("hub_manager1@i4u.com")
                             .slackId("hub_manager1_slack")
@@ -67,7 +69,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub2Uuid)
                             .username("hub_manager2")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("경기북부 관리자")
                             .email("hub_manager2@i4u.com")
                             .slackId("hub_manager2_slack")
@@ -76,7 +78,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub3Uuid)
                             .username("hub_manager3")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("경기남부 관리자")
                             .email("hub_manager3@i4u.com")
                             .slackId("hub_manager3_slack")
@@ -85,7 +87,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub4Uuid)
                             .username("hub_manager4")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("부산 관리자")
                             .email("hub_manager4@i4u.com")
                             .slackId("hub_manager4_slack")
@@ -94,7 +96,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub5Uuid)
                             .username("hub_manager5")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("대구 관리자")
                             .email("hub_manager5@i4u.com")
                             .slackId("hub_manager5_slack")
@@ -103,7 +105,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub6Uuid)
                             .username("hub_manager6")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("인천 관리자")
                             .email("hub_manager6@i4u.com")
                             .slackId("hub_manager6_slack")
@@ -112,7 +114,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub7Uuid)
                             .username("hub_manager7")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("광주 관리자")
                             .email("hub_manager7@i4u.com")
                             .slackId("hub_manager7_slack")
@@ -121,7 +123,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub8Uuid)
                             .username("hub_manager8")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("대전 관리자")
                             .email("hub_manager8@i4u.com")
                             .slackId("hub_manager8_slack")
@@ -130,7 +132,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub9Uuid)
                             .username("hub_manager9")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("울산 관리자")
                             .email("hub_manager9@i4u.com")
                             .slackId("hub_manager9_slack")
@@ -139,7 +141,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub10Uuid)
                             .username("hub_manager10")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("세종 관리자")
                             .email("hub_manager10@i4u.com")
                             .slackId("hub_manager10_slack")
@@ -148,7 +150,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub11Uuid)
                             .username("hub_manager11")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("강원 관리자")
                             .email("hub_manager11@i4u.com")
                             .slackId("hub_manager11_slack")
@@ -157,7 +159,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub12Uuid)
                             .username("hub_manager12")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("충북 관리자")
                             .email("hub_manager12@i4u.com")
                             .slackId("hub_manager12_slack")
@@ -166,7 +168,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub13Uuid)
                             .username("hub_manager13")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("충남 관리자")
                             .email("hub_manager13@i4u.com")
                             .slackId("hub_manager13_slack")
@@ -175,7 +177,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub14Uuid)
                             .username("hub_manager14")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("전북 관리자")
                             .email("hub_manager14@i4u.com")
                             .slackId("hub_manager14_slack")
@@ -184,7 +186,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub15Uuid)
                             .username("hub_manager15")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("전남 관리자")
                             .email("hub_manager15@i4u.com")
                             .slackId("hub_manager15_slack")
@@ -193,7 +195,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub16Uuid)
                             .username("hub_manager16")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("경북 관리자")
                             .email("hub_manager16@i4u.com")
                             .slackId("hub_manager16_slack")
@@ -202,7 +204,7 @@ public class UserDataInitializer {
                     User.builder()
                             .userId(hub17Uuid)
                             .username("hub_manager17")
-                            .password("password123!")
+                            .password(passwordEncoder.encode("password123!"))
                             .nickname("경남 관리자")
                             .email("hub_manager17@i4u.com")
                             .slackId("hub_manager17_slack")
