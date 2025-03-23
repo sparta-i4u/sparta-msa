@@ -84,7 +84,7 @@ public class OrderService {
 				request.getProductId(), request.getProductQuantity());
 
 		if (responseProduct.getIsDeleted()) {
-			throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+			throw new OrderException("해당 상품이 존재하지 않거나 재고가 충분하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		// 3. 주문 생성 (일단은 DeliveryId 없이 생성 후 저장) → 주문 상태는 PAID로 지정
@@ -99,11 +99,29 @@ public class OrderService {
 		OrderDeliveryResponse response = deliveryClient.createDelivery(
 			OrderDeliveryRequest.builder()
 				.orderId(savedOrder.getOrderId())
-				.recipientHubId(responseCompany.getSupplierHubId())
-				.supplierHubId(responseCompany.getRecipientHubId())
+				.recipientHubId(responseCompany.getRecipientHubId())
+				.supplierHubId(responseCompany.getSupplierHubId())
 				.address(responseCompany.getAddress())
+				.requirement(savedOrder.getRequirement())
 				.recipientId(userId)
 				.build());
+
+		/* Message 전송
+		OrderDeliveryRequest request = OrderDeliveryRequest.builder()
+				.orderId(savedOrder.getOrderId())
+				.recipientHubId(responseCompany.getRecipientHubId())
+				.supplierHubId(responseCompany.getSupplierHubId())
+				.address(responseCompany.getAddress())
+				.requirement(savedOrder.getRequirement())
+				.recipientId(userId)
+				.build());
+
+		UUID deliveryId = rabbitTemplate.convertSendAndReceive(exchange, queue.delivery, request);
+
+		if (deliveryId != null) {
+			savedOrder.updateOrderStateFromDelivery(response.getDeliveryId(), OrderStatus.SCHEDULED);
+		}
+		*/
 
 		// 6. 받아온 내용으로 order Update
 		savedOrder.updateOrderStateFromDelivery(response.getDeliveryId(), switchIntoOrderStatus(response.getDeliveryState()));
