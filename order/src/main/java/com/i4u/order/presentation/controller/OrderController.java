@@ -1,7 +1,9 @@
 package com.i4u.order.presentation.controller;
 
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,8 +45,6 @@ public class OrderController {
 
 	private final OrderService orderService;
 
-	// TODO : 사용자 정보 받아오는 로직 전부 추가
-
 	/**
 	 * 주문 생성
 	 *
@@ -60,6 +60,12 @@ public class OrderController {
 		OrderCreateResponse response = orderService.createOrder(request, userId);
 		return ResponseEntity.ok(CommonResponse.success(response, "주문 생성 성공"));
 
+	}
+
+	@RabbitListener(queues = "${i4u.err.queue.order}")
+	public void errOrder(Map<String, Object> errorMessage) {
+		log.info("ERROR RECEIVE !");
+		orderService.rollbackOrder(errorMessage);
 	}
 
 	/**

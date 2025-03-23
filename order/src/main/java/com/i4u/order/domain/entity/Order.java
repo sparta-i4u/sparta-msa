@@ -97,6 +97,10 @@ public class Order extends Basic {
 		Optional.ofNullable(updateOrder.getOrderStatus()).ifPresent(orderStatus -> this.orderStatus = orderStatus);
 	}
 
+	public void updateOrderStateByDeliveryError(OrderStatus orderStatus) {
+		this.orderStatus = orderStatus;
+	}
+
 	public void updateOrderStateFromDelivery(UUID deliveryId, OrderStatus orderStatus) {
 		this.deliveryId = deliveryId;
 		this.orderStatus = orderStatus;

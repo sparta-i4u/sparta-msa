@@ -1,7 +1,11 @@
 package com.i4u.order.application.service;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -54,6 +58,11 @@ public class OrderService {
 	private final DeliveryClient deliveryClient;
 	private final HubClient hubClient;
 
+	private final RabbitTemplate rabbitTemplate;
+
+	@Value("${i4u.queue.delivery}")
+	private String deliveryQueue;
+
 	/**
 	 * 주문 생성
 	 *
@@ -96,35 +105,54 @@ public class OrderService {
 		Order savedOrder = orderRepository.save(order);
 
 		// 5. delivery 쪽으로 요청 전송 필요 (생성한 order의 정보와, 지금 주문을 요청한 사용자의 정보)
-		OrderDeliveryResponse response = deliveryClient.createDelivery(
-			OrderDeliveryRequest.builder()
+		// OrderDeliveryResponse response = deliveryClient.createDelivery(
+		// 	OrderDeliveryRequest.builder()
+		// 		.orderId(savedOrder.getOrderId())
+		// 		.recipientHubId(responseCompany.getRecipientHubId())
+		// 		.supplierHubId(responseCompany.getSupplierHubId())
+		// 		.address(responseCompany.getAddress())
+		// 		.requirement(savedOrder.getRequirement())
+		// 		.recipientId(userId)
+		// 		.build());
+
+		// Message 전송
+		OrderDeliveryRequest message = OrderDeliveryRequest.builder()
 				.orderId(savedOrder.getOrderId())
 				.recipientHubId(responseCompany.getRecipientHubId())
 				.supplierHubId(responseCompany.getSupplierHubId())
 				.address(responseCompany.getAddress())
 				.requirement(savedOrder.getRequirement())
 				.recipientId(userId)
-				.build());
+				.build();
 
-		/* Message 전송
-		OrderDeliveryRequest request = OrderDeliveryRequest.builder()
-				.orderId(savedOrder.getOrderId())
-				.recipientHubId(responseCompany.getRecipientHubId())
-				.supplierHubId(responseCompany.getSupplierHubId())
-				.address(responseCompany.getAddress())
-				.requirement(savedOrder.getRequirement())
-				.recipientId(userId)
-				.build());
+		try {
+			@SuppressWarnings("unchecked") // 경고 제거
+			Map<String, Object> responseMap = (Map<String, Object>) rabbitTemplate.convertSendAndReceive(deliveryQueue, message);
 
-		UUID deliveryId = rabbitTemplate.convertSendAndReceive(exchange, queue.delivery, request);
+			if (responseMap == null) {
+				System.out.println("배송 서비스 응답 없음: 주문 상태를 '배송 실패'로 변경");
+				savedOrder.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_FAILED);
+			} else {
+				String deliveryState = (String) responseMap.get("deliveryState");
 
-		if (deliveryId != null) {
-			savedOrder.updateOrderStateFromDelivery(response.getDeliveryId(), OrderStatus.SCHEDULED);
+				if (deliveryState.contains("ERROR")) {
+					System.out.println("배송 서비스 오류: 주문 상태를 '배송 처리 오류'로 변경");
+					savedOrder.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_ERROR);
+				} else {
+					System.out.println("배송 성공: 주문 상태를 '배송 예정'으로 변경");
+					savedOrder.updateOrderStateFromDelivery(
+						UUID.fromString((String) responseMap.get("deliveryId")),
+						OrderStatus.SCHEDULED
+					);
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("배송 요청 중 예외 발생: " + e.getMessage());
+			savedOrder.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_FAILED);
 		}
-		*/
 
 		// 6. 받아온 내용으로 order Update
-		savedOrder.updateOrderStateFromDelivery(response.getDeliveryId(), switchIntoOrderStatus(response.getDeliveryState()));
+		// savedOrder.updateOrderStateFromDelivery(response.getDeliveryId(), switchIntoOrderStatus(response.getDeliveryState()));
 
 		return OrderCreateResponse.fromOrder(savedOrder);
 	}
@@ -322,6 +350,14 @@ public class OrderService {
 		order.softDelete(userId);
 	}
 
+	/**
+	 * 허브 담당자의 허브 ID를 확인하는 메서드
+	 *
+	 * @param userId : 허브 담당자의 ID
+	 * @param realHubId1 : 허브 ID 1
+	 * @param realHubId2 : 허브 ID 2
+	 * @return : 일치 여부 반환
+	 */
 	private Boolean confirmHubId(UUID userId, UUID realHubId1, UUID realHubId2) {
 		UUID hubId = hubClient.getHubIdFromOrder(userId);
 		if (hubId == null || ! hubId.equals(realHubId1) || ! hubId.equals(realHubId2)) {
@@ -359,6 +395,17 @@ public class OrderService {
 	private Order findOrder(UUID orderId) {
 		return orderRepository.findById(orderId)
 				.orElseThrow(() -> new OrderException("해당 주문을 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
+	}
+
+	@Transactional
+	public void rollbackOrder(Map<String, Object> errorMessage) {
+		System.out.println("🚨 배송 오류 메시지 수신: " + errorMessage);
+
+		UUID orderId = (UUID) errorMessage.get("orderId");
+		String errorDetails = (String) errorMessage.get("errorMessage");
+
+		Order order = findOrder(orderId);
+		order.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_FAILED);
 	}
 
 }
