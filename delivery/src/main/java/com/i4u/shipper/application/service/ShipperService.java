@@ -64,6 +64,7 @@ public class ShipperService {
 		}
 
 		String shipperSlackId = responseUser.getUserSlackId();
+		String shipperEmail = responseUser.getEmail();
 
 		// 3. [hubClient] 허브 쪽으로 허브 검증 요청 보내기 -> 추후 Caching으로 전환 예정
 		UUID hubId = request.getHubId();
@@ -80,7 +81,7 @@ public class ShipperService {
 		}
 
 		// 5. 배송 담당자 생성
-		Shipper shipper = request.toShipper(shipperOrder, hubId, shipperSlackId);
+		Shipper shipper = request.toShipper(shipperOrder, hubId, shipperSlackId, shipperEmail);
 		Shipper savedShipper = shipperRepository.save(shipper);
 
 		return ShipperCreateResponse.fromShipper(savedShipper);
