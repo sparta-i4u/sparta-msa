@@ -55,6 +55,7 @@ public class AuthService {
             .userId(authUser.getUserId())
             .userRole(authUser.getRole().getAuthority())
             .userSlackId(authUser.getSlackId())
+            .email(authUser.getEmail())
             .isDeleted(authUser.isDeleted()).build();
     }
 

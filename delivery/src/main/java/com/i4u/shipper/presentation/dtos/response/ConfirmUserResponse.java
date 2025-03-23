@@ -17,5 +17,6 @@ public class ConfirmUserResponse {
 	private UUID userId;
 	private String userSlackId;
 	private String userRole;
+	private String email;
 
 }
