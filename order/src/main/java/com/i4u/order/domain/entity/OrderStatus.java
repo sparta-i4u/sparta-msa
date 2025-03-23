@@ -9,4 +9,6 @@ public enum OrderStatus {
 	DELIVERED,         // 배송 완료
 	ORDER_CANCELED,    // 주문 취소
 	DELIVERY_CANCELED, // 배송 취소
+	DELIVERY_FAILED,   // 배송 처리 실패
+	DELIVERY_ERROR,    // 배송 오류
 }

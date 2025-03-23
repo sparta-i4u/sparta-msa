@@ -1,7 +1,11 @@
 package com.i4u.delivery.application.service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -31,7 +35,6 @@ import com.i4u.delivery.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubUpdateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
 import com.i4u.shipper.application.service.ShipperClient;
-import com.i4u.shipper.domain.entity.Shipper;
 import com.i4u.shipper.presentation.dtos.request.MessageRequest;
 import com.i4u.shipper.presentation.dtos.response.ConfirmUserResponse;
 
@@ -51,6 +54,11 @@ public class DeliveryService {
 	private final ShipperClient shipperClient;
 	private final MessageClient messageClient;
 
+	private final RabbitTemplate rabbitTemplate;
+
+	@Value("${i4u.err.queue.order}")
+	private String orderErrorQueue;
+
 	/**
 	 * 배송 생성
 	 *
@@ -58,44 +66,57 @@ public class DeliveryService {
 	 * @return : 생성된 배송 내용
 	 */ // MASTER (주문에서 생성 요청이 넘어오면 받아줄 포인트)
 	public DeliveryCreateResponse createDelivery(DeliveryCreateRequest request) {
-		// 1. [hubClient] 허브 검증 (출발 허브, 도착 허브 검증)
-		System.out.println("supplier: " + request.getSupplierHubId());
-		System.out.println("recipient: " + request.getRecipientHubId());
-		DeliveryHubCreateResponse responseHub = hubClient.confirmHubsFromDelivery(
+		try {
+			// 1. [hubClient] 허브 검증 (출발 허브, 도착 허브 검증)
+			System.out.println("supplier: " + request.getSupplierHubId());
+			System.out.println("recipient: " + request.getRecipientHubId());
+			DeliveryHubCreateResponse responseHub = hubClient.confirmHubsFromDelivery(
 				request.getSupplierHubId(), request.getRecipientHubId() );
 
-		if (responseHub.getIsDeleted()) {
-			throw new DeliveryException("배송할 수 있는 허브가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+			if (responseHub.getIsDeleted()) {
+				throw new DeliveryException("배송할 수 있는 허브가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+			}
+
+			// 2. [userClient] 수령인 슬랙 ID 받아오기
+			System.out.println("수령인 ID : " + request.getRecipientId());
+			ConfirmUserResponse responseUser = authClient.confirmUser(request.getRecipientId());
+
+			if (responseUser.getIsDeleted()) {
+				throw new DeliveryException("수령인이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+			}
+
+			// 3. [shipperClient]  배송 담당자 배정 요청
+			System.out.println("recipientHubId From DeliveryService: " + request.getRecipientHubId());
+			DeliveryShipperResponse responseShipper = shipperClient.assignShipper(
+				request.getRecipientHubId());
+
+			if (responseShipper.getIsDeleted()) {
+				throw new DeliveryException("배송 가능한 배송 담당자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+			}
+
+			// 5. 배송 생성
+			UUID shipperId = responseShipper.getShipperId();
+			String recipientSlackId = responseUser.getUserSlackId();
+
+			Delivery delivery = request.toDelivery(DeliveryState.PREPARING, recipientSlackId, shipperId);
+			Delivery savedDelivery = deliveryRepository.save(delivery);
+
+			DeliveryCreateResponse response = DeliveryCreateResponse.fromDelivery(savedDelivery);
+
+			// 6. 메세지 전송 요청 보내기
+			// sendMessage(delivery, responseShipper, responseUser, request);
+
+			return response;
+		} catch (Exception e) {
+			Map<String, Object> errorMessage = new HashMap<>();
+			errorMessage.put("orderId", request.getOrderId());
+			errorMessage.put("errorMessage", e.getMessage());
+			errorMessage.put("errorCode", "DELIVERY_ERROR");
+
+			rabbitTemplate.convertAndSend(orderErrorQueue, errorMessage);
+
+			return null;
 		}
-
-		// 2. [userClient] 수령인 슬랙 ID 받아오기
-		System.out.println("수령인 ID : " + request.getRecipientId());
-		ConfirmUserResponse responseUser = authClient.confirmUser(request.getRecipientId());
-
-		if (responseUser.getIsDeleted()) {
-			throw new DeliveryException("수령인이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
-		}
-
-		// 3. [shipperClient]  배송 담당자 배정 요청
-		System.out.println("recipientHubId From DeliveryService: " + request.getRecipientHubId());
-		DeliveryShipperResponse responseShipper = shipperClient.assignShipper(
-			request.getRecipientHubId());
-
-		if (responseShipper.getIsDeleted()) {
-			throw new DeliveryException("배송 가능한 배송 담당자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
-		}
-
-		// 5. 배송 생성
-		UUID shipperId = responseShipper.getShipperId();
-		String recipientSlackId = /*responseUser.getUserSlackId()*/ "SLACK12345";
-
-		Delivery delivery = request.toDelivery(DeliveryState.PREPARING, recipientSlackId, shipperId);
-		Delivery savedDelivery = deliveryRepository.save(delivery);
-
-		// 6. 메세지 전송 요청 보내기
-		// sendMessage(delivery, responseShipper, responseUser, request);
-
-		return DeliveryCreateResponse.fromDelivery(savedDelivery);
 	}
 
 	private void sendMessage(Delivery delivery, DeliveryShipperResponse shipper,
