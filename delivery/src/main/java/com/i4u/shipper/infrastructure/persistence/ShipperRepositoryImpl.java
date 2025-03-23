@@ -4,6 +4,7 @@ import static com.i4u.shipper.domain.entity.QShipper.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -86,17 +87,16 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom {
 			)
 			.from(shipper)
 			.where(
-				shipper.hubId.eq(hubId),
-				shipper.isDeleted.eq(false)
+				shipper.hubId.eq(hubId)
 			)
 			.fetchOne();
 
-		// 해당 hubId에 해당하는 배송 담당자가 없으면 기본값 1 반환
 		if (result == null) {
 			return 1;
 		}
 
-		Long shipperCount = result.get(shipper.count());
+		// count()는 Long 타입이므로 null 처리 후 기본값 설정
+		Long shipperCount = Optional.ofNullable(result.get(shipper.count())).orElse(0L);
 		Integer maxShipperOrder = result.get(shipper.shipperOrder.max());
 
 		// shipper가 10명 이상이면 등록 불가능
@@ -105,7 +105,8 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom {
 		}
 
 		// 새 배송 순서는 max 값 + 1
-		return maxShipperOrder != null ? maxShipperOrder + 1 : 1;
+		Integer newShipperOrder = maxShipperOrder != null ? maxShipperOrder + 1 : 1;
+		return newShipperOrder;
 	}
 
 	@Override
