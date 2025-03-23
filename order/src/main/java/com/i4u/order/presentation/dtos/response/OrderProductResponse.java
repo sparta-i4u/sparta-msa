@@ -17,6 +17,8 @@ public class OrderProductResponse {
 	private Boolean isDeleted;
 	// 상품 ID
 	private UUID productId;
+	// 상품 이름
+	private String productName;
 	// 상품 수량
 	private Integer productQuantity;
 	// 총 주문 가격

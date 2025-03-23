@@ -30,23 +30,26 @@ public class ProductClientService {
             return OrderProductResponse.builder()
                 .isDeleted(true)
                 .productId(productId)
+                .productName("Unknown")
                 .productQuantity(0)
                 .productTotalPrice(0L)
                 .build();
         }
 
-        // 재고 부족 여부 확인
+        // 재고 부족 여부 확인 (true면 재고가 부족한거임)
         boolean isStockInsufficient = product.getCount() < productQuantity;
 
-        // 주문한 상품의 재고 감소시키기
-        product.decreaseCount(productQuantity);
+        // 재고가 충분하면 (false) 재고 감소
+        if (!isStockInsufficient) {
+            product.decreaseCount(productQuantity);
+        }
 
-        // 응답 객체 생성 및 반환
         return OrderProductResponse.builder()
-            .isDeleted(false)
+            .isDeleted(!isStockInsufficient)
             .productId(product.getId())
-            .productQuantity(productQuantity)
-            .productTotalPrice((long) (product.getPrice() * productQuantity))
+            .productName(product.getName())
+            .productQuantity(isStockInsufficient ? 0 : productQuantity)
+            .productTotalPrice(isStockInsufficient ? 0L : (long) (product.getPrice() * productQuantity))
             .build();
     }
 
