@@ -16,6 +16,7 @@ import com.i4u.hub.application.service.HubClientService;
 import com.i4u.hub.presentation.dtos.request.DeliveryHubUpdateRequest;
 import com.i4u.hub.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.hub.presentation.dtos.response.DeliveryHubUpdateResponse;
+import com.i4u.hub.presentation.dtos.response.HubDto;
 import com.i4u.hub.presentation.dtos.response.ShipperHubResponse;
 import com.i4u.hub.presentation.dtos.request.DeliveryHubCreateRequest;
 
@@ -84,6 +85,7 @@ public class HubEndpoint {
 		return Mono.just(response);
 	}
 
+<<<<<<< HEAD
 	//product가 보내는 hubId 검증 요청
 //	@GetMapping("/api/v1/hubs/products/{hubId}")
 //	public UUID getHubIdByProduct(@PathVariable UUID hubId);
@@ -92,6 +94,14 @@ public class HubEndpoint {
 		Boolean response = hubClientService.confirmHubFromProduct(hubId);
 		return response;
 	}
+=======
+	@GetMapping("/messges/{supplierHubId}/{recipientHubId}")
+	public CommonResponse<HubDto> getHubInfos(@PathVariable UUID supplierHubId, @PathVariable UUID recipientHubId) {
+		HubDto response = hubClientService.confirmHubFromMessages(supplierHubId, recipientHubId);
+		return CommonResponse.success(response, "성공");
+	}
+
+>>>>>>> 1a89787 ([MSA-139] refactor : Delivery->Message 로직 수정)
 
 
 	//company가 보내는 로그인 한 사람이 허브매니저라면 본인 허브인지 확인

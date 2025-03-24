@@ -83,7 +83,7 @@ public class DeliveryClientService {
 			response.put("deliveryId", savedDelivery.getDeliveryId());
 
 			// 6. 메세지 전송 요청 보내기
-			// sendMessage(delivery, responseShipper, responseUser, request);
+			sendMessage(delivery, responseShipper, responseUser, request);
 
 			return response;
 		} catch (Exception e) {
@@ -119,6 +119,7 @@ public class DeliveryClientService {
 			.recipientHubId(delivery.getArriveHubId())
 			.shipperEmail(shipper.getShipperEmail())
 			.shipperSlackId(shipper.getShipperSlackId())
+			.address(request.getAddress())
 			.build();
 
 		messageClient.sendInfoToMessage(message);

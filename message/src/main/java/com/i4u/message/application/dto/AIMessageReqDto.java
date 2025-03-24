@@ -20,5 +20,6 @@ public class AIMessageReqDto {
     private UUID recipientHubId;
     private String shipperEmail;
     private String shipperSlackId;
+    private String address;
 
 }

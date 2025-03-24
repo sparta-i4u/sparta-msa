@@ -10,6 +10,7 @@ import com.i4u.hub.domain.model.Hub;
 import com.i4u.hub.domain.repository.HubRepository;
 import com.i4u.hub.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.hub.presentation.dtos.response.DeliveryHubUpdateResponse;
+import com.i4u.hub.presentation.dtos.response.HubDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,6 +101,7 @@ public class HubClientService {
 		return hubResponse;
 	}
 
+<<<<<<< HEAD
 	//허브 ID 검증 요청 (product -> HubId)
 	public Boolean confirmHubFromProduct(UUID hubId) {
 		Hub hub = hubRepository.findById(hubId).orElse(null);
@@ -122,5 +124,29 @@ public class HubClientService {
 			return false;
 		}
 		return true;
+=======
+	public HubDto confirmHubFromMessages(UUID supplierHubId, UUID recipientHubId) {
+		System.out.println("supplierHubId : " + supplierHubId);
+		System.out.println("recipientHubId : " + recipientHubId);
+
+		Hub supplierHub = hubRepository.findById(supplierHubId).orElse(null);
+		Hub recipientHub = hubRepository.findById(recipientHubId).orElse(null);
+
+		if (supplierHub == null || recipientHub == null) {
+			return null;
+		}
+
+		return HubDto.builder()
+			.supplierHubName(supplierHub.getHubName())
+			.supplierHubAddress(supplierHub.getAddress())
+			.supplierHubLatitude(supplierHub.getLatitude())
+			.supplierHubLongitude(supplierHub.getLongitude())
+			.supplierHubManagerId(supplierHub.getManagerId())
+			.recipientHubName(recipientHub.getHubName())
+			.recipientHubAddress(recipientHub.getAddress())
+			.recipientHubLatitude(recipientHub.getLatitude())
+			.recipientHubLongitude(recipientHub.getLongitude())
+			.build();
+>>>>>>> 1a89787 ([MSA-139] refactor : Delivery->Message 로직 수정)
 	}
 }

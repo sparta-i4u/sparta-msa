@@ -6,8 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Getter
+@Getter @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,5 +24,6 @@ public class MessageRequest {
 	private UUID recipientHubId;
 	private String shipperEmail;
 	private String shipperSlackId;
+	private String address;
 
 }

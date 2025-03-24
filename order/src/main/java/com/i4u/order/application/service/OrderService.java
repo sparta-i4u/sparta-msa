@@ -101,6 +101,9 @@ public class OrderService {
 				.address(responseCompany.getAddress())
 				.requirement(savedOrder.getRequirement())
 				.recipientId(userId)
+				.productId(savedOrder.getProductId())
+				.productName(responseProduct.getProductName())
+				.productQuantity(savedOrder.getProductQuantity())
 				.build();
 
 		try {
