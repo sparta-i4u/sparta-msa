@@ -126,29 +126,17 @@ public class OrderService {
 				.build();
 
 		try {
-			@SuppressWarnings("unchecked") // 경고 제거
+			@SuppressWarnings("unchecked")
 			Map<String, Object> responseMap = (Map<String, Object>) rabbitTemplate.convertSendAndReceive(deliveryQueue, message);
 
-			if (responseMap == null) {
-				System.out.println("배송 서비스 응답 없음: 주문 상태를 '배송 실패'로 변경");
-				savedOrder.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_FAILED);
+			if (isDeliveryFailed(responseMap)) {
+				handleDeliveryFailure(savedOrder);
 			} else {
-				String deliveryState = (String) responseMap.get("deliveryState");
-
-				if (deliveryState.contains("ERROR")) {
-					System.out.println("배송 서비스 오류: 주문 상태를 '배송 처리 오류'로 변경");
-					savedOrder.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_ERROR);
-				} else {
-					System.out.println("배송 성공: 주문 상태를 '배송 예정'으로 변경");
-					savedOrder.updateOrderStateFromDelivery(
-						UUID.fromString((String) responseMap.get("deliveryId")),
-						OrderStatus.SCHEDULED
-					);
-				}
+				processDeliverySuccess(savedOrder, responseMap);
 			}
 		} catch (Exception e) {
 			System.out.println("배송 요청 중 예외 발생: " + e.getMessage());
-			savedOrder.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_FAILED);
+			handleDeliveryFailure(savedOrder);
 		}
 
 		// 6. 받아온 내용으로 order Update
@@ -156,7 +144,7 @@ public class OrderService {
 
 		return OrderCreateResponse.fromOrder(savedOrder);
 	}
-
+	
 	/**
 	 * 주문 전체 조회 (+검색)
 	 *
@@ -241,16 +229,14 @@ public class OrderService {
 		}
 
 		// 4-2. [productClient] 상품 검증
-		ResponseEntity<CommonResponse<OrderProductUpdateResponse>> responseProduct = productClient.confirmProductUpdate(OrderProductUpdateRequest.builder()
-				.beforeProductId(order.getProductId()).beforeProductQuantity(order.getProductQuantity())
-				.afterProductId(request.getProductId()).afterProductQuantity(request.getProductQuantity()).build());
+		Map<String, Object> responseProduct = productClient.confirmProductUpdate(order.getProductId(), order.getProductQuantity(),
+				request.getProductId(), request.getProductQuantity());
 
-		if (responseProduct.getBody().getData().getIsDeleted()) {
+		if ((Boolean) responseProduct.get("isDeleted")) {
 			throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
-		Long productTotalPrice = 100L;
-		// Long productTotalPrice = responseProduct.getBody().getData().getProductTotalPrice();
+		Long productTotalPrice = (Long) responseProduct.get("productTotalPrice");
 
 		// 5. 주문 상태 수정
 		Order updateOrder = request.toOrder(productTotalPrice, responseCompany.getBody().getData().getSupplierHubId());
@@ -300,8 +286,7 @@ public class OrderService {
 					.orderId(order.getOrderId()).deliveryId(order.getDeliveryId()).build());
 
 			// 4-2. [productClient] 주문이 취소되었으므로 재고 update 필요
-			productClient.updateProductState(OrderProductStateUpdateRequest.builder()
-					.productId(order.getProductId()).productQuantity(order.getProductQuantity()).build());
+			productClient.updateProductState(order.getProductId(), order.getProductQuantity());
 
 		}
 
@@ -397,15 +382,68 @@ public class OrderService {
 				.orElseThrow(() -> new OrderException("해당 주문을 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
 	}
 
+	/**
+	 * 배송 실패 여부 판단
+	 * 
+	 * @param responseMap : 응답 내용
+	 * @return : 배송 실패 여부
+	 */
+	private boolean isDeliveryFailed(Map<String, Object> responseMap) {
+		return responseMap == null || Optional.ofNullable(responseMap.get("deliveryState"))
+			.map(Object::toString)
+			.orElse("")
+			.contains("ERROR");
+	}
+
+	/**
+	 * 배송 실패 처리
+	 * 
+	 * @param savedOrder : 저장된 주문
+	 */
+	private void handleDeliveryFailure(Order savedOrder) {
+		System.out.println("배송 실패 처리: 주문 상태를 '배송 실패'로 변경");
+		savedOrder.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_FAILED);
+
+		// 제품 상태 업데이트 재요청
+		try {
+			productClient.updateProductState(savedOrder.getProductId(), savedOrder.getProductQuantity());
+			System.out.println("상품 서비스에 재요청 보냄");
+		} catch (Exception e) {
+			System.out.println("상품 서비스 요청 중 예외 발생: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * 배송 성공 처리
+	 * 
+	 * @param savedOrder : 저장된 주문 내용
+	 * @param responseMap : 응답 내용
+	 */
+	private void processDeliverySuccess(Order savedOrder, Map<String, Object> responseMap) {
+		System.out.println("배송 성공: 주문 상태를 '배송 예정'으로 변경");
+
+		UUID deliveryId = UUID.fromString(responseMap.get("deliveryId").toString());
+		savedOrder.updateOrderStateFromDelivery(deliveryId, OrderStatus.SCHEDULED);
+	}
+
+	/**
+	 * 주문 상태 배송 실패로 수정
+	 * 
+	 * @param errorMessage : 오류 메시지 내용
+	 */
 	@Transactional
 	public void rollbackOrder(Map<String, Object> errorMessage) {
-		System.out.println("🚨 배송 오류 메시지 수신: " + errorMessage);
+		log.info("🚨 배송 오류 메시지 수신: " + errorMessage);
 
 		UUID orderId = (UUID) errorMessage.get("orderId");
 		String errorDetails = (String) errorMessage.get("errorMessage");
 
 		Order order = findOrder(orderId);
 		order.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_FAILED);
+
+		// 상품 재고 증가 요청 전송
+		productClient.updateProductState(
+			order.getProductId(), order.getProductQuantity());
 	}
 
 }

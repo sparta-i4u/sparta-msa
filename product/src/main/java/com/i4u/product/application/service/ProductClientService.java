@@ -60,28 +60,29 @@ public class ProductClientService {
 
     // 중간에 주문 변경 요청이 들어왔을 때, 상품을 검증하는 메서드
     public Map<String, Object> confirmProductUpdate(UUID beforeProductId, Integer beforeProductQuantity, UUID afterProductId, Integer afterProductQuantity) {
-        Product beforeProduct = productRepository.findById(beforeProductId).orElseThrow(
-                () -> new ProductNotFoundException("해당 상품이 존재하지 않습니다.")
-        );
-
-        Product afterProduct = productRepository.findById(afterProductId).orElseThrow(
-                () -> new ProductNotFoundException("해당 상품이 존재하지 않습니다.")
-        );
-
-        // 처음 주문했던 상품의 재고는 증가시킴
-        beforeProduct.increaseCount(beforeProductQuantity);
-
-        // 이후에 주문한 상품의 재고는 감소시킴
-        if (afterProduct.getCount() < afterProductQuantity) {
-            throw new IllegalArgumentException("해당 상품의 재고가 없습니다.");
+        // 처음 주문했던 상품의 재고는 증가시킴 (예외 없이 실행)
+        Product beforeProduct = productRepository.findById(beforeProductId)
+            .orElse(null);
+        if (beforeProduct != null) {
+            beforeProduct.increaseCount(beforeProductQuantity);
         }
 
-        afterProduct.decreaseCount(afterProductQuantity);
+        // 변경할 상품 조회
+        Product afterProduct = productRepository.findById(afterProductId).orElse(null);
+
+        // isDeleted 조건 추가
+        boolean isDeleted = (afterProduct == null || afterProduct.getCount() < afterProductQuantity);
+
+        if (!isDeleted) {
+            // 이후에 주문한 상품의 재고 감소
+            afterProduct.decreaseCount(afterProductQuantity);
+        }
 
         Map<String, Object> productResponse = new HashMap<>();
         productResponse.put("productId", afterProductId);
         productResponse.put("productQuantity", afterProductQuantity);
-        productResponse.put("productTotalPrice", afterProductQuantity * afterProduct.getPrice());
+        productResponse.put("productTotalPrice", isDeleted ? 0 : afterProductQuantity * afterProduct.getPrice());
+        productResponse.put("isDeleted", isDeleted);
 
         return productResponse;
     }

@@ -17,6 +17,7 @@ public class OrderProductUpdateResponse {
 	// 이전 상품의 재고를 +해줄 필요 X
 	private UUID afterProductId;
 	private Integer afterProductQuantity;
+	private Integer afterProductToTalPrice;
 	private Boolean isDeleted;
 
 }
