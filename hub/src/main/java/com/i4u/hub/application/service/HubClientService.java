@@ -100,4 +100,18 @@ public class HubClientService {
 		return hubResponse;
 	}
 
+
+	//@GetMapping("/products/{hubId}")
+	//	public Mono<Map<String, Object>> confirmHubFromShippers(@PathVariable UUID hubId) {
+	//		Map<String, Object> response = hubClientService.confirmHubFromProduct(hubId);
+	//		return Mono.just(response);
+	//	}
+	//허브 ID 검증 요청 (product -> HubId)
+	public Boolean confirmHubFromProduct(UUID hubId) {
+		Hub hub = hubRepository.findById(hubId).orElse(null);
+		if (hub == null) {
+			return false;
+		}
+		return true;
+	}
 }

@@ -17,5 +17,5 @@ public interface CompanyClient {
 
     //상품 만들 때, 진짜 해당하는 업체의 CompanyId가 맞는지
     @GetMapping("/api/v1/companies/products/{companyId}")
-    public UUID getCompanyIdByProduct(@PathVariable UUID companyId);
+    public Boolean getCompanyIdByProduct(@PathVariable UUID companyId);
 }

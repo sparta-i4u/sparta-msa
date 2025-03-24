@@ -69,8 +69,9 @@ public class ProductService {
         }
 
         //request에 대한 companyId, hubId에 대해서 진짜 회사아이디가 맞고 허브아이디가 맞는지 찾아야한다.
-
-
+        if(!(hubClient.getHubIdByProduct(hubId) && companyClient.getCompanyIdByProduct(companyId))) { //둘 중 하나라도 false면
+            throw new IllegalArgumentException("상품이나 허브아이디에 해당하는 아이디가 없습니다. 다시 확인해주세요");
+        }
 
         // 상품 생성
         final Product product = new Product(hubId, companyId, request.name(), request.price(), request.content(), request.count());

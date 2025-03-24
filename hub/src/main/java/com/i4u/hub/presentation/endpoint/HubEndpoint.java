@@ -83,5 +83,12 @@ public class HubEndpoint {
 		return Mono.just(response);
 	}
 
-
+	//product가 보내는 hubId 검증 요청
+//	@GetMapping("/api/v1/hubs/products/{hubId}")
+//	public UUID getHubIdByProduct(@PathVariable UUID hubId);
+	@GetMapping("/products/{hubId}")
+	public Boolean confirmHubFromProduct(@PathVariable UUID hubId) {
+		Boolean response = hubClientService.confirmHubFromProduct(hubId);
+		return response;
+	}
 }
