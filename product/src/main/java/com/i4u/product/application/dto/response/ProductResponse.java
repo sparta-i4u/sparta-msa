@@ -23,4 +23,21 @@ public record ProductResponse (
                 product.getContent()
         );
     }
+
+    // Getter 메서드들
+    public UUID getId() {
+        return productId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
+    public String getContent() {
+        return content;
+    }
 }

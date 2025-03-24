@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import com.i4u.product.application.dto.request.ProductUpdateRequest;
+import lombok.Setter;
 import org.hibernate.annotations.SQLRestriction;
 
+@Setter
 @Getter
 @NoArgsConstructor
 @Table(name="p_product")

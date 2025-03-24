@@ -22,4 +22,6 @@ public interface CompanyClient {
 	@GetMapping("/api/v1/companies/{companyId}/orders")
 	ResponseEntity<CommonResponse<OrderCompanyUpdateResponse>> confirmCompanyUpdate(@PathVariable UUID companyId /*userId, userRole or JWT 필요*/);
 
+	@GetMapping("/api/v1/companies/{companyId}")
+	UUID getCompanyId(@PathVariable UUID companyId);
 }
