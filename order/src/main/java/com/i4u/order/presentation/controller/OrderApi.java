@@ -40,7 +40,7 @@ public interface OrderApi {
 				content = @Content(schema = @Schema(implementation = OrderCreateResponse.class)))
 		}
 	)
-	ResponseEntity<CommonResponse<?>> createOrder(
+	ResponseEntity<CommonResponse<OrderCreateResponse>> createOrder(
 		@Valid @RequestBody OrderCreateRequest request,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role);
@@ -54,7 +54,7 @@ public interface OrderApi {
 				content = @Content(schema = @Schema(implementation = OrderGetListResponse.class)))
 		}
 	)
-	ResponseEntity<CommonResponse<?>> getAllOrders(
+	ResponseEntity<CommonResponse<PagedModel<OrderGetListResponse>>> getAllOrders(
 		Pageable pageable, @ModelAttribute OrderSearchRequest request,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role);
@@ -68,7 +68,7 @@ public interface OrderApi {
 				content = @Content(schema = @Schema(implementation = OrderGetOneResponse.class)))
 		}
 	)
-	ResponseEntity<CommonResponse<?>> getOneOrder(
+	ResponseEntity<CommonResponse<OrderGetOneResponse>> getOneOrder(
 		@PathVariable UUID orderId,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role);
@@ -82,7 +82,7 @@ public interface OrderApi {
 				content = @Content(schema = @Schema(implementation = OrderUpdateResponse.class)))
 		}
 	)
-	ResponseEntity<CommonResponse<?>> putOrder(
+	ResponseEntity<CommonResponse<OrderUpdateResponse>> putOrder(
 		@PathVariable UUID orderId, @Valid @RequestBody OrderUpdateRequest request,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) ;
@@ -96,7 +96,7 @@ public interface OrderApi {
 				content = @Content(schema = @Schema(implementation = OrderStatusUpdateResponse.class)))
 		}
 	)
-	ResponseEntity<CommonResponse<?>> patchOrder(
+	ResponseEntity<CommonResponse<OrderStatusUpdateResponse>> patchOrder(
 		@PathVariable UUID orderId, @RequestBody OrderStatusUpdateRequest request,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role);

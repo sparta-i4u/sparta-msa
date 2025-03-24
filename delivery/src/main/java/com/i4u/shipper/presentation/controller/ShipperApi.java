@@ -3,6 +3,7 @@ package com.i4u.shipper.presentation.controller;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,7 +37,7 @@ public interface ShipperApi {
 						content = @Content(schema = @Schema(implementation = ShipperCreateResponse.class)))
 				}
 			)
-	ResponseEntity<CommonResponse<?>> createShipper(
+	ResponseEntity<CommonResponse<ShipperCreateResponse>> createShipper(
 		@RequestBody ShipperCreateRequest shipperCreateRequest,
 		@RequestHeader(name = "X-User-Id") UUID userId,	@RequestHeader(name = "X-User-Role") String role);
 
@@ -49,7 +50,7 @@ public interface ShipperApi {
 				content = @Content(schema = @Schema(implementation = ShipperListResponse.class)))
 		}
 	)
-	ResponseEntity<CommonResponse<?>> getAllShippers(
+	ResponseEntity<CommonResponse<PagedModel<ShipperListResponse>>> getAllShippers(
 		Pageable pageable, @ModelAttribute ShipperSearchRequest request,
 		@RequestHeader(name = "X-User-Id") UUID userId,	@RequestHeader(name = "X-User-Role") String role);
 
@@ -61,7 +62,7 @@ public interface ShipperApi {
 				content = @Content(schema = @Schema(implementation = ShipperGetOneResponse.class)))
 		}
 	)
-	ResponseEntity<CommonResponse<?>> getOneShipper(
+	ResponseEntity<CommonResponse<ShipperGetOneResponse>> getOneShipper(
 		@PathVariable UUID shipperId, @RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) ;
 	
@@ -73,7 +74,7 @@ public interface ShipperApi {
 				content = @Content(schema = @Schema(implementation = ShipperUpdateResponse.class)))
 		}
 	)
-	ResponseEntity<CommonResponse<?>> putShipper(
+	ResponseEntity<CommonResponse<ShipperUpdateResponse>> putShipper(
 		@PathVariable UUID shipperId, @RequestBody ShipperUpdateRequest shipperUpdateRequest,
 		@RequestHeader(name = "X-User-Id") UUID userId,	@RequestHeader(name = "X-User-Role") String role) ;
 
@@ -86,7 +87,7 @@ public interface ShipperApi {
 				content = @Content(schema = @Schema(implementation = CommonResponse.class)))
 		}
 	)
-	ResponseEntity<CommonResponse<?>> deleteShipper(
+	ResponseEntity<CommonResponse> deleteShipper(
 		@PathVariable UUID shipperId, @RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role);
 
