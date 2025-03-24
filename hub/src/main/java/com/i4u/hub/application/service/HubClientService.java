@@ -124,4 +124,28 @@ public class HubClientService {
 			.recipientHubLongitude(recipientHub.getLongitude())
 			.build();
 	}
+
+	//허브 ID 검증 요청 (product -> HubId)
+	public Boolean confirmHubFromProduct(UUID hubId) {
+		Hub hub = hubRepository.findById(hubId).orElse(null);
+		if (hub == null) {
+			return false;
+		}
+		return true;
+	}
+
+	//company의 로그인 한 사람이 만드려는 업체 생성, 로그인 한 사람이 hubManager이며 정말 본인 허브인지 확인(company -> HubId)
+	public Hub getHubInfoFromCompany(UUID hubId){
+		Hub hub = hubRepository.findById(hubId).orElse(null);
+		return hub;
+	}
+
+	//company가 허브 아이디로 검증 (company -> HubId)
+	public Boolean confirmHubFromCompany(UUID hubId) {
+		Hub hub = hubRepository.findById(hubId).orElse(null);
+		if (hub == null) {
+			return false;
+		}
+		return true;
+	}
 }

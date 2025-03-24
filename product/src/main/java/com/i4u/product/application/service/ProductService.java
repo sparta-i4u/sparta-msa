@@ -46,7 +46,7 @@ public class ProductService {
         UUID companyOrHubId = confirmRole(userId, role);
 
         //해당하는 hub나 company ID가 없으면 - id가 있냐 없느냐만 확인
-        if (companyOrHubId == null && role.equals("ROLE_DELIVERY_MANAGER")) {
+        if (companyOrHubId == null && role.equals("DELIVERY_MANAGER")) {
             throw new IllegalArgumentException("권한이 없습니다");
         }
 
@@ -55,7 +55,7 @@ public class ProductService {
         //요청과 일치하는지
 
         switch (role) {
-            case "ROLE_COMPANY_MANAGER":
+            case "COMPANY_MANAGER":
                 System.out.println("여기찍히니 ? Company : " + role);
                 if (!companyOrHubId.equals(companyId)) {
                     throw new IllegalArgumentException("권한이 없습니다");
@@ -69,6 +69,11 @@ public class ProductService {
                 break;
             default:
                 break;
+        }
+
+        //request에 대한 companyId, hubId에 대해서 진짜 회사아이디가 맞고 허브아이디가 맞는지 찾아야한다.
+        if(!(hubClient.getHubIdByProduct(hubId) && companyClient.getCompanyIdByProduct(companyId))) { //둘 중 하나라도 false면
+            throw new IllegalArgumentException("상품이나 허브아이디에 해당하는 아이디가 없습니다. 다시 확인해주세요");
         }
 
         // 상품 생성
@@ -147,12 +152,12 @@ public class ProductService {
         UUID companyOrHubId = confirmRole(userId, role);
 
         //해당하는 hub나 company ID가 없으면 - id가 있냐 없느냐만 확인
-        if (companyOrHubId == null || role.equals("ROLE_DELIVERY_MANAGER")) {
+        if (companyOrHubId == null || role.equals("DELIVERY_MANAGER")) {
             throw new IllegalArgumentException("권한이 없습니다");
         }
 
-        if ( !(role.equals("ROLE_COMPANY_MANAGER") && companyOrHubId.equals(product.getCompanyId())) ||
-                !(role.equals("ROLE_HUB_MANAGER") && companyOrHubId.equals(product.getHubId())) ) {
+        if ( !(role.equals("COMPANY_MANAGER") && companyOrHubId.equals(product.getCompanyId())) ||
+                !(role.equals("HUB_MANAGER") && companyOrHubId.equals(product.getHubId())) ) {
             throw new IllegalArgumentException("권한이 없습니다");
         }
 
@@ -179,12 +184,12 @@ public class ProductService {
 
         //해당하는 hub나 company ID가 없으면 - id가 있냐 없느냐만 확인
         //허브만 되도록
-        if (companyOrHubId == null || role.equals("ROLE_DELIVERY_MANAGER") || role.equals("ROLE_COMPANY_MANAGER")) {
+        if (companyOrHubId == null || role.equals("DELIVERY_MANAGER") || role.equals("COMPANY_MANAGER")) {
             throw new IllegalArgumentException("권한이 없습니다");
         }
 
         // 권한이 허브매니저이면
-        if ( role.equals("ROLE_HUB_MANAGER") ) {
+        if ( role.equals("HUB_MANAGER") ) {
             for (Product p: products) {   //삭제할 상품들 하나씩 꺼냄
                 if (! companyOrHubId.equals(p.getHubId())) {
                     //hubId와 일치하는 경우만 하도록, 불일치 할 경우 리스트에서 제거
@@ -204,12 +209,12 @@ public class ProductService {
     // 권한 확인 SERVICE - ROLE_MASTER, ROLE_HUB_MANAGER(담당 허브), ROLE_COMPANY_MANAGER(본인 업체)
     private UUID confirmRole(String userId, String role) {
         switch (role) {
-            case "ROLE_COMPANY_MANAGER":
+            case "COMPANY_MANAGER":
                 // companyClient (companyId - 없으면 null)
                 return companyClient.getCompanyId(UUID.fromString(userId));  //companyId
-            case "ROLE_DELIVERY_MANAGER":
+            case "DELIVERY_MANAGER":
                 return null;
-            case "ROLE_HUB_MANAGER":
+            case "HUB_MANAGER":
                 // hubClient (hubId - 없으면 null)
                 return hubClient.getHubId(UUID.fromString(userId)); //userId가 이미 UUID 형식의 문자열이라면, 이를 UUID 객체로 바꿔주는 역
             default:  // ROLE_MASTER
