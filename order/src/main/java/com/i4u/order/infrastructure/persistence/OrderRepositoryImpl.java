@@ -2,22 +2,24 @@ package com.i4u.order.infrastructure.persistence;
 
 import static com.i4u.order.domain.entity.QOrder.*;
 
-import com.i4u.order.domain.entity.OrderStatus;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import org.springframework.data.domain.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Repository;
 
 import com.i4u.order.application.dtos.request.OrderSearchRequest;
 import com.i4u.order.application.dtos.response.OrderGetListResponse;
+import com.i4u.order.domain.entity.OrderStatus;
 import com.i4u.order.domain.repository.OrderRepositoryCustom;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -33,7 +35,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public PagedModel<OrderGetListResponse> searchOrder(Pageable pageable, OrderSearchRequest request, UUID userId, String role) {
+	public PagedModel<OrderGetListResponse> searchOrder(Pageable pageable, OrderSearchRequest request, UUID userId, String role, UUID hubManagerHubId) {
 		List<OrderSpecifier<?>> orders = getAllOrderSpecifiers(pageable);
 
 		long pageSize = getPageSize(pageable.getPageSize(), pageable.getOffset());
@@ -52,7 +54,7 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
 				))
 				.from(order)
 				.where(
-					// cofirmRole(role),
+					cofirmRole(role, userId, hubManagerHubId),
 					supplierId(request.getSupplierId()),
 					recipientId(request.getRecipientId()),
 					productId(request.getProductId()),
@@ -63,18 +65,18 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
 				.limit(pageSize)
 				.fetch();
 
-		long totalCount = totalCount(request);
+		long totalCount = totalCount(request, role, userId, hubManagerHubId);
 
 		Page<OrderGetListResponse> orderList = new PageImpl<>(results, pageable, totalCount);
 		return new PagedModel<>(orderList);
 	}
 
-	private Long totalCount(OrderSearchRequest request) {
+	private Long totalCount(OrderSearchRequest request, String role, UUID userId, UUID hubManagerHubId) {
 		return queryFactory
 				.select(order.count())
 				.from(order)
 				.where(
-						// cofirmRole(role),
+						cofirmRole(role, userId, hubManagerHubId),
 						supplierId(request.getSupplierId()),
 						recipientId(request.getRecipientId()),
 						productId(request.getProductId()),
@@ -136,9 +138,18 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
 		return orderStatus != null ? order.orderStatus.eq(orderStatus) : null;
 	}
 
-//	private BooleanExpression confirmRole(String role) {
-//		return null;
-//	}
+	private BooleanExpression cofirmRole(String role, UUID userId, UUID hubManagerHubId) {
+		switch (role) {
+			case "COMPANY_MANAGER" :
+			case "DELIVERY" :
+				return order.recipientId.eq(userId);
+			case "HUB_MANAGER" :
+				return order.recipientHubId.eq(hubManagerHubId)
+					.or(order.supplierHubId.eq(hubManagerHubId));
+			default:
+				return null;
+		}
+	}
 
 	/* 정렬 */
 

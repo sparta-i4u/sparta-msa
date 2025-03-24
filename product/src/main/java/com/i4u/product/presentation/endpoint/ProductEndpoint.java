@@ -26,10 +26,10 @@ public class ProductEndpoint {
     }
 
     @PatchMapping("/api/v1/products/orders/{beforeProductId}/{beforeProductQuantity}/{afterProductId}/{afterProductQuentity}")
-    public Mono<Map<String, Object>> confirmProductUpdate(@PathVariable UUID beforeProductId, @PathVariable Integer beforeProductQuantity,
+    public Map<String, Object> confirmProductUpdate(@PathVariable UUID beforeProductId, @PathVariable Integer beforeProductQuantity,
                                                                                     @PathVariable UUID afterProductId, @PathVariable Integer afterProductQuantity) {
         Map<String, Object> response = productClientService.confirmProductUpdate(beforeProductId, beforeProductQuantity, afterProductId, afterProductQuantity);
-        return Mono.just(response);
+        return response;
     }
 
     @PatchMapping("/api/v1/products/orders/canceled/{productId}/{productQuantity}")

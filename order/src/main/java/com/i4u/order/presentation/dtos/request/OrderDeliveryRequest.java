@@ -25,6 +25,18 @@ public class OrderDeliveryRequest {
 	// 배송지 주소
 	private String address;
 
+	// 요청사항
+	private String requirement;
+
+	// 상품명
+	private UUID productId;
+
+	// 상품명
+	private String productName;
+
+	// 상품 수량
+	private Integer productQuantity;
+
 	// 수령자 ID (배송받는 업체에서 주문한 사람의 ID 필요)
 	private UUID recipientId;
 

@@ -59,11 +59,12 @@ public class ShipperService {
 		if (responseUser.getIsDeleted()) {
 			throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (! responseUser.getUserRole().equals("ROLE_DELIVERY_MANAGER")) {
+		if (! responseUser.getUserRole().equals("DELIVERY_MANAGER")) {
 			throw new ShipperException("권한이 배송 담당자가 아니므로 배송 담당자로 지정할 수 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		String shipperSlackId = responseUser.getUserSlackId();
+		String shipperEmail = responseUser.getEmail();
 
 		// 3. [hubClient] 허브 쪽으로 허브 검증 요청 보내기 -> 추후 Caching으로 전환 예정
 		UUID hubId = request.getHubId();
@@ -80,7 +81,7 @@ public class ShipperService {
 		}
 
 		// 5. 배송 담당자 생성
-		Shipper shipper = request.toShipper(shipperOrder, hubId, shipperSlackId);
+		Shipper shipper = request.toShipper(shipperOrder, hubId, shipperSlackId, shipperEmail);
 		Shipper savedShipper = shipperRepository.save(shipper);
 
 		return ShipperCreateResponse.fromShipper(savedShipper);
@@ -96,13 +97,13 @@ public class ShipperService {
 														  UUID userId, String role) {
 		System.out.println("Is Hub Id here? " + request.getHubId());
 		// 1. Role에 따른 조회 권한 확인
-		if (role.equals("ROLE_COMPANY_MANAGER")) {
+		if (role.equals("COMPANY_MANAGER")) {
 			throw new ShipperException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		UUID hubManagerHubId = null;
 
-		if (role.equals("ROLE_HUB_MANAGER")) {
+		if (role.equals("HUB_MANAGER")) {
 			hubManagerHubId = hubClient.confirmHubFromUser(userId);
 		}
 
@@ -123,12 +124,12 @@ public class ShipperService {
 
 		// 2. Role에 따른 조회 권한 확인
 		//    배송 담당자는 본인 정보만
-		if (role.equals("ROLE_DELIVERY_MANAGER") && !shipper.getShipperId().equals(userId)) {
+		if (role.equals("DELIVERY_MANAGER") && !shipper.getShipperId().equals(userId)) {
 			throw new ShipperException("조회 권한이 없습니다", HttpStatus.BAD_REQUEST);
 		}
 
 		//    허브 관리자는 본인의 허브에 소속된 정보만
-		if (role.equals("ROLE_HUB_MANAGER")) {
+		if (role.equals("HUB_MANAGER")) {
 			UUID hubManagerHubId = hubClient.confirmHubFromUser(userId);
 			if (!hubManagerHubId.equals(shipper.getHubId())) {
 				throw new ShipperException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
@@ -136,7 +137,7 @@ public class ShipperService {
 		}
 
 		//    그리고 업체 담당자면
-		if (role.equals("ROLE_COMPANY_MANAGER")) {
+		if (role.equals("COMPANY_MANAGER")) {
 			throw new ShipperException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -200,10 +201,10 @@ public class ShipperService {
 	// 권한 검증 함수
 	private void confirmRequestUser(UUID userId, String role, UUID hubId) {
 		switch (role) {
-			case "ROLE_MASTER":
+			case "MASTER":
 				break;
 
-			case "ROLE_HUB_MANAGER":
+			case "HUB_MANAGER":
 				UUID hubManagerHubId = hubClient.confirmHubFromUser(userId);
 				if (!hubManagerHubId.equals(hubId)) {
 					throw new ShipperException("권한이 없습니다.", HttpStatus.BAD_REQUEST);

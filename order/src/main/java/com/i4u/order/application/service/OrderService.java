@@ -1,7 +1,11 @@
 package com.i4u.order.application.service;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -24,23 +28,15 @@ import com.i4u.order.domain.entity.OrderStatus;
 import com.i4u.order.domain.repository.OrderRepository;
 import com.i4u.order.presentation.client.CompanyClient;
 import com.i4u.order.presentation.client.DeliveryClient;
+import com.i4u.order.presentation.client.HubClient;
 import com.i4u.order.presentation.client.ProductClient;
-import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
-import com.i4u.order.application.dtos.request.OrderSearchRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
-import com.i4u.order.presentation.dtos.request.OrderProductRequest;
-import com.i4u.order.presentation.dtos.request.OrderProductStateUpdateRequest;
-import com.i4u.order.presentation.dtos.request.OrderProductUpdateRequest;
-import com.i4u.order.presentation.dtos.response.OrderProductUpdateResponse;
 import com.i4u.order.presentation.dtos.request.OrderStatusUpdateByDeliveryRequest;
 import com.i4u.order.presentation.dtos.response.OrderCompanyResponse;
 import com.i4u.order.presentation.dtos.response.OrderCompanyUpdateResponse;
-import com.i4u.order.presentation.dtos.response.OrderDeliveryResponse;
 import com.i4u.order.presentation.dtos.response.OrderProductResponse;
-
-import com.i4u.order.presentation.client.HubClient;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +53,11 @@ public class OrderService {
 	private final DeliveryClient deliveryClient;
 	private final HubClient hubClient;
 
+	private final RabbitTemplate rabbitTemplate;
+
+	@Value("${i4u.queue.delivery}")
+	private String deliveryQueue;
+
 	/**
 	 * 주문 생성
 	 *
@@ -70,16 +71,10 @@ public class OrderService {
 		OrderCompanyResponse responseCompany = companyClient.confirmCompany(
 			request.getSupplierId(), request.getRecipientId());
 
-		System.out.println("supplierHubId" + responseCompany.getSupplierHubId());
-		System.out.println("recipientHubId" +responseCompany.getRecipientHubId());
-
 		if (responseCompany.getIsDeleted()) {
 			// 업체가 둘 중 하나라도 없다면 Exception
 			throw new OrderException("해당 업체가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
-
-		System.out.println("company : " + request.getSupplierId());
-		System.out.println("company : " + request.getRecipientId());
 
 		// 2. [productClient] 상품 쪽으로 검증 요청 필요 (상품의 개수랑 상품 ID를 같이 넘김)
 		// 재고가 없거나 상품이 없다면 Exception
@@ -87,7 +82,7 @@ public class OrderService {
 				request.getProductId(), request.getProductQuantity());
 
 		if (responseProduct.getIsDeleted()) {
-			throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+			throw new OrderException("해당 상품이 존재하지 않거나 재고가 충분하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		// 3. 주문 생성 (일단은 DeliveryId 없이 생성 후 저장) → 주문 상태는 PAID로 지정
@@ -99,17 +94,27 @@ public class OrderService {
 		Order savedOrder = orderRepository.save(order);
 
 		// 5. delivery 쪽으로 요청 전송 필요 (생성한 order의 정보와, 지금 주문을 요청한 사용자의 정보)
-		OrderDeliveryResponse response = deliveryClient.createDelivery(
-			OrderDeliveryRequest.builder()
+		OrderDeliveryRequest message = OrderDeliveryRequest.builder()
 				.orderId(savedOrder.getOrderId())
-				.recipientHubId(responseCompany.getSupplierHubId())
-				.supplierHubId(responseCompany.getRecipientHubId())
+				.recipientHubId(responseCompany.getRecipientHubId())
+				.supplierHubId(responseCompany.getSupplierHubId())
 				.address(responseCompany.getAddress())
+				.requirement(savedOrder.getRequirement())
 				.recipientId(userId)
-				.build());
+				.build();
 
-		// 6. 받아온 내용으로 order Update
-		savedOrder.updateOrderStateFromDelivery(response.getDeliveryId(), switchIntoOrderStatus(response.getDeliveryState()));
+		try {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> responseMap = (Map<String, Object>) rabbitTemplate.convertSendAndReceive(deliveryQueue, message);
+
+			if (isDeliveryFailed(responseMap)) {
+				handleDeliveryFailure(savedOrder);
+			} else {
+				processDeliverySuccess(savedOrder, responseMap);
+			}
+		} catch (Exception e) {
+			handleDeliveryFailure(savedOrder);
+		}
 
 		return OrderCreateResponse.fromOrder(savedOrder);
 	}
@@ -122,12 +127,13 @@ public class OrderService {
 	public PagedModel<OrderGetListResponse> getAllOrders(
 			Pageable pageable, OrderSearchRequest request, UUID userId, String role) {
 		// HUB MANAGER면 담당하는 허브가 필요하고, MASTER는 조건 X,
-		// DELVIERY_MANAGER, COMPANY_MANAGER면 userID와 일치하는 경우만 조회 가능
-		if (role.equals("ROLE_HUB_MANAGER")) {
-			hubClient.getHubIdFromOrder(userId);
+		// DELVIERY_MANAGER, COMPANY_MANAGER면 userID와 일치하는 경우만 조회 가능\
+		UUID hubManagerHubId = null;
+		if (role.equals("HUB_MANAGER")) {
+			hubManagerHubId = hubClient.getHubIdFromOrder(userId);
 		}
 
-		PagedModel<OrderGetListResponse> orderPage = orderRepository.searchOrder(pageable, request, userId, role);
+		PagedModel<OrderGetListResponse> orderPage = orderRepository.searchOrder(pageable, request, userId, role, hubManagerHubId);
 		return orderPage;
 	}
 
@@ -151,7 +157,7 @@ public class OrderService {
 		}
 
 		// 배송 담당자랑 업체 관리자는 본인이 주문한 ! 내역만 확인 가능
-		if (role.equals("DELIVERY_MANAGER") || role.equals("COMPANY_MANAGER")) {
+		if (role.equals("DELIVERY") || role.equals("COMPANY_MANAGER")) {
 			if (!order.getUserId().equals(userId)) {
 				throw new OrderException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 			}
@@ -179,7 +185,7 @@ public class OrderService {
 				confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (!role.equals("MASTER")) {
+		if (!role.equals("ROLE_MASTER")) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -198,16 +204,14 @@ public class OrderService {
 		}
 
 		// 4-2. [productClient] 상품 검증
-		ResponseEntity<CommonResponse<OrderProductUpdateResponse>> responseProduct = productClient.confirmProductUpdate(OrderProductUpdateRequest.builder()
-				.beforeProductId(order.getProductId()).beforeProductQuantity(order.getProductQuantity())
-				.afterProductId(request.getProductId()).afterProductQuantity(request.getProductQuantity()).build());
+		Map<String, Object> responseProduct = productClient.confirmProductUpdate(order.getProductId(), order.getProductQuantity(),
+				request.getProductId(), request.getProductQuantity());
 
-		if (responseProduct.getBody().getData().getIsDeleted()) {
+		if ((Boolean) responseProduct.get("isDeleted")) {
 			throw new OrderException("해당 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
 
-		Long productTotalPrice = 100L;
-		// Long productTotalPrice = responseProduct.getBody().getData().getProductTotalPrice();
+		Long productTotalPrice = (Long) responseProduct.get("productTotalPrice");
 
 		// 5. 주문 상태 수정
 		Order updateOrder = request.toOrder(productTotalPrice, responseCompany.getBody().getData().getSupplierHubId());
@@ -257,8 +261,7 @@ public class OrderService {
 					.orderId(order.getOrderId()).deliveryId(order.getDeliveryId()).build());
 
 			// 4-2. [productClient] 주문이 취소되었으므로 재고 update 필요
-			productClient.updateProductState(OrderProductStateUpdateRequest.builder()
-					.productId(order.getProductId()).productQuantity(order.getProductQuantity()).build());
+			productClient.updateProductState(order.getProductId(), order.getProductQuantity());
 
 		}
 
@@ -307,6 +310,14 @@ public class OrderService {
 		order.softDelete(userId);
 	}
 
+	/**
+	 * 허브 담당자의 허브 ID를 확인하는 메서드
+	 *
+	 * @param userId : 허브 담당자의 ID
+	 * @param realHubId1 : 허브 ID 1
+	 * @param realHubId2 : 허브 ID 2
+	 * @return : 일치 여부 반환
+	 */
 	private Boolean confirmHubId(UUID userId, UUID realHubId1, UUID realHubId2) {
 		UUID hubId = hubClient.getHubIdFromOrder(userId);
 		if (hubId == null || ! hubId.equals(realHubId1) || ! hubId.equals(realHubId2)) {
@@ -344,6 +355,70 @@ public class OrderService {
 	private Order findOrder(UUID orderId) {
 		return orderRepository.findById(orderId)
 				.orElseThrow(() -> new OrderException("해당 주문을 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
+	}
+
+	/**
+	 * 배송 실패 여부 판단
+	 *
+	 * @param responseMap : 응답 내용
+	 * @return : 배송 실패 여부
+	 */
+	private boolean isDeliveryFailed(Map<String, Object> responseMap) {
+		return responseMap == null || Optional.ofNullable(responseMap.get("deliveryState"))
+			.map(Object::toString)
+			.orElse("")
+			.contains("ERROR");
+	}
+
+	/**
+	 * 배송 실패 처리
+	 *
+	 * @param savedOrder : 저장된 주문
+	 */
+	private void handleDeliveryFailure(Order savedOrder) {
+		log.error("배송 실패 처리: 주문 상태를 '배송 실패'로 변경");
+		savedOrder.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_FAILED);
+
+		// 제품 상태 업데이트 재요청
+		try {
+			productClient.updateProductState(savedOrder.getProductId(), savedOrder.getProductQuantity());
+			log.error("상품 서비스에 재요청 보냄");
+		} catch (Exception e) {
+			log.error("상품 서비스 요청 중 예외 발생: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * 배송 성공 처리
+	 *
+	 * @param savedOrder : 저장된 주문 내용
+	 * @param responseMap : 응답 내용
+	 */
+	private void processDeliverySuccess(Order savedOrder, Map<String, Object> responseMap) {
+		log.info("배송 성공: 주문 상태를 '배송 예정'으로 변경");
+
+		UUID deliveryId = UUID.fromString(responseMap.get("deliveryId").toString());
+		savedOrder.updateOrderStateFromDelivery(deliveryId, OrderStatus.SCHEDULED);
+	}
+
+	/**
+	 * 주문 상태 배송 실패로 수정
+	 *
+	 * @param errorMessage : 오류 메시지 내용
+	 */
+	@Transactional
+	public void rollbackOrder(Map<String, Object> errorMessage) {
+		log.error("배송 오류 메시지 수신: " + errorMessage);
+
+		UUID orderId = (UUID) errorMessage.get("orderId");
+		String errorDetails = (String) errorMessage.get("errorMessage");
+
+		Order order = findOrder(orderId);
+		order.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_FAILED);
+
+		// 상품 재고 증가 요청 전송
+		productClient.updateProductState(
+			order.getProductId(), order.getProductQuantity());
 	}
 
 }

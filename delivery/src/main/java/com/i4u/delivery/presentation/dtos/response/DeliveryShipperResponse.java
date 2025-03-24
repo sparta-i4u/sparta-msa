@@ -13,6 +13,8 @@ public class DeliveryShipperResponse {
 
 	private UUID recipientHubId;
 	private UUID shipperId;
+	private String shipperEmail;
+	private String shipperSlackId;
 	private Boolean isDeleted;
 
 }

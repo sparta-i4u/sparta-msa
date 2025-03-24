@@ -18,10 +18,6 @@ public interface HubClient {
 	@GetMapping("/api/v1/hubs/shippers/{userId}")
 	UUID confirmHubFromUser(@PathVariable UUID userId);
 
-	// Shipper -> Hub 로 해당 허브가 존재하는지 여부 확인 (생성/수정 시)
-	// @GetMapping("/api/v1/hubs/{hubId}/shippers")
-	// ResponseEntity<CommonResponse<ShipperHubResponse>> confirmHub(@PathVariable UUID hubId);
-
 	// Delivery -> Hub로 해당 허브들이 존재하는지 확인
 	@GetMapping("/api/v1/hubs/deliveries/{recipientHubId}/{supplierHubId}")
     DeliveryHubCreateResponse confirmHubsFromDelivery(@PathVariable UUID recipientHubId, @PathVariable UUID supplierHubId);

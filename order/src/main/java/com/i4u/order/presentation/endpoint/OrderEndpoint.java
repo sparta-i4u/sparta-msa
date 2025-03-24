@@ -1,12 +1,10 @@
 package com.i4u.order.presentation.endpoint;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.i4u.common.utils.CommonResponse;
 import com.i4u.order.application.service.OrderClientService;
 import com.i4u.order.presentation.dtos.request.DeliveryOrderStateUpdateRequest;
 
@@ -24,13 +22,11 @@ public class OrderEndpoint {
 	/**
 	 * 배송 상태 변경에 따른 주문 상태 변경
 	 *
-	 * @param request
-	 * @return
+	 * @param request : 주문 상태를 변경할 내용
 	 */
 	@PatchMapping("/deliveries/noti-update")
-	ResponseEntity<CommonResponse> notificationDeliveryState(@RequestBody DeliveryOrderStateUpdateRequest request) {
+	void notificationDeliveryState(@RequestBody DeliveryOrderStateUpdateRequest request) {
 		orderClientService.notificationDeliveryState(request);
-		return ResponseEntity.ok(CommonResponse.success("", ""));
 	}
 
 }
