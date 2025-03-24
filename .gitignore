@@ -46,3 +46,5 @@ out/
 # 모든 모듈의 application.yml 파일 제외
 **/src/main/resources/application.yml
 **/src/main/resources/application-*.yml
+
+/.env
