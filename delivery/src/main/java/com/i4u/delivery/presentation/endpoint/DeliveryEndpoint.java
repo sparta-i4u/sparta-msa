@@ -5,7 +5,6 @@ import java.util.Map;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
-
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,8 +35,6 @@ public class DeliveryEndpoint {
 	 */ // MASTER (주문에서 생성 요청이 넘어오면 받아줄 포인트)
 	@RabbitListener(queues = "${i4u.queue.delivery}")
 	public Map<String, Object> createDelivery(DeliveryCreateRequest request) {
-		System.out.println("supplierHubId: " + request.getSupplierHubId());
-		System.out.println("recipientHubId: " + request.getRecipientHubId());
 		Map<String, Object> response = deliveryClientService.createDelivery(request);
 		return response;
 	}

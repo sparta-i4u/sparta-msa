@@ -9,7 +9,7 @@ import com.i4u.shipper.presentation.dtos.request.MessageRequest;
 @FeignClient(name = "MESSAGE-SERVICE")
 public interface MessageClient {
 
-	@PostMapping("/api/v1/messges/deliveries")
+	@PostMapping("/api/v1/messages/AI-slack")
 	void sendInfoToMessage(@RequestBody MessageRequest request);
 
 }

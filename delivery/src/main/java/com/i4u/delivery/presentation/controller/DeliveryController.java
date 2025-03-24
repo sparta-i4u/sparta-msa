@@ -48,8 +48,6 @@ public class DeliveryController implements DeliveryApi {
 	 */ // MASTER (주문에서 생성 요청이 넘어오면 받아줄 포인트)
 	@PostMapping
 	public DeliveryCreateResponse createDelivery(@RequestBody DeliveryCreateRequest request) {
-		System.out.println("supplierHubId: " + request.getSupplierHubId());
-		System.out.println("recipientHubId: " + request.getRecipientHubId());
 		DeliveryCreateResponse response = deliveryService.createDelivery(request);
 		return response;
 	}

@@ -1,11 +1,8 @@
 package com.i4u.delivery.application.service;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -59,9 +56,6 @@ public class DeliveryService {
 
 	private final RabbitTemplate rabbitTemplate;
 
-	@Value("${i4u.err.queue.order}")
-	private String orderErrorQueue;
-
 	/**
 	 * 배송 재생성 요청
 	 *
@@ -71,8 +65,6 @@ public class DeliveryService {
 	public DeliveryCreateResponse createDelivery(DeliveryCreateRequest request) {
 		try {
 			// 1. [hubClient] 허브 검증 (출발 허브, 도착 허브 검증)
-			System.out.println("supplier: " + request.getSupplierHubId());
-			System.out.println("recipient: " + request.getRecipientHubId());
 			DeliveryHubCreateResponse responseHub = hubClient.confirmHubsFromDelivery(
 				request.getSupplierHubId(), request.getRecipientHubId() );
 
@@ -88,7 +80,6 @@ public class DeliveryService {
 			}
 
 			// 3. [userClient] 수령인 슬랙 ID 받아오기
-			System.out.println("수령인 ID : " + request.getRecipientId());
 			ConfirmUserResponse responseUser = authClient.confirmUser(request.getRecipientId());
 
 			if (responseUser.getIsDeleted()) {
@@ -96,7 +87,6 @@ public class DeliveryService {
 			}
 
 			// 4. [shipperClient]  배송 담당자 배정 요청
-			System.out.println("recipientHubId From DeliveryService: " + request.getRecipientHubId());
 			DeliveryShipperResponse responseShipper = shipperClient.assignShipper(
 				request.getRecipientHubId());
 
@@ -114,7 +104,7 @@ public class DeliveryService {
 			DeliveryCreateResponse response = DeliveryCreateResponse.fromDelivery(savedDelivery);
 
 			// 6. 메세지 전송 요청 보내기
-			// sendMessage(delivery, responseShipper, responseUser, request);
+			sendMessage(delivery, responseShipper, responseUser, request);
 
 			return response;
 		} catch (Exception e) {
@@ -122,6 +112,14 @@ public class DeliveryService {
 		}
 	}
 
+	/**
+	 * 메시지 전송
+	 *
+	 * @param delivery : 배송 내용
+	 * @param shipper : 배송 담당자
+	 * @param recipient : 수령인
+	 * @param request : 요청 내용
+	 */
 	private void sendMessage(Delivery delivery, DeliveryShipperResponse shipper,
 		ConfirmUserResponse recipient, DeliveryCreateRequest request) {
 		MessageRequest message = MessageRequest.builder()
@@ -149,7 +147,7 @@ public class DeliveryService {
 																UUID userId, String role) {
 		// 1. 사용자 권한 값 넘겨주기 (전체 조회 제한 여부 확인)
 		UUID hubManagerHubId = null;
-		if (role.equals("ROLE_HUB_MANAGER")) {
+		if (role.contains("HUB_MANAGER")) {
 			hubManagerHubId = hubClient.confirmHubFromUser(userId);
 		}
 
@@ -290,12 +288,11 @@ public class DeliveryService {
 		Delivery delivery = findDelivery(deliveryId);
 
 		// 2. 사용자 권한 확인
-		if (role.contains("DELIVERY_MANAGER") || role.contains("COMPANY_MANAGER")) {
+		if (role.contains("DELIVERY") || role.contains("COMPANY_MANAGER")) {
 			throw new DeliveryException("삭제 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		if (role.contains("HUB_MANAGER")) {
-			log.info("권한 확인 중 : " + role);
 			UUID hubManagerHubId = hubClient.confirmHubFromUser(userId);
 			if (! (hubManagerHubId.equals(delivery.getDepartHubId()) || hubManagerHubId.equals(delivery.getArriveHubId()))) {
 				throw new DeliveryException("권한이 없습니다. ", HttpStatus.BAD_REQUEST);
@@ -318,8 +315,6 @@ public class DeliveryService {
 	}
 
 
-
-
 	/**
 	 * 허브 매니저, 배송 담당자 권한 확인
 	 * 
@@ -337,7 +332,7 @@ public class DeliveryService {
 			if (! (hubManagerHubId.equals(delivery.getDepartHubId()) || hubManagerHubId.equals(delivery.getArriveHubId()))) {
 				throw new DeliveryException("권한이 없습니다. ", HttpStatus.BAD_REQUEST);
 			}
-		} else if (role.contains("DELIVERY_MANAGER")) {
+		} else if (role.contains("DELIVERY")) {
 			log.info("권한 확인 중 : " + role);
 			if (!delivery.getShipperId().equals(userId)) {
 				throw new DeliveryException("권한이 없습니다.", HttpStatus.BAD_REQUEST);

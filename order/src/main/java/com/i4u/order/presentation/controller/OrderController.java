@@ -1,23 +1,21 @@
 package com.i4u.order.presentation.controller;
 
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.data.domain.Pageable;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import org.springframework.web.bind.annotation.*;
 
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -78,7 +76,6 @@ public class OrderController {
 		Pageable pageable, @ModelAttribute OrderSearchRequest request,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
-		// 검색 기능 적용 예정으로 Pagination 내용으로 변경하기
 		log.info("주문 전체 조회 요청");
 		PagedModel<OrderGetListResponse> orders = orderService.getAllOrders(pageable, request, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(orders, "주문 전체 조회 성공"));
@@ -112,7 +109,6 @@ public class OrderController {
 		@PathVariable UUID orderId, @Valid @RequestBody OrderUpdateRequest request,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
-		// 주문 상태 확인 필수
 		log.info("주문 수정 요청");
 		OrderUpdateResponse response = orderService.updateOrder(orderId, request, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "주문 수정 성공"));

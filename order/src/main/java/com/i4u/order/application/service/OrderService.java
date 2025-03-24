@@ -28,20 +28,15 @@ import com.i4u.order.domain.entity.OrderStatus;
 import com.i4u.order.domain.repository.OrderRepository;
 import com.i4u.order.presentation.client.CompanyClient;
 import com.i4u.order.presentation.client.DeliveryClient;
+import com.i4u.order.presentation.client.HubClient;
 import com.i4u.order.presentation.client.ProductClient;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
-import com.i4u.order.presentation.dtos.request.OrderProductStateUpdateRequest;
-import com.i4u.order.presentation.dtos.request.OrderProductUpdateRequest;
-import com.i4u.order.presentation.dtos.response.OrderProductUpdateResponse;
 import com.i4u.order.presentation.dtos.request.OrderStatusUpdateByDeliveryRequest;
 import com.i4u.order.presentation.dtos.response.OrderCompanyResponse;
 import com.i4u.order.presentation.dtos.response.OrderCompanyUpdateResponse;
-import com.i4u.order.presentation.dtos.response.OrderDeliveryResponse;
 import com.i4u.order.presentation.dtos.response.OrderProductResponse;
-
-import com.i4u.order.presentation.client.HubClient;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -76,16 +71,10 @@ public class OrderService {
 		OrderCompanyResponse responseCompany = companyClient.confirmCompany(
 			request.getSupplierId(), request.getRecipientId());
 
-		System.out.println("supplierHubId" + responseCompany.getSupplierHubId());
-		System.out.println("recipientHubId" +responseCompany.getRecipientHubId());
-
 		if (responseCompany.getIsDeleted()) {
 			// 업체가 둘 중 하나라도 없다면 Exception
 			throw new OrderException("해당 업체가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 		}
-
-		System.out.println("company : " + request.getSupplierId());
-		System.out.println("company : " + request.getRecipientId());
 
 		// 2. [productClient] 상품 쪽으로 검증 요청 필요 (상품의 개수랑 상품 ID를 같이 넘김)
 		// 재고가 없거나 상품이 없다면 Exception
@@ -105,17 +94,6 @@ public class OrderService {
 		Order savedOrder = orderRepository.save(order);
 
 		// 5. delivery 쪽으로 요청 전송 필요 (생성한 order의 정보와, 지금 주문을 요청한 사용자의 정보)
-		// OrderDeliveryResponse response = deliveryClient.createDelivery(
-		// 	OrderDeliveryRequest.builder()
-		// 		.orderId(savedOrder.getOrderId())
-		// 		.recipientHubId(responseCompany.getRecipientHubId())
-		// 		.supplierHubId(responseCompany.getSupplierHubId())
-		// 		.address(responseCompany.getAddress())
-		// 		.requirement(savedOrder.getRequirement())
-		// 		.recipientId(userId)
-		// 		.build());
-
-		// Message 전송
 		OrderDeliveryRequest message = OrderDeliveryRequest.builder()
 				.orderId(savedOrder.getOrderId())
 				.recipientHubId(responseCompany.getRecipientHubId())
@@ -135,12 +113,8 @@ public class OrderService {
 				processDeliverySuccess(savedOrder, responseMap);
 			}
 		} catch (Exception e) {
-			System.out.println("배송 요청 중 예외 발생: " + e.getMessage());
 			handleDeliveryFailure(savedOrder);
 		}
-
-		// 6. 받아온 내용으로 order Update
-		// savedOrder.updateOrderStateFromDelivery(response.getDeliveryId(), switchIntoOrderStatus(response.getDeliveryState()));
 
 		return OrderCreateResponse.fromOrder(savedOrder);
 	}
@@ -153,12 +127,13 @@ public class OrderService {
 	public PagedModel<OrderGetListResponse> getAllOrders(
 			Pageable pageable, OrderSearchRequest request, UUID userId, String role) {
 		// HUB MANAGER면 담당하는 허브가 필요하고, MASTER는 조건 X,
-		// DELVIERY_MANAGER, COMPANY_MANAGER면 userID와 일치하는 경우만 조회 가능
-		if (role.equals("ROLE_HUB_MANAGER")) {
-			hubClient.getHubIdFromOrder(userId);
+		// DELVIERY_MANAGER, COMPANY_MANAGER면 userID와 일치하는 경우만 조회 가능\
+		UUID hubManagerHubId = null;
+		if (role.equals("HUB_MANAGER")) {
+			hubManagerHubId = hubClient.getHubIdFromOrder(userId);
 		}
 
-		PagedModel<OrderGetListResponse> orderPage = orderRepository.searchOrder(pageable, request, userId, role);
+		PagedModel<OrderGetListResponse> orderPage = orderRepository.searchOrder(pageable, request, userId, role, hubManagerHubId);
 		return orderPage;
 	}
 
@@ -176,13 +151,13 @@ public class OrderService {
 
 		// 2. 권한 검증 필수
 		//    허브 관리자라면 허브 담당자가 관리하는 허브의 주문만 조회 가능
-		if (  role.equals("ROLE_HUB_MANAGER") &&
+		if (  role.equals("HUB_MANAGER") &&
 				!confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId()) ) {
 			throw new OrderException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		// 배송 담당자랑 업체 관리자는 본인이 주문한 ! 내역만 확인 가능
-		if (role.equals("ROLE_DELIVERY_MANAGER") || role.equals("ROLE_COMPANY_MANAGER")) {
+		if (role.equals("DELIVERY") || role.equals("COMPANY_MANAGER")) {
 			if (!order.getUserId().equals(userId)) {
 				throw new OrderException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 			}
@@ -206,7 +181,7 @@ public class OrderService {
 		Order order = findOrder(orderId);
 
 		// 2. 권한 검증 필수
-		if (! ( role.equals("ROLE_HUB_MANAGER") &&
+		if (! ( role.equals("HUB_MANAGER") &&
 				confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
@@ -265,11 +240,11 @@ public class OrderService {
 		Order order = findOrder(orderId);
 
 		// 2. 권한 검증 필수
-		if (! ( role.equals("ROLE_HUB_MANAGER") &&
+		if (! ( role.equals("HUB_MANAGER") &&
 				confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (!role.equals("ROLE_MASTER") || !role.equals("ROLE_HUB_MANAGER")) {
+		if (!role.equals("MASTER") || !role.equals("HUB_MANAGER")) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -323,11 +298,11 @@ public class OrderService {
 		Order order = findOrder(orderId);
 
 		// 2. 권한 검증 필수
-		if (( role.equals("ROLE_HUB_MANAGER") &&
+		if (( role.equals("HUB_MANAGER") &&
 				! confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (!role.equals("ROLE_MASTER")) {
+		if (!role.equals("MASTER")) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -401,15 +376,15 @@ public class OrderService {
 	 * @param savedOrder : 저장된 주문
 	 */
 	private void handleDeliveryFailure(Order savedOrder) {
-		System.out.println("배송 실패 처리: 주문 상태를 '배송 실패'로 변경");
+		log.error("배송 실패 처리: 주문 상태를 '배송 실패'로 변경");
 		savedOrder.updateOrderStateByDeliveryError(OrderStatus.DELIVERY_FAILED);
 
 		// 제품 상태 업데이트 재요청
 		try {
 			productClient.updateProductState(savedOrder.getProductId(), savedOrder.getProductQuantity());
-			System.out.println("상품 서비스에 재요청 보냄");
+			log.error("상품 서비스에 재요청 보냄");
 		} catch (Exception e) {
-			System.out.println("상품 서비스 요청 중 예외 발생: " + e.getMessage());
+			log.error("상품 서비스 요청 중 예외 발생: " + e.getMessage());
 		}
 	}
 
@@ -420,7 +395,7 @@ public class OrderService {
 	 * @param responseMap : 응답 내용
 	 */
 	private void processDeliverySuccess(Order savedOrder, Map<String, Object> responseMap) {
-		System.out.println("배송 성공: 주문 상태를 '배송 예정'으로 변경");
+		log.info("배송 성공: 주문 상태를 '배송 예정'으로 변경");
 
 		UUID deliveryId = UUID.fromString(responseMap.get("deliveryId").toString());
 		savedOrder.updateOrderStateFromDelivery(deliveryId, OrderStatus.SCHEDULED);
@@ -433,7 +408,7 @@ public class OrderService {
 	 */
 	@Transactional
 	public void rollbackOrder(Map<String, Object> errorMessage) {
-		log.info("🚨 배송 오류 메시지 수신: " + errorMessage);
+		log.error("배송 오류 메시지 수신: " + errorMessage);
 
 		UUID orderId = (UUID) errorMessage.get("orderId");
 		String errorDetails = (String) errorMessage.get("errorMessage");

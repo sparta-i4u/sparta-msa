@@ -7,25 +7,21 @@ import java.util.UUID;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.i4u.client.AuthClient;
 import com.i4u.client.HubClient;
-import com.i4u.common.utils.CommonResponse;
 import com.i4u.delivery.application.dtos.request.DeliveryCreateRequest;
 import com.i4u.delivery.application.exception.DeliveryException;
 import com.i4u.delivery.domain.entity.Delivery;
 import com.i4u.delivery.domain.entity.DeliveryState;
 import com.i4u.delivery.domain.repository.DeliveryRepository;
 import com.i4u.delivery.presentation.client.MessageClient;
-import com.i4u.delivery.presentation.client.OrderClient;
 import com.i4u.delivery.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.delivery.presentation.dtos.request.OrderDeliveryUpdateRequest;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
 import com.i4u.shipper.application.service.ShipperClient;
-import com.i4u.shipper.application.service.ShipperClientService;
 import com.i4u.shipper.presentation.dtos.request.MessageRequest;
 import com.i4u.shipper.presentation.dtos.response.ConfirmUserResponse;
 
@@ -52,8 +48,6 @@ public class DeliveryClientService {
 	public Map<String, Object> createDelivery(DeliveryCreateRequest request) {
 		try {
 			// 1. [hubClient] 허브 검증 (출발 허브, 도착 허브 검증)
-			System.out.println("supplier: " + request.getSupplierHubId());
-			System.out.println("recipient: " + request.getRecipientHubId());
 			DeliveryHubCreateResponse responseHub = hubClient.confirmHubsFromDelivery(
 				request.getSupplierHubId(), request.getRecipientHubId() );
 
@@ -62,7 +56,6 @@ public class DeliveryClientService {
 			}
 
 			// 2. [userClient] 수령인 슬랙 ID 받아오기
-			System.out.println("수령인 ID : " + request.getRecipientId());
 			ConfirmUserResponse responseUser = authClient.confirmUser(request.getRecipientId());
 
 			if (responseUser.getIsDeleted()) {
@@ -70,7 +63,6 @@ public class DeliveryClientService {
 			}
 
 			// 3. [shipperClient]  배송 담당자 배정 요청
-			System.out.println("recipientHubId From DeliveryService: " + request.getRecipientHubId());
 			DeliveryShipperResponse responseShipper = shipperClient.assignShipper(
 				request.getRecipientHubId());
 
@@ -106,6 +98,14 @@ public class DeliveryClientService {
 		}
 	}
 
+	/**
+	 * 메시지 전송
+	 *
+	 * @param delivery : 배송 내용
+	 * @param shipper : 배송 담당자
+	 * @param recipient : 수령인
+	 * @param request : 요청 내용
+	 */
 	private void sendMessage(Delivery delivery, DeliveryShipperResponse shipper,
 		ConfirmUserResponse recipient, DeliveryCreateRequest request) {
 		MessageRequest message = MessageRequest.builder()
