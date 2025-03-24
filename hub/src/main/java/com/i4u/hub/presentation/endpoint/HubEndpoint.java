@@ -104,19 +104,16 @@ public class HubEndpoint {
 	//company가 보내는 로그인 한 사람이 허브매니저라면 본인 허브인지 확인
 	//@GetMapping("/api/v1/hubs/companies/{userId}")
 	//UUID getHubInfo(@PathVariable("userId") UUID userId);
-	@GetMapping("/companies/{hubId}")
-	public UUID getHubInfo(@PathVariable UUID hubId) {
-		Hub response = hubClientService.getHubInfoFromCompany(hubId);
-		if(response == null) {
-			return null;
-		}
-		return hubId;
+	@GetMapping("/companies/{userId}")
+	public UUID getHubInfo(@PathVariable("userId") UUID userId) {
+		UUID response = hubClientService.getHubInfoFromCompany(userId);  //USERId에 해당하는 hubId 들고오기.
+		return response;
 	}
 
 	//company가 보내는 hubId 검증
 	//@GetMapping("/api/v1/hubs/companies/checkHubId/{hubId}")
 	//Boolean getHubId(@PathVariable("hubId") UUID hubId);
-	@GetMapping("/companies/checkHubId/{hubId}")
+	@GetMapping("/companies/checkHubId/hubId/{hubId}")
 	public Boolean getHubId(@PathVariable UUID hubId) {
 		Boolean response = hubClientService.confirmHubFromCompany(hubId);
 		return response;

@@ -135,9 +135,13 @@ public class HubClientService {
 	}
 
 	//company의 로그인 한 사람이 만드려는 업체 생성, 로그인 한 사람이 hubManager이며 정말 본인 허브인지 확인(company -> HubId)
-	public Hub getHubInfoFromCompany(UUID hubId){
-		Hub hub = hubRepository.findById(hubId).orElse(null);
-		return hub;
+	public UUID getHubInfoFromCompany(UUID userId){
+		Hub hub = hubRepository.findByManagerId(userId).orElse(null);
+		if (hub == null) {
+			return null;
+		}
+		System.out.println(hub.getHubId().toString());
+		return hub.getHubId();
 	}
 
 	//company가 허브 아이디로 검증 (company -> HubId)
