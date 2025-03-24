@@ -10,8 +10,12 @@ import java.util.UUID;
 //Company로 요청을 쏴주는 친구 Client
 public interface CompanyClient {
 
+    // 권한 검증
     // 받아주는 쪽 에서는 hubId가 있으면 UUID로 주고, 없으면 null을 반환할 예정
     @GetMapping("/api/v1/companies/products/{userId}")
     public UUID getCompanyId(@PathVariable UUID userId);
 
+    //상품 만들 때, 진짜 해당하는 업체의 CompanyId가 맞는지
+    @GetMapping("/api/v1/companies/products/{companyId}")
+    public UUID getCompanyIdByProduct(@PathVariable UUID companyId);
 }

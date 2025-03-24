@@ -53,16 +53,13 @@ public class ProductService {
         //권한검증
         //본인 업체가 아니고 and 본인이 담당하는 허브아이디가 아니면 - 정말 본인것이 맞는지 확인하는 로직
         //요청과 일치하는지
-
         switch (role) {
-            case "ROLE_COMPANY_MANAGER":
-                System.out.println("여기찍히니 ? Company : " + role);
+            case "COMPANY_MANAGER":
                 if (!companyOrHubId.equals(companyId)) {
                     throw new IllegalArgumentException("권한이 없습니다");
                 }
                 break;
-            case "ROLE_HUB_MANAGER" :
-                System.out.println("여기니? Hub : " + role);
+            case "HUB_MANAGER" :
                 if (!companyOrHubId.equals(hubId)) {
                     throw new IllegalArgumentException("권한이 없습니다");
                 }
@@ -70,6 +67,10 @@ public class ProductService {
             default:
                 break;
         }
+
+        //request에 대한 companyId, hubId에 대해서 진짜 회사아이디가 맞고 허브아이디가 맞는지 찾아야한다.
+
+
 
         // 상품 생성
         final Product product = new Product(hubId, companyId, request.name(), request.price(), request.content(), request.count());
@@ -207,7 +208,7 @@ public class ProductService {
             case "COMPANY_MANAGER":
                 // companyClient (companyId - 없으면 null)
                 return companyClient.getCompanyId(UUID.fromString(userId));  //companyId
-            case "DELIVERY_MANAGER":
+            case "DELIVERY":
                 return null;
             case "HUB_MANAGER":
                 // hubClient (hubId - 없으면 null)
