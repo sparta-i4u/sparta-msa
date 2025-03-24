@@ -20,7 +20,7 @@ public class Message extends Basic {
     private UUID messageId;
 
     @Lob
-    @Column(nullable = false, columnDefinition = "CLOB")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String messageContent;
 
     @Column(nullable = false)
