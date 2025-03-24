@@ -1,5 +1,6 @@
 package com.i4u.message.application.service;
 
+import com.i4u.common.utils.CommonResponse;
 import com.i4u.message.application.dto.AIMessageReqDto;
 import com.i4u.message.application.dto.MessageResDto;
 import com.i4u.message.domain.model.AI;
@@ -90,11 +91,11 @@ public class MessageService {
         aiRepository.save(ai);
 
         // 허브 가져오기
-        HubDto hubDto = hubClient.getHubById(request.getSupplierHubId());
+        CommonResponse<HubDto> hubDto = hubClient.getHubById(request.getSupplierHubId());
 
         String slackId = null;
-        if (hubDto.getManagerId() != null) {
-            ConfirmUserResponse confirmUserResponse = authClient.confirmUser(hubDto.getManagerId());
+        if (hubDto.getData().getManagerId() != null) {
+            ConfirmUserResponse confirmUserResponse = authClient.confirmUser(hubDto.getData().getManagerId());
             slackId = confirmUserResponse.getUserSlackId();
         }
 
