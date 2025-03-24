@@ -15,6 +15,6 @@ public interface HubClient {
     public UUID getHubId(@PathVariable UUID userId);
 
     //상품을 생성할 때, request에 담긴 허브아이디가 진짜 해당 허브아이디인지 검증
-    @GetMapping("/api/v1/hubs/products/{hubId}")
+    @GetMapping("/api/v1/hubs/products/hubId/{hubId}")
     public Boolean getHubIdByProduct(@PathVariable UUID hubId);
 }
