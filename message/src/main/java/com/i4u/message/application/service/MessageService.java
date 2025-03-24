@@ -6,10 +6,10 @@ import com.i4u.message.domain.model.AI;
 import com.i4u.message.domain.model.Message;
 import com.i4u.message.domain.repository.AIRepository;
 import com.i4u.message.domain.repository.MessageRepository;
+import com.i4u.message.infrastructure.client.AuthClient;
 import com.i4u.message.infrastructure.client.HubClient;
-import com.i4u.message.infrastructure.client.UserClient;
+import com.i4u.message.infrastructure.dto.ConfirmUserResponse;
 import com.i4u.message.infrastructure.dto.HubDto;
-import com.i4u.message.infrastructure.dto.UserDto;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
@@ -29,7 +29,7 @@ public class MessageService {
     private final AIRepository aiRepository;
     private final AiService aiService;
     private final HubClient hubClient;
-    private final UserClient userClient;
+    private final AuthClient authClient;
 
     @Value("${slack.token}")
     private String slackToken;
@@ -89,14 +89,17 @@ public class MessageService {
 
         aiRepository.save(ai);
 
-        // 슬랙 메시지 전송
-        String slackId = request.getRecipientSlackId();
-        sendMessage(aiResponse, slackId);
+        // 허브 가져오기
+        HubDto hubDto = hubClient.getHubById(request.getSupplierHubId());
 
-        // 공급업체 허브의 매니저에게도 메시지 전송
-        if (request.getSupplierHubId() != null) {
-            sendMessageToHubManager(request.getSupplierHubId(), aiResponse);
+        String slackId = null;
+        if (hubDto.getManagerId() != null) {
+            ConfirmUserResponse confirmUserResponse = authClient.confirmUser(hubDto.getManagerId());
+            slackId = confirmUserResponse.getUserSlackId();
         }
+
+        // 슬랙 메시지 전송
+        sendMessage(aiResponse, slackId);
 
         // 메시지 엔티티 저장
         Message message = Message.builder()
@@ -107,21 +110,6 @@ public class MessageService {
         Message savedMessage = messageRepository.save(message);
 
         return MessageResDto.from(savedMessage);
-    }
-    
-    public void sendMessageToHubManager(UUID hubId, String messageContent) throws IOException, SlackApiException {
-        // 허브 정보 조회
-        HubDto hub = hubClient.getHubById(hubId);
-        
-        if (hub != null && hub.getManagerId() != null) {
-            // 매니저 정보 조회
-            UserDto manager = userClient.getUserById(hub.getManagerId());
-            
-            if (manager != null && manager.getSlackId() != null) {
-                // 매니저의 Slack ID로 메시지 전송
-                sendMessage("허브 관련 알림: " + messageContent, manager.getSlackId());
-            }
-        }
     }
 }
 
