@@ -38,7 +38,10 @@ public class CompanyService {
         // 1. [hubClient] 로 요청
         // 지금 업체 생성을 요청한 사용자가 허브 담당자라면,
         // 이 허브 담당자가 관리하는 허브의 ID 를 받아오는 과정  - 허브가 본인이 관리하는 허브인지 이미 검증
-        if (role.equals("ROLE_HUB_MANAGER")) {
+
+        // 로그인 한 사람이 허브관리자라면 본인이 담당하는 허브가 맞는지 검증
+        if (role.equals("HUB_MANAGER")) {
+            //지금 로그인 한 사람
             UUID responseHub = hubClient.getHubInfo(UUID.fromString(userId));
             if (! responseHub.equals(request.hubId())) {
                 throw new CompanyNotFoundException(request.hubId());
@@ -49,6 +52,11 @@ public class CompanyService {
         ConfirmUserResponse responseUser = authClient.confirmUser(request.owner());
         if (!responseUser.getUserRole().equals("COMPANY_MANAGER")) {
             throw new IllegalArgumentException("권한이 없습니다. ");
+        }
+
+        //request의 hubId가 맞는지 검증 필요
+        if(!(hubClient.getHubId(request.hubId()))){
+            throw new IllegalArgumentException("요청 보낸 허브아이디에 대한 아이디가 없습니다.. 다시 확인해주세요");
         }
 
         Company company = new Company(request.hubId(), request.name(), request.type(), request.owner(), request.address(), request.number());
@@ -161,7 +169,7 @@ public class CompanyService {
             throw new CompanyNotFoundException(companyIds);
         }
         // 각 상품에 대해 논리 삭제 처리
-        companies.forEach(company -> company.softDelete(userId));
+        companies.forEach(company -> company.softDelete(UUID.fromString(userId)));
     }
 
     // 권한 확인 SERVICE - ROLE_MASTER, ROLE_HUB_MANAGER(담당 허브), ROLE_COMPANY_MANAGER(본인 업체)

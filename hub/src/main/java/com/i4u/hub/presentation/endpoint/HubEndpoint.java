@@ -3,6 +3,7 @@ package com.i4u.hub.presentation.endpoint;
 import java.util.Map;
 import java.util.UUID;
 
+import com.i4u.hub.domain.model.Hub;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -89,6 +90,28 @@ public class HubEndpoint {
 	@GetMapping("/products/{hubId}")
 	public Boolean confirmHubFromProduct(@PathVariable UUID hubId) {
 		Boolean response = hubClientService.confirmHubFromProduct(hubId);
+		return response;
+	}
+
+
+	//company가 보내는 로그인 한 사람이 허브매니저라면 본인 허브인지 확인
+	//@GetMapping("/api/v1/hubs/companies/{userId}")
+	//UUID getHubInfo(@PathVariable("userId") UUID userId);
+	@GetMapping("/companies/{hubId}")
+	public UUID getHubInfo(@PathVariable UUID hubId) {
+		Hub response = hubClientService.getHubInfoFromCompany(hubId);
+		if(response == null) {
+			return null;
+		}
+		return hubId;
+	}
+
+	//company가 보내는 hubId 검증
+	//@GetMapping("/api/v1/hubs/companies/checkHubId/{hubId}")
+	//Boolean getHubId(@PathVariable("hubId") UUID hubId);
+	@GetMapping("/companies/checkHubId/{hubId}")
+	public Boolean getHubId(@PathVariable UUID hubId) {
+		Boolean response = hubClientService.confirmHubFromCompany(hubId);
 		return response;
 	}
 }

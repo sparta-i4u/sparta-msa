@@ -9,7 +9,9 @@ import java.util.UUID;
 @FeignClient(name = "HUB-SERVICE")
 public interface HubClient {
 
-    @GetMapping("/api/v1/hubs/companies/{hubId}")
-    UUID getHubInfo(@PathVariable("hubId") UUID hubId);
+    @GetMapping("/api/v1/hubs/companies/{userId}")
+    UUID getHubInfo(@PathVariable("userId") UUID userId);
 
+    @GetMapping("/api/v1/hubs/companies/checkHubId/{hubId}")
+    Boolean getHubId(@PathVariable("hubId") UUID hubId);
 }
