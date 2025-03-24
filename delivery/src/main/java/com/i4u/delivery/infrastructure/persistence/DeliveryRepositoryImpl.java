@@ -2,6 +2,17 @@ package com.i4u.delivery.infrastructure.persistence;
 
 import static com.i4u.delivery.domain.entity.QDelivery.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PagedModel;
+import org.springframework.stereotype.Repository;
+
 import com.i4u.delivery.application.dtos.request.DeliverySearchRequest;
 import com.i4u.delivery.application.dtos.response.DeliveryGetListResponse;
 import com.i4u.delivery.domain.entity.DeliveryState;
@@ -10,20 +21,9 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PagedModel;
-
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Repository
@@ -65,7 +65,7 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
             .limit(pageSize)
             .fetch();
 
-        long totalCount = getTotalCount(request);
+        long totalCount = getTotalCount(request, role, userId, hubManagerHubId);
         Page<DeliveryGetListResponse> deliveryList = new PageImpl<>(results, pageable, totalCount);
         return new PagedModel<>(deliveryList);
     }
@@ -75,12 +75,12 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
      * @param request : 검색어 조건
      * @return : 검색어 조건에 해당하는 데이터 개수 반환
      */
-    private Long getTotalCount(DeliverySearchRequest request) {
+    private Long getTotalCount(DeliverySearchRequest request, String role, UUID userId, UUID hubManagerHubId) {
         // return ~
         return jpaQueryFactory.select(delivery.count())
             .from(delivery)
             .where(
-                // confirmRole(role),
+                confirmRole(role, userId, hubManagerHubId),
                 orderId(request.getOrderId()),
                 deliveryState(request.getDeliveryState()),
                 shipperId(request.getShipperId()),
@@ -155,19 +155,19 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
      * 권한 확인
      *
      * @param role            : 사용자 권한 확인
-     * @param userId
-     * @param hubManagerHubId
+     * @param userId          : 사용자 ID
+     * @param hubManagerHubId : 허브 담당자의 허브 ID
      * @return : 권한에 따른 결과 리턴
      */
     private BooleanExpression confirmRole(String role, UUID userId, UUID hubManagerHubId) {
-        if (role.equals("ROLE_MASTER") || role.equals("ROLE_COMPANY_MANAGER")) {
+        if (role.contains("MASTER") || role.contains("COMPANY_MANAGER")) {
             return null;
         } else {
-            if (role.equals("ROLE_HUB_MANAGER")) {
+            if (role.contains("HUB_MANAGER")) {
                 return delivery.arriveHubId.eq(hubManagerHubId)
                     .or(delivery.departHubId.eq(hubManagerHubId));
             }
-            if (role.equals("ROLE_DELIVERY_MANAGER")) {
+            if (role.contains("DELIVERY")) {
                return delivery.shipperId.eq(userId);
             }
         }

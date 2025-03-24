@@ -229,11 +229,11 @@ public class ShipperRepositoryImpl implements ShipperRepositoryCustom {
 	 * @return : 권한에 따른 필터링 여부 반환
 	 */
 	private BooleanExpression confirmUserRole(UUID userId, String role, UUID hubManagerHubId) {
-		if (role.equals("ROLE_MASTER")) {
+		if (role.equals("MASTER")) {
 			return null;
-		} else if (role.equals("ROLE_HUB_MANAGER")) {
+		} else if (role.equals("HUB_MANAGER")) {
 			return shipper.hubId.eq(hubManagerHubId);
-		} else if (role.equals("ROLE_DELIVERY_MANAGER")) {
+		} else if (role.equals("DELIVERY_MANAGER")) {
 			return shipper.shipperId.eq(userId);
 		}
 		return null;

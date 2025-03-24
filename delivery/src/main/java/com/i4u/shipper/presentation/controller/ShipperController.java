@@ -1,7 +1,6 @@
 package com.i4u.shipper.presentation.controller;
 
 import java.beans.PropertyEditorSupport;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -62,8 +61,6 @@ public class ShipperController {
 		@RequestBody ShipperCreateRequest shipperCreateRequest,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
-		log.info("배송 담당자 생성 요청 들어옴");
-		log.info("userId: " + userId);
 		ShipperCreateResponse response = shipperService.createShipper(shipperCreateRequest, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 담당자 생성 성공"));
 	}
@@ -79,7 +76,6 @@ public class ShipperController {
 		Pageable pageable, @ModelAttribute ShipperSearchRequest request,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
-		log.info("배송 담당자 전제 조회 요청 들어옴");
 		PagedModel<ShipperListResponse> shipperList = shipperService.getAllShippers(pageable, request, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(shipperList, "배송 담당자 전체 조회 성공"));
 	}
@@ -95,7 +91,6 @@ public class ShipperController {
 		@PathVariable UUID shipperId,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
-		log.info("배송 담당자 단건 조회 요청 들어옴 : " + shipperId);
 		ShipperGetOneResponse response = shipperService.getOneShipper(shipperId, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 담당자 단건 조회 성공"));
 	}
@@ -111,8 +106,6 @@ public class ShipperController {
 		@PathVariable UUID shipperId, @RequestBody ShipperUpdateRequest shipperUpdateRequest,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
-		log.info("배송 담당자 수정 요청 들어옴 : " + shipperId);
-		log.info(shipperUpdateRequest.getShipperType().toString());
 		ShipperUpdateResponse response = shipperService.updateShipper(shipperId, shipperUpdateRequest, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 담당자 수정 성공"));
 	}
@@ -128,7 +121,6 @@ public class ShipperController {
 		@PathVariable UUID shipperId,
 		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
-		log.info("배송 담당자 삭제 요청 들어옴 : " + shipperId);
 		shipperService.deleteShipper(shipperId, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(shipperId, "배송 담당자 삭제 성공"));
 	}

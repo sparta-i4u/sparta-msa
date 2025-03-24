@@ -22,9 +22,6 @@ public class ShipperClientService implements ShipperClient {
 
 	private final ShipperRepository shipperRepository;
 
-	// HubId, DeliveryOrder 순으로 저장해두고, 해당 허브에 마지막으로 배송한 배송 담당자가 누구인지 저장해둠
-	private HashMap<UUID, Integer> shippersLastOrder = new HashMap<>();
-
 	// 캐싱
 	private final RedisTemplate<String, Integer> redisTemplate;
 	private static final String CACHE_PREFIX = "shippers:lastOrder:";
