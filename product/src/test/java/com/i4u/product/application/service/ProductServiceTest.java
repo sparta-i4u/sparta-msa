@@ -106,10 +106,10 @@ class ProductServiceTest {
                 10 // 수량
         );
 
-        when(hubClient.getHubId(any(UUID.class))).thenReturn(requestDto.hubId());  // mock HubClient
+        when(hubClient.getHubId(any(UUID.class))).thenReturn(hubId);  // mock HubClient
 
         // CompanyClient mock 설정
-        when(companyClient.getCompanyId(any(UUID.class))).thenReturn(companyId);        // HubClient mock 설정
+        when(companyClient.getCompanyId(any(UUID.class))).thenReturn(hubId);        // HubClient mock 설정
 
 
         // ProductService에서 반환할 상품 객체 생성
