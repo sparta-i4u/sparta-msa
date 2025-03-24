@@ -55,5 +55,4 @@ public class Company extends Basic {
         this.address = newCompany.address();
         this.number = newCompany.number();
     }
-
 }

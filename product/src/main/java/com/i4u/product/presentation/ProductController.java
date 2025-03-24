@@ -19,12 +19,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
-public class ProductController {
+public class ProductController implements ProductApi {
 
     private final ProductService productService;
-
-    // @RequestHeader(name = "X-User-Id") String userId
-    // @RequestHeader(name = "X-User-Role") String role
 
     // 상품 등록
     // 담당허브와 본인업체만 가능하게
