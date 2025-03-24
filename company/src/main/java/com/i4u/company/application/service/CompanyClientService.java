@@ -47,4 +47,13 @@ public class CompanyClientService {
 
         return response;
     }
+
+    //product에서 만든 상품의 CompanyId를 검증하는 메소드
+    public Boolean confirmCompanyByProduct(UUID companyId) {
+        Company company = companyRepository.findById(companyId).orElse(null);
+        if(company == null){
+            return false;
+        }return true;
+    }
+
 }

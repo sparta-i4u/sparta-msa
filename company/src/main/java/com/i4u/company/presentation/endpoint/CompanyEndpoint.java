@@ -30,4 +30,12 @@ public class CompanyEndpoint {
         OrderCompanyUpdateResponse response = companyClientService.confirmCompanyUpdate(companyId);
         return ResponseEntity.ok(CommonResponse.success(response, "업체 검증 완료"));
     }
+
+    ////상품 만들 때, 진짜 해당하는 업체의 CompanyId가 맞는지
+    //    @GetMapping("/api/v1/companies/products/{companyId}")
+    //    public Boolean getCompanyIdByProduct(@PathVariable UUID companyId);
+    @GetMapping("/products/{companyId}")
+    public Boolean confirmCompanyByProduct(@PathVariable UUID companyId) {
+        return companyClientService.confirmCompanyByProduct(companyId);
+    }
 }
