@@ -29,7 +29,7 @@ public class OrderApplicationQueueConfig {
 	public RabbitTemplate rabbitTemplate() {
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
 		rabbitTemplate.setMessageConverter(producerJackson2MessageConverter()); // JSON 직렬화
-		rabbitTemplate.setReplyTimeout(10000); // 응답 대기 시간 10초로 설정
+		rabbitTemplate.setReplyTimeout(20000); // 응답 대기 시간 10초로 설정
 		return rabbitTemplate;
 	}
 

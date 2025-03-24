@@ -13,4 +13,7 @@ public interface HubClient {
     
     @GetMapping("/api/v1/hubs/{hubId}")
     CommonResponse<HubDto> getHubById(@PathVariable("hubId") UUID hubId);
+
+    @GetMapping("/api/v1/hubs/messges/{supplierHubId}/{recipientHubId}")
+    CommonResponse<HubDto> getHubInfos(@PathVariable UUID supplierHubId, @PathVariable UUID recipientHubId);
 }

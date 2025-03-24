@@ -12,10 +12,14 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HubDto {
-    private UUID hubId;
-    private String hubName;
-    private String address;
-    private Double latitude;
-    private Double longitude;
-    private UUID managerId;
+    private String supplierHubName;
+    private String supplierHubAddress;
+    private Double supplierHubLatitude;
+    private Double supplierHubLongitude;
+    private UUID supplierHubManagerId;
+
+    private String recipientHubName;
+    private String recipientHubAddress;
+    private Double recipientHubLatitude;
+    private Double recipientHubLongitude;
 }

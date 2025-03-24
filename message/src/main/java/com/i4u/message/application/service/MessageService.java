@@ -56,27 +56,37 @@ public class MessageService {
     }
 
     public MessageResDto sendAIMessage(AIMessageReqDto request) throws IOException, SlackApiException {
+        // 허브 가져오기
+        CommonResponse<HubDto> hubDto = hubClient.getHubInfos(request.getSupplierHubId(), request.getRecipientHubId());
+
         // 주문 정보를 기반으로 AI에 질문할 문자열 생성
         String aiQuestion = String.format(
-                "다음 고객 주문 정보를 바탕으로 물류 시스템을 고려해서 업체의 발송 시한을 계산해서 알려주세요 (발송시한만 답변):\n" +
-                        "배송 담당자 근무시간:  09 - 18 \n" +
-                        "주문 ID: %s\n" +
-                        "제품명: %s\n" +
-                        "제품 수량: %s\n" +
-                        "요구사항: %s\n" +
-                        "공급업체 허브 ID: %s\n" +
-                        "수신자 허브 ID: %s\n" +
-                        "발송자 이메일: %s\n" +
-                        "수신자 이메일: %s",
-                request.getOrderId(),
-                request.getProductName(),
-                request.getProductQuantity(),
-                request.getRequirement(),
-                request.getSupplierHubId(),
-                request.getRecipientHubId(),
-                request.getShipperEmail(),
-                request.getRecipientEmail()
+            "다음 고객 주문 정보를 기반으로 발송 시한을 계산해 주세요 (발송시한만 답변):\n" +
+                "**발송 시한은 반드시 'YYYY-MM-DD HH:mm' 형식으로 답변해 주세요.**\n" +
+                "발송 가능 시간: 매일 09:00 - 18:00\n" +
+                "배송 담당자 근무시간: 09 - 18\n" +
+                "공급업체 허브 위치: 위도 %f, 경도 %f\n" +
+                "수신자 허브 위치: 위도 %f, 경도 %f\n\n" +
+                "최종 도착 주소: %s\n" +
+                "주문 정보:\n" +
+                "- 주문 ID: %s\n" +
+                "- 제품명: %s\n" +
+                "- 제품 수량: %s\n" +
+                "- 요구사항: %s (요구사항을 반영하여 발송 시한을 계산해 주세요.)\n" +
+                "**요구사항을 반드시 고려하여 발송 시한을 계산하세요.**",
+
+            hubDto.getData().getSupplierHubLatitude(),
+            hubDto.getData().getSupplierHubLongitude(),
+            hubDto.getData().getRecipientHubLatitude(),
+            hubDto.getData().getRecipientHubLongitude(),
+            request.getAddress(),
+
+            request.getOrderId(),
+            request.getProductName(),
+            request.getProductQuantity(),
+            request.getRequirement()
         );
+
 
         // AI 응답 생성
         String aiResponse = aiService.generateResponse(aiQuestion);
@@ -90,17 +100,16 @@ public class MessageService {
 
         aiRepository.save(ai);
 
-        // 허브 가져오기
-        CommonResponse<HubDto> hubDto = hubClient.getHubById(request.getSupplierHubId());
-
         String slackId = null;
-        if (hubDto.getData().getManagerId() != null) {
-            ConfirmUserResponse confirmUserResponse = authClient.confirmUser(hubDto.getData().getManagerId());
+        if (hubDto.getData() != null) {
+            System.out.println(hubDto.getData().getSupplierHubManagerId());
+            ConfirmUserResponse confirmUserResponse = authClient.confirmUser(hubDto.getData().getSupplierHubManagerId());
             slackId = confirmUserResponse.getUserSlackId();
         }
 
         // 슬랙 메시지 전송
-        sendMessage(aiResponse, slackId);
+        String sendMessageToHubManager = makeMessage(aiResponse, request);
+        sendMessage(sendMessageToHubManager, slackId);
 
         // 메시지 엔티티 저장
         Message message = Message.builder()
@@ -111,6 +120,30 @@ public class MessageService {
         Message savedMessage = messageRepository.save(message);
 
         return MessageResDto.from(savedMessage);
+    }
+
+    private String makeMessage(String aiResponse, AIMessageReqDto request) {
+        String format = "주문 번호 : %s%n" +
+            "주문자 정보 : %s / %s%n" +
+            "상품 정보 : %s%n" +
+            "요청 사항 : %s%n" +
+            "도착지 : %s%n" +
+            "배송담당자 : %s / %s%n%n" +
+            "최종 발송 시한은 %s시 입니다.";
+
+        String result = String.format(format,
+            String.valueOf(request.getOrderId()),
+            request.getRecipientEmail(), request.getRecipientSlackId(),
+            request.getProductName() + " " + String.valueOf(request.getProductQuantity()),
+            request.getRequirement(),
+            request.getAddress(),
+            request.getShipperEmail(), request.getShipperSlackId(),
+            aiResponse.trim()
+        );
+
+        System.out.println(result);
+
+        return result;
     }
 }
 
