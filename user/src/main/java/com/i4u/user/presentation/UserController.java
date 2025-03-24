@@ -20,7 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-public class UserController {
+public class UserController implements UserApi{
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
@@ -35,17 +35,15 @@ public class UserController {
     // 특정 사용자 조회 - ID 기반 (GET /users/{userId})
     @GetMapping("/{userId}")
     public ResponseEntity<CommonResponse<UserDetailResponseDto>> getUserById(@PathVariable UUID userId) {
-        return userService.getUserById(userId)
-                .map(user -> ResponseEntity.ok(CommonResponse.success(user, "사용자 조회 성공")))
-                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
+        UserDetailResponseDto user = userService.getUserById(userId);
+        return ResponseEntity.ok(CommonResponse.success(user, "사용자 조회 성공"));
     }
 
     // 특정 사용자 조회 - Slack ID 기반 (GET /users/slack/{slackId})
     @GetMapping("/slack/{slackId}")
     public ResponseEntity<CommonResponse<UserDetailResponseDto>> getUserBySlackId(@PathVariable String slackId) {
-        return userService.getUserBySlackId(slackId)
-                .map(user -> ResponseEntity.ok(CommonResponse.success(user, "사용자 조회 성공")))
-                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
+        UserDetailResponseDto user = userService.getUserBySlackId(slackId);
+        return ResponseEntity.ok(CommonResponse.success(user, "사용자 조회 성공"));
     }
 
     // 사용자 검색 (GET /users/search?keyword=xxx&role=HUB_MANAGER&page=0&size=10)

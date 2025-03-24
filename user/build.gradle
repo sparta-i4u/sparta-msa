@@ -32,14 +32,18 @@ dependencies {
     // 공통 모듈 추가
     implementation project(':common')
 
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.data:spring-data-redis'
     // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
-    // Zipkin
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    // Zipkin'
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
-    implementation 'io.github.openfeign:feign-micrometer'
-//    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 
+    implementation 'io.github.openfeign:feign-micrometer'
     // JPA & QueryDSL
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
@@ -52,8 +56,6 @@ dependencies {
 
     // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-//    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-//    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     // Open Feign
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'

@@ -74,7 +74,7 @@ public class AuthService {
                 request.toUserRole()
         );
 
-        // 💡 user-service 내부에서 중복 확인 등 처리
+        // user-service 내부에서 중복 확인 등 처리
         UserDetailResponseDto userResponse = userClient.createUser(userRequest);
         UUID userId = userResponse.getUserId();
 
