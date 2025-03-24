@@ -1,35 +1,441 @@
 version: '3.8'
+# common 모듈은 넣는게 아님, 각 모듈마다 dockerfile에 셋팅해주는거임
 services:
+  eureka-server:
+    build:
+      context: .
+      dockerfile: ./eureka-server/Dockerfile
+    image: eureka-server-service:latest
+    container_name: eureka-server
+    ports:
+      - "19090:19090"  # Eureka 포트
+    environment:
+      EUREKA_SERVER_PORT: 19090
+      SPRING_APPLICATION_NAME: eureka-server-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://eureka-server:19090/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    command: [ "java", "-jar", "eureka-server-0.0.1-SNAPSHOT.jar" ]
+    depends_on:
+      - zipkin
+
+  gateway:
+    build:
+      context: .
+      dockerfile: ./gateway/Dockerfile
+    image: gateway-service:latest
+    container_name: gateway
+    ports:
+      - "19091:19091"  # 호스트:컨테이너 포트
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:19090/eureka/
+      JWT_SECRET: this-is-a-very-secure-and-long-secret-key
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    restart: always  # 컨테이너가 비정상 종료되면 자동 재시작
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19091/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    command: ["./wait-for-it.sh", "eureka-server:19090", "--", "java", "-jar", "gateway-0.0.1-SNAPSHOT.jar"]
+    depends_on:
+      - eureka-server
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./auth/Dockerfile
+    image: auth-service:latest
+    container_name: auth-service
+    ports:
+      - "19093:19093"
+    environment:
+      AUTH_USER: ${AUTH_USER}
+      AUTH_PASSWORD: ${AUTH_PASSWORD}
+      AUTH_DB: ${AUTH_DB}
+      JWT_SECRET: "this-is-a-very-secure-and-long-secret-key"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:19090/eureka/
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - eureka-server
+      - gateway
+      - auth-db
+#     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19093/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  auth-db:
+    image: postgres:latest
+    container_name: auth-db
+    environment:
+      POSTGRES_DB: ${AUTH_DB}
+      POSTGRES_USER: ${AUTH_USER}
+      POSTGRES_PASSWORD: ${AUTH_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "authdb00",  "-d", "auth"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  user-service:
+    build:
+      context: .
+      dockerfile: ./user/Dockerfile
+    image: user-service
+    container_name: user-service
+    ports:
+      - "19092:19092"
+    environment:
+      USER_USERNAME: ${USER_USERNAME}
+      USER_PASSWORD: ${USER_PASSWORD}
+      USER_DB: ${USER_DB}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:19090/eureka/
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      - eureka-server
+      - gateway
+      - user-db
+#    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:19092/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
   user-db:
-    image: postgres:15
+    image: postgres:latest
     container_name: user-db
     environment:
-      POSTGRES_DB: userdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${USER_DB}
+      POSTGRES_USER: ${USER_USERNAME}
+      POSTGRES_PASSWORD: ${USER_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
-      - user-db-data:/var/lib/postgresql/data
-    networks:
-      - msa-network
+      - user-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "userdb00", "-d", "user"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
-  user-service:
-    image: user-service
-    container_name: user-service
-    depends_on:
-      - user-db
+  company-service:
+    build:
+      context: .
+      dockerfile: ./company/Dockerfile
+    image: company-service
+    container_name: company-service
     ports:
-      - "8081:8081"
+      - "19020:19020"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/userdb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: pass
-    networks:
-      - msa-network
+      USER_USERNAME: ${COMPANY_USER }
+      USER_PASSWORD: ${COMPANY_PASSWORD}
+      USER_DB: ${COMPANY_DB}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:19090/eureka/
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - eureka-server
+      - gateway
+      - company-db
+#    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:19020/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
 
-networks:
-  msa-network:
+  company-db:
+    image: postgres:latest
+    container_name: company-db
+    environment:
+      POSTGRES_DB: ${COMPANY_DB}
+      POSTGRES_USER: ${COMPANY_USER}
+      POSTGRES_PASSWORD: ${COMPANY_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - company-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "companydb00", "-d", "company"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  product-service:
+    build:
+      context: .
+      dockerfile: ./product/Dockerfile
+    image: product-service:latest
+    container_name: product-service
+    ports:
+      - "19030:19030"
+    environment:
+      USER_USERNAME: ${PRODUCT_USER}
+      USER_PASSWORD: ${PRODUCT_PASSWORD}
+      USER_DB: ${PRODUCT_DB}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:19090/eureka/
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - eureka-server
+      - gateway
+      - product-db
+#    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:19030/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  product-db:
+    image: postgres:latest
+    container_name: product-db
+    environment:
+      POSTGRES_DB: ${PRODUCT_DB}
+      POSTGRES_USER: ${PRODUCT_USER}
+      POSTGRES_PASSWORD: ${PRODUCT_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - product-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "productdb00", "-d", "product"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  order-service:
+    build:
+      context: .
+      dockerfile: ./order/Dockerfile
+    image: order-service:latest
+    container_name: order-service
+    ports:
+      - "19040:19040"
+    environment:
+      USER_USERNAME: ${ORDER_USER}
+      USER_PASSWORD: ${ORDER_PASSWORD}
+      USER_DB: ${ORDER_DB}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:19090/eureka/
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - eureka-server
+      - gateway
+      - order-db
+    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:19040/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  order-db:
+    image: postgres:latest
+    container_name: order-db
+    environment:
+      POSTGRES_DB: ${ORDER_DB}
+      POSTGRES_USER: ${ORDER_USER}
+      POSTGRES_PASSWORD: ${ORDER_PASSWORD}
+    ports:
+      - "5436:5432"
+    volumes:
+      - order-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "orderdb00", "-d", "order"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  delivery-service:
+    build:
+      context: .
+      dockerfile: ./delivery/Dockerfile
+    image: delivery-service:latest
+    container_name: delivery-service
+    ports:
+      - "19050:19050"
+    environment:
+      USER_USERNAME: ${DELIVERY_USER}
+      USER_PASSWORD: ${DELIVERY_PASSWORD}
+      USER_DB: ${DELIVERY_DB}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:19090/eureka/
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - eureka-server
+      - gateway
+      - delivery-db
+#    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:19050/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  delivery-db:
+    image: postgres:latest
+    container_name: delivery-db
+    environment:
+      POSTGRES_DB: ${DELIVERY_DB}
+      POSTGRES_USER: ${DELIVERY_USER}
+      POSTGRES_PASSWORD: ${DELIVERY_PASSWORD}
+    ports:
+      - "5437:5432"
+    volumes:
+      - delivery-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "deliverydb00", "-d", "delivery"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  hub-service:
+    build:
+      context: .
+      dockerfile: ./hub/Dockerfile
+    image: hub-service:latest
+    container_name: hub-service
+    ports:
+      - "19060:19060"
+    environment:
+      USER_USERNAME: ${HUB_USER}
+      USER_PASSWORD: ${HUB_PASSWORD}
+      USER_DB: ${HUB_DB}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:19090/eureka/
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - eureka-server
+      - gateway
+      - hub-db
+    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:19060/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  hub-db:
+    image: postgres:latest
+    container_name: hub-db
+    environment:
+      POSTGRES_DB: ${HUB_DB}
+      POSTGRES_USER: ${HUB_USER}
+      POSTGRES_PASSWORD: ${HUB_PASSWORD}
+    ports:
+      - "5438:5432"
+    volumes:
+      - hub-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "hubdb00", "-d", "hub"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  message-service:
+    build:
+      context: .
+      dockerfile: ./message/Dockerfile
+    image: message-service:latest
+    container_name: message-service
+    ports:
+      - "19070:19070"
+    environment:
+      USER_USERNAME: ${MESSAGE_USER}
+      USER_PASSWORD: ${MESSAGE_PASSWORD}
+      USER_DB: ${MESSAGE_DB}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:19090/eureka/
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - eureka-server
+      - gateway
+      - message-db
+    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:19070/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  message-db:
+    image: postgres:latest
+    container_name: message-db
+    environment:
+      POSTGRES_DB: ${MESSAGE_DB}
+      POSTGRES_USER: ${MESSAGE_USER}
+      POSTGRES_PASSWORD: ${MESSAGE_PASSWORD}
+    ports:
+      - "5439:5432"
+    volumes:
+      - message-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "messagedb00", "-d", "message"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  zipkin:
+    image: openzipkin/zipkin:2.24
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1024m
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+#  rabbitmq:
+#    image: rabbitmq:management
+#    container_name: rabbitmq
+#    ports:
+#      - "5672:5672"  # AMQP
+#      - "15672:15672" # 관리 콘솔
+#    environment:
+#      RABBITMQ_DEFAULT_USER: guest
+#      RABBITMQ_DEFAULT_PASS: guest
+#    healthcheck:
+#      test: ["CMD", "rabbitmqctl", "status"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
 
 volumes:
-  user-db-data:
+  user-data:  # user 데이터베이스 저장을 위한 볼륨 정의
+  auth-data:
+  company-data:
+  product-data:
+  order-data:
+  delivery-data:
+  hub-data:
+  message-data:
+

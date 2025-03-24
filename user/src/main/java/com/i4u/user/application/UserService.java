@@ -15,7 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.cache.annotation.Cacheable;
 import java.util.*;
 
 @Service
@@ -57,21 +57,19 @@ public class UserService {
         return UserDetailResponseDto.from(newUser);
     }
     // ✅ userId를 기반으로 사용자 조회
-    public Optional<UserDetailResponseDto> getUserById(UUID userId) {
+    @Cacheable(value = "userCache", key = "#userId")
+    public UserDetailResponseDto getUserById(UUID userId) {
         return userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .map(UserDetailResponseDto::from)
-                .or(() -> {
-                    throw new UserException(UserException.UserErrorType.USER_NOT_FOUND);
-                });
+                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
     }
 
     // ✅ Slack ID를 기반으로 사용자 조회
-    public Optional<UserDetailResponseDto> getUserBySlackId(String slackId) {
+    @Cacheable(value = "userCache", key = "#slackId")
+    public UserDetailResponseDto getUserBySlackId(String slackId) {
         return userRepository.findBySlackIdAndIsDeletedFalse(slackId)
                 .map(UserDetailResponseDto::from)
-                .or(() -> {
-                    throw new UserException(UserException.UserErrorType.USER_NOT_FOUND);
-                });
+                .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
     }
 
     // ✅ 사용자 검색 기능 (페이징 포함)

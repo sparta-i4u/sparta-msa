@@ -18,13 +18,13 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthController implements AuthApi {
 
     private final AuthService authService;
 
     // ✅ 사용자 정보 조회 API (다른 모듈에서 사용 가능)
     @GetMapping("/user-info/{userId}")
-    ConfirmUserResponse getAuthUserInfo(@PathVariable UUID userId) {
+    public ConfirmUserResponse getAuthUserInfo(@PathVariable UUID userId) {
         System.out.println("userId : " + userId);
         return authService.getAuthUserInfo(userId);
     }

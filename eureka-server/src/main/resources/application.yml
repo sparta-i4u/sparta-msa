@@ -1,11 +1,27 @@
 server:
-  port: 19090
-
+  port: 19090  # Eureka Server가 사용할 포트
 eureka:
   instance:
-    hostname: localhost
+    hostname: eureka-server
+    instance-id: ${SPRING_APPLICATION_NAME}:${random.value}  # 인스턴스 ID 생성
+    prefer-ip-address: true  # IP 주소를 우선 사용
+    health-check-url-path: /actuator/health  # 헬스 체크 경로
+    lease-renewal-interval-in-seconds: 10  # 서비스 갱신 주기
+    lease-expiration-duration-in-seconds: 30  # 서비스 만료 시간
   client:
-    registerWithEureka: false
-    fetchRegistry: false
-    serviceUrl:
-      defaultZone: http://localhost:19090/eureka/
+    registerWithEureka: true
+    fetchRegistry: true
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://eureka-server:19090/eureka/}
+
+logging:
+  level:
+    com.i4u.user: info
+    org.springframework.cloud.openfeign: info
+    org:
+      springframework:
+        web: info
+      hibernate:
+        orm:
+          jdbc:
+            bind: trace
