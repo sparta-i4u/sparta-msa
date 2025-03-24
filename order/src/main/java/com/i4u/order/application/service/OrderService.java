@@ -25,9 +25,12 @@ import com.i4u.order.domain.repository.OrderRepository;
 import com.i4u.order.presentation.client.CompanyClient;
 import com.i4u.order.presentation.client.DeliveryClient;
 import com.i4u.order.presentation.client.ProductClient;
+import com.i4u.order.presentation.dtos.request.OrderCompanyRequest;
+import com.i4u.order.application.dtos.request.OrderSearchRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderDeliveryUpdateRequest;
+import com.i4u.order.presentation.dtos.request.OrderProductRequest;
 import com.i4u.order.presentation.dtos.request.OrderProductStateUpdateRequest;
 import com.i4u.order.presentation.dtos.request.OrderProductUpdateRequest;
 import com.i4u.order.presentation.dtos.response.OrderProductUpdateResponse;
@@ -62,7 +65,7 @@ public class OrderService {
 	 * @return : 생성한 주문 내용
 	 */  // MASTER, HUB_MANAGER, DELIVERY_MANAGER, COMPANY_MANAGER (ALL) -> 권한 검증 과정 X
 	@Transactional
-	public OrderCreateResponse createOrder(OrderCreateRequest request, String userId) {
+	public OrderCreateResponse createOrder(OrderCreateRequest request, UUID userId) {
 		// 1. [companyClient] 업체 쪽으로 검증 요청 필요
 		OrderCompanyResponse responseCompany = companyClient.confirmCompany(
 			request.getSupplierId(), request.getRecipientId());
@@ -90,7 +93,7 @@ public class OrderService {
 		// 3. 주문 생성 (일단은 DeliveryId 없이 생성 후 저장) → 주문 상태는 PAID로 지정
 		Long productTotalPrice = responseProduct.getProductTotalPrice();
 		Order order = request.toOrder(productTotalPrice, responseCompany.getSupplierHubId(), responseCompany.getRecipientHubId(),
-				UUID.fromString(userId));
+				userId);
 
 		// 4. 생성한 주문 저장
 		Order savedOrder = orderRepository.save(order);
@@ -102,7 +105,7 @@ public class OrderService {
 				.recipientHubId(responseCompany.getSupplierHubId())
 				.supplierHubId(responseCompany.getRecipientHubId())
 				.address(responseCompany.getAddress())
-				.recipientId(UUID.fromString(userId))
+				.recipientId(userId)
 				.build());
 
 		// 6. 받아온 내용으로 order Update
@@ -117,14 +120,14 @@ public class OrderService {
 	 * @return : 조회한 주문 전체 내용
 	 */ // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 주문), COMPANY_MANAGER(본인 주문)
 	public PagedModel<OrderGetListResponse> getAllOrders(
-			Pageable pageable, OrderSearchRequest request, String userId, String role) {
+			Pageable pageable, OrderSearchRequest request, UUID userId, String role) {
 		// HUB MANAGER면 담당하는 허브가 필요하고, MASTER는 조건 X,
 		// DELVIERY_MANAGER, COMPANY_MANAGER면 userID와 일치하는 경우만 조회 가능
 		if (role.equals("ROLE_HUB_MANAGER")) {
-			hubClient.getHubIdFromOrder(UUID.fromString(userId));
+			hubClient.getHubIdFromOrder(userId);
 		}
 
-		PagedModel<OrderGetListResponse> orderPage = orderRepository.searchOrder(pageable, request, UUID.fromString(userId), role);
+		PagedModel<OrderGetListResponse> orderPage = orderRepository.searchOrder(pageable, request, userId, role);
 		return orderPage;
 	}
 
@@ -136,19 +139,19 @@ public class OrderService {
 	 * @param role
 	 * @return : 조회된 주문의 내용
 	 */  // MASTER, HUB_MANAGER(담당 허브), DELIVERY_MANAGER(본인 주문), COMPANY_MANAGER(본인 주문)
-	public OrderGetOneResponse getOneOrder(UUID orderId, String userId, String role) {
+	public OrderGetOneResponse getOneOrder(UUID orderId, UUID userId, String role) {
 		// 1. orderId에 해당하는 Order 검색
 		Order order = findOrder(orderId);
 
 		// 2. 권한 검증 필수
 		//    허브 관리자라면 허브 담당자가 관리하는 허브의 주문만 조회 가능
-		if (! ( role.equals("ROLE_HUB_MANAGER") &&
-				confirmHubId(UUID.fromString(userId), order.getRecipientHubId(), order.getSupplierHubId())) ) {
-			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
+		if (  role.equals("HUB_MANAGER") &&
+				!confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId()) ) {
+			throw new OrderException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		// 배송 담당자랑 업체 관리자는 본인이 주문한 ! 내역만 확인 가능
-		if (role.equals("ROLE_DELIVERY_MANAGER") || role.equals("ROLE_COMPANY_MANAGER")) {
+		if (role.equals("DELIVERY_MANAGER") || role.equals("COMPANY_MANAGER")) {
 			if (!order.getUserId().equals(userId)) {
 				throw new OrderException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 			}
@@ -167,17 +170,17 @@ public class OrderService {
 	 * @return : 수정된 주문 정보
 	 */ // MASTER, HUB_MANAGER(담당 허브)
 	@Transactional
-	public OrderUpdateResponse updateOrder(UUID orderId, OrderUpdateRequest request, String userId, String role) {
+	public OrderUpdateResponse updateOrder(UUID orderId, OrderUpdateRequest request, UUID userId, String role) {
 		// 1. orderId에 해당하는 Order 검색
 		Order order = findOrder(orderId);
 
 		// 2. 권한 검증 필수
-		if (! ( role.equals("ROLE_HUB_MANAGER") &&
-				confirmHubId(UUID.fromString(userId), order.getRecipientHubId(), order.getSupplierHubId())) ) {
+		if (! ( role.equals("HUB_MANAGER") &&
+				confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (!role.equals("ROLE_MASTER")) {
-			throw new OrderException("조회 권한이 없습니다.", HttpStatus.BAD_REQUEST);
+		if (!role.equals("MASTER")) {
+			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		// 3. 현재 주문의 상태가 결제 완료인 경우만 수정 가능하도록 설정하기 (배송 ID가 배정되어버리면 변경 불가능)
@@ -227,17 +230,17 @@ public class OrderService {
 	 * @return : 변경된 주문 정보
 	 */ // MASTER, HUB_MANAGER(담당 허브)
 	@Transactional
-	public OrderStatusUpdateResponse updateOrderStatus(UUID orderId, OrderStatusUpdateRequest request, String userId,
+	public OrderStatusUpdateResponse updateOrderStatus(UUID orderId, OrderStatusUpdateRequest request, UUID userId,
 													   String role) {
 		// 1. orderId에 해당하는 Order 검색
 		Order order = findOrder(orderId);
 
 		// 2. 권한 검증 필수
-		if (! ( role.equals("ROLE_HUB_MANAGER") &&
-				confirmHubId(UUID.fromString(userId), order.getRecipientHubId(), order.getSupplierHubId())) ) {
+		if (! ( role.equals("HUB_MANAGER") &&
+				confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (!role.equals("ROLE_MASTER") || !role.equals("ROLE_HUB_MANAGER")) {
+		if (!role.equals("MASTER") || !role.equals("HUB_MANAGER")) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -287,21 +290,21 @@ public class OrderService {
 	 * @param role
 	 */  // MASTER, HUB_MANAGER(담당 허브)
 	@Transactional
-	public void deleteOrder(UUID orderId, String userId, String role) {
+	public void deleteOrder(UUID orderId, UUID userId, String role) {
 		// 1. orderId에 해당하는 Order 검색
 		Order order = findOrder(orderId);
 
 		// 2. 권한 검증 필수
-		if (! ( role.equals("ROLE_HUB_MANAGER") &&
-				confirmHubId(UUID.fromString(userId), order.getRecipientHubId(), order.getSupplierHubId())) ) {
+		if (( role.equals("HUB_MANAGER") &&
+				! confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (!role.equals("ROLE_MASTER")) {
+		if (!role.equals("MASTER")) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
 		// 3. 삭제 진행
-		order.softDelete(UUID.fromString(userId));
+		order.softDelete(userId);
 	}
 
 	private Boolean confirmHubId(UUID userId, UUID realHubId1, UUID realHubId2) {

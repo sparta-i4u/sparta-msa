@@ -34,7 +34,7 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
 
     @Override
     public PagedModel<DeliveryGetListResponse> searchDeliveries(Pageable pageable, DeliverySearchRequest request,
-		String userId, String role, UUID hubManagerHubId) {
+		UUID userId, String role, UUID hubManagerHubId) {
         List<OrderSpecifier<?>> orders = getAllOrderSpecifiers(pageable);
         long pageSize = getPageSize(pageable.getPageSize(), pageable.getOffset());
 
@@ -159,7 +159,7 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
      * @param hubManagerHubId
      * @return : 권한에 따른 결과 리턴
      */
-    private BooleanExpression confirmRole(String role, String userId, UUID hubManagerHubId) {
+    private BooleanExpression confirmRole(String role, UUID userId, UUID hubManagerHubId) {
         if (role.equals("ROLE_MASTER") || role.equals("ROLE_COMPANY_MANAGER")) {
             return null;
         } else {
@@ -168,7 +168,7 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
                     .or(delivery.departHubId.eq(hubManagerHubId));
             }
             if (role.equals("ROLE_DELIVERY_MANAGER")) {
-               return delivery.shipperId.eq(UUID.fromString(userId));
+               return delivery.shipperId.eq(userId);
             }
         }
         return null;

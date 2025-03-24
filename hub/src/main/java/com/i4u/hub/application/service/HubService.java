@@ -3,11 +3,15 @@ package com.i4u.hub.application.service;
 import com.i4u.hub.application.dtos.hub.CreateHubReqDto;
 import com.i4u.hub.application.dtos.hub.HubDetailResDto;
 import com.i4u.hub.application.dtos.hub.HubListResDto;
+import com.i4u.hub.application.dtos.hub.HubPageReqDto;
 import com.i4u.hub.application.dtos.hub.UpdateHubReqDto;
 import com.i4u.hub.domain.model.Hub;
 import com.i4u.hub.domain.repository.HubRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,8 +36,15 @@ public class HubService {
 
     public HubListResDto getHubs() {
         List<Hub> hubs = hubRepository.findAll();
-
         return HubListResDto.from(hubs);
+    }
+
+    // 페이지네이션이 적용된 허브 목록 조회
+    public HubListResDto getHubsWithPagination(HubPageReqDto pageReqDto) {
+        Pageable pageable = PageRequest.of(pageReqDto.getPage(), pageReqDto.getSize());
+        Page<Hub> hubPage = hubRepository.findAllWithPagination(pageable);
+        
+        return HubListResDto.fromPage(hubPage);
     }
 
     @Transactional
@@ -54,5 +65,4 @@ public class HubService {
         hub.softDelete(userId);
         hubRepository.save(hub);
     }
-
 }

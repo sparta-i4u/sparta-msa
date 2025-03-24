@@ -23,7 +23,9 @@ ext {
     set('querydslVersion', "5.0.0")  // QueryDSL 버전 관리
 }
 
-bootJar { enabled = true }
+bootJar {
+    archiveFileName = 'user-0.0.1-SNAPSHOT.jar'
+}
 jar { enabled = true }
 
 dependencies {

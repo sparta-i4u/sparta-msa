@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.i4u.common.utils.CommonResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubUpdateResponse;
-import com.i4u.shipper.presentation.dtos.response.ShipperHubResponse;
 
 @FeignClient(name = "HUB-SERVICE")
 public interface HubClient {
@@ -25,7 +24,7 @@ public interface HubClient {
 
 	// Delivery -> Hub로 해당 허브들이 존재하는지 확인
 	@GetMapping("/api/v1/hubs/deliveries/{recipientHubId}/{supplierHubId}")
-	ResponseEntity<CommonResponse<DeliveryHubCreateResponse>> confirmHubsFromDelivery(@PathVariable UUID recipientHubId, @PathVariable UUID supplierHubId);
+    DeliveryHubCreateResponse confirmHubsFromDelivery(@PathVariable UUID recipientHubId, @PathVariable UUID supplierHubId);
 
 	// Delivery -> Hub로 해당 허브가 존재하는지 확인 (update 시 적용)
 	@GetMapping("/api/v1/hubs/deliveries/{arriveHubId}")

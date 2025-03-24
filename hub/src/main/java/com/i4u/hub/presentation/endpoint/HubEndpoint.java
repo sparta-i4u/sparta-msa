@@ -54,9 +54,9 @@ public class HubEndpoint {
 	 * @return
 	 */
 	@GetMapping("/deliveries/{recipientHubId}/{supplierHubId}")
-	ResponseEntity<CommonResponse<DeliveryHubCreateResponse>> confirmHubsFromDelivery(@PathVariable UUID recipientHubId, @PathVariable UUID supplierHubId) {
+	DeliveryHubCreateResponse confirmHubsFromDelivery(@PathVariable UUID recipientHubId, @PathVariable UUID supplierHubId) {
 		DeliveryHubCreateResponse response = hubClientService.confirmHubsFromDelivery(recipientHubId, supplierHubId);
-		return ResponseEntity.ok(CommonResponse.success(response, ""));
+		return response;
 	}
 
 	/**

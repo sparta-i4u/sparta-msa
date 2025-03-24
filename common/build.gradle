@@ -10,7 +10,9 @@ version = '0.0.1-SNAPSHOT'
 
 // `common` 모듈은 실행 가능한 JAR가 필요하지 않으므로 `bootJar` 비활성화
 bootJar.enabled = false
-jar.enabled = true
+jar {
+	archiveFileName = 'common-0.0.1-SNAPSHOT.jar'
+}
 
 java {
 	toolchain {

@@ -4,6 +4,7 @@ import com.i4u.common.utils.CommonResponse;
 import com.i4u.hub.application.dtos.hub.CreateHubReqDto;
 import com.i4u.hub.application.dtos.hub.HubDetailResDto;
 import com.i4u.hub.application.dtos.hub.HubListResDto;
+import com.i4u.hub.application.dtos.hub.HubPageReqDto;
 import com.i4u.hub.application.dtos.hub.UpdateHubReqDto;
 import com.i4u.hub.application.service.HubService;
 import lombok.RequiredArgsConstructor;
@@ -52,9 +53,19 @@ public class HubController {
      * @return 허브 목록 조회 응답 DTO
      */
     @GetMapping
-    public ResponseEntity<CommonResponse<HubListResDto>> getHubs() {
-         HubListResDto responseDto = hubService.getHubs();
-
+    public ResponseEntity<CommonResponse<HubListResDto>> getHubs(
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", required = false) Integer size) {
+        
+        // 페이지네이션 파라미터가 있으면 페이지네이션 적용
+        if (page != null || size != null) {
+            HubPageReqDto pageReqDto = HubPageReqDto.of(page, size);
+            HubListResDto responseDto = hubService.getHubsWithPagination(pageReqDto);
+            return ResponseEntity.ok(CommonResponse.success(responseDto, "허브 페이지 조회가 완료되었습니다."));
+        }
+        
+        // 페이지네이션 파라미터가 없으면 전체 조회
+        HubListResDto responseDto = hubService.getHubs();
         return ResponseEntity.ok(CommonResponse.success(responseDto, "허브 전체 조회가 완료되었습니다."));
     }
 
@@ -85,5 +96,4 @@ public class HubController {
 
         return ResponseEntity.ok(CommonResponse.success(null, "허브 삭제가 완료되었습니다."));
     }
-
 }

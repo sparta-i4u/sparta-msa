@@ -55,7 +55,7 @@ public class DeliveryController {
 	@GetMapping
 	public ResponseEntity<CommonResponse<PagedModel<DeliveryGetListResponse>>> getAllDeliveries(
 		Pageable pageable, @ModelAttribute DeliverySearchRequest request,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		PagedModel<DeliveryGetListResponse> response = deliveryService.getAllDeliveries(pageable, request, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 전체 조회 성공"));
@@ -70,7 +70,7 @@ public class DeliveryController {
 	@GetMapping("/{deliveryId}")
 	public ResponseEntity<CommonResponse<DeliveryGetOneResponse>> getOneDelivery(
 		@PathVariable UUID deliveryId,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		DeliveryGetOneResponse response = deliveryService.getOneDelivery(deliveryId, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 단건 조회 성공"));
@@ -86,7 +86,7 @@ public class DeliveryController {
 	@PutMapping("/{deliveryId}")
 	public ResponseEntity<CommonResponse<DeliveryUpdateResponse>> updateDelivery(
 		@PathVariable UUID deliveryId, @RequestBody DeliveryUpdateRequest request,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		DeliveryUpdateResponse response = deliveryService.updateDelivery(deliveryId, request, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 수정 성공"));
@@ -102,7 +102,7 @@ public class DeliveryController {
 	@PatchMapping("/{deliveryId}")
 	public ResponseEntity<CommonResponse<DeliveryStateUpdateResponse>> updateDeliveryState(
 		@PathVariable UUID deliveryId, @RequestBody DeliveryStatusUpdateRequest request,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		DeliveryStateUpdateResponse response = deliveryService.updateDeliveryState(deliveryId, request, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(response, "배송 상태 수정 성공"));
@@ -117,7 +117,7 @@ public class DeliveryController {
 	@DeleteMapping("/{deliveryId}")
 	public  ResponseEntity<CommonResponse> deleteDelivery(
 		@PathVariable UUID deliveryId,
-		@RequestHeader(name = "X-User-Id") String userId,
+		@RequestHeader(name = "X-User-Id") UUID userId,
 		@RequestHeader(name = "X-User-Role") String role) {
 		deliveryService.deleteDelivery(deliveryId, userId, role);
 		return ResponseEntity.ok(CommonResponse.success(deliveryId, "배송 삭제 성공"));

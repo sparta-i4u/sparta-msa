@@ -8,6 +8,8 @@ plugins {
 repositories {
     mavenCentral()
 }
+bootJar {enabled = false}
+jar {enabled = true}
 
 subprojects {
     // 모든 하위 모듈에 적용할 설정
@@ -18,11 +20,6 @@ subprojects {
     apply plugin: 'java-library'
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
-
-    // 이것도 안에다가 선언
-    bootJar { enabled = true }
-    jar { enabled = true }
-
     repositories {
         mavenCentral()
     }

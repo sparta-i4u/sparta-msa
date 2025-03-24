@@ -38,7 +38,7 @@ public class CompanyService {
         // 1. [hubClient] 로 요청
         // 지금 업체 생성을 요청한 사용자가 허브 담당자라면,
         // 이 허브 담당자가 관리하는 허브의 ID 를 받아오는 과정  - 허브가 본인이 관리하는 허브인지 이미 검증
-        if (role.equals("HUB_MANAGER")) {
+        if (role.equals("ROLE_HUB_MANAGER")) {
             UUID responseHub = hubClient.getHubInfo(UUID.fromString(userId));
             if (! responseHub.equals(request.hubId())) {
                 throw new CompanyNotFoundException(request.hubId());
@@ -115,11 +115,11 @@ public class CompanyService {
 
         UUID userOrHubId = confirmRole(userId, role);
 
-        if (role.equals("COMPANY_MANAGER") && !userOrHubId.equals(companyId)) {
+        if (role.equals("ROLE_COMPANY_MANAGER") && !userOrHubId.equals(companyId)) {
             throw new CompanyNotFoundException(companyId);
-        } else if (role.equals("HUB_MANAGER") && userOrHubId.equals(company.getHubId())) {
+        } else if (role.equals("ROLE_HUB_MANAGER") && userOrHubId.equals(company.getHubId())) {
             throw new CompanyNotFoundException(companyId);
-        } else if (!role.equals("MASTER")) {
+        } else if (!role.equals("ROLE_MASTER")) {
             throw new IllegalArgumentException("권한이 없습니다");
         }
 
@@ -147,7 +147,7 @@ public class CompanyService {
         List<Company> companies = companyRepository.findAllById(companyIds);
 
         //권한이 허브매니저라면
-        if ( role.equals("HUB_MANAGER") ) {
+        if ( role.equals("ROLE_HUB_MANAGER") ) {
             for (Company c: companies) {   // 삭제할 상품들 하나씩 꺼냄
                 if (! hubId.equals(c.getHubId())) {
                     // hubId와 일치하는 경우만 하도록, 불일치 할 경우 리스트에서 제거
@@ -156,24 +156,25 @@ public class CompanyService {
                 }
             }
         }
+
         if (companies.isEmpty()) { // 조회된 회사가 없으면 예외 처리하거나, 빈 리스트 처리 가능
             throw new CompanyNotFoundException(companyIds);
         }
         // 각 상품에 대해 논리 삭제 처리
-        companies.forEach(company -> company.softDelete(UUID.fromString(userId)));
+        companies.forEach(company -> company.softDelete(userId));
     }
 
     // 권한 확인 SERVICE - ROLE_MASTER, ROLE_HUB_MANAGER(담당 허브), ROLE_COMPANY_MANAGER(본인 업체)
     private UUID confirmRole(String userId, String role) {
         switch (role) {
-            case "COMPANY_MANAGER":
+            case "ROLE_COMPANY_MANAGER":
                 // companyClient (companyId - 없으면 null)
                 Company company = companyRepository.findByOwner(UUID.fromString(userId)).orElseThrow(
                         () -> new IllegalArgumentException("message") );
                 return company.getId();  //요청하는 사람이 담당하고 있는 id를 들고온다.
-            case "DELIVERY_MANAGER":
+            case "ROLE_DELIVERY_MANAGER":
                 return null;
-            case "HUB_MANAGER":
+            case "ROLE_HUB_MANAGER":
                 return hubClient.getHubInfo(UUID.fromString(userId)); //userId가 이미 UUID 형식의 문자열이라면, 이를 UUID 객체로 바꿔주는 역
             default:  // ROLE_MASTER
                 // 걍 통과

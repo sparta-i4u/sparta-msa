@@ -1,6 +1,7 @@
 package com.i4u.product.application.service;
 
 
+
 import com.i4u.product.application.dto.request.ProductCreateRequest;
 import com.i4u.product.application.dto.request.ProductUpdateRequest;
 import com.i4u.product.application.dto.response.ProductResponse;
@@ -17,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -55,13 +55,13 @@ public class ProductService {
         //요청과 일치하는지
 
         switch (role) {
-            case "COMPANY_MANAGER":
+            case "ROLE_COMPANY_MANAGER":
                 System.out.println("여기찍히니 ? Company : " + role);
                 if (!companyOrHubId.equals(companyId)) {
                     throw new IllegalArgumentException("권한이 없습니다");
                 }
                 break;
-            case "HUB_MANAGER" :
+            case "ROLE_HUB_MANAGER" :
                 System.out.println("여기니? Hub : " + role);
                 if (!companyOrHubId.equals(hubId)) {
                     throw new IllegalArgumentException("권한이 없습니다");
@@ -83,6 +83,7 @@ public class ProductService {
     public ProductSearchResponse findAll(final int page, final int size, final String sort, String userId, final String role) {
         //담당 허브여야만 조회가 가능.
         UUID hubManagerHubId = confirmRole(userId, role);
+
 
         Pageable pageable = getPageable(page, size, sort);
         return ProductSearchResponse.of(productQueryRepository.findAll(pageable, role, hubManagerHubId));
