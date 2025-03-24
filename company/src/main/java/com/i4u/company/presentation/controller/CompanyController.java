@@ -6,6 +6,7 @@ import com.i4u.company.application.dto.request.CompanyUpdateRequest;
 import com.i4u.company.application.dto.response.CompanyResponse;
 import com.i4u.company.application.dto.response.CompanySearchResponse;
 import com.i4u.company.application.service.CompanyService;
+import com.i4u.company.presentation.CompanyApi;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/companies")
 @RestController
 @RequiredArgsConstructor
-public class CompanyController {
+public class CompanyController implements CompanyApi {
     //hubId, user 정보 필요
     //모든 업체는 특정 허브에 소속되어 있다.
 
