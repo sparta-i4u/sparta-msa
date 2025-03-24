@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class AIService {
+public class AiService {
 
     private final String apiKey;
     private final RestTemplate restTemplate;
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
-    public AIService(@Value("${gemini.api-key}") String apiKey) {
+    public AiService(@Value("${gemini.api-key}") String apiKey) {
         this.apiKey = apiKey;
         this.restTemplate = new RestTemplate();
     }

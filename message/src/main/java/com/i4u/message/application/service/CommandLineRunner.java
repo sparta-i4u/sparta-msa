@@ -3,10 +3,10 @@ package com.i4u.message.application.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 @RequiredArgsConstructor
 public class CommandLineRunner implements org.springframework.boot.CommandLineRunner{
-    private final AIService aiService;
+    private final AiService aiService;
 
     @Override
     public void run(String... args) throws Exception {

@@ -6,6 +6,10 @@ import com.i4u.message.domain.model.AI;
 import com.i4u.message.domain.model.Message;
 import com.i4u.message.domain.repository.AIRepository;
 import com.i4u.message.domain.repository.MessageRepository;
+import com.i4u.message.infrastructure.client.HubClient;
+import com.i4u.message.infrastructure.client.UserClient;
+import com.i4u.message.infrastructure.dto.HubDto;
+import com.i4u.message.infrastructure.dto.UserDto;
 import com.slack.api.Slack;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
@@ -23,7 +27,9 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final AIRepository aiRepository;
-    private final AIService aiService;
+    private final AiService aiService;
+    private final HubClient hubClient;
+    private final UserClient userClient;
 
     @Value("${slack.token}")
     private String slackToken;
@@ -48,23 +54,49 @@ public class MessageService {
                 .build();
     }
 
-    public MessageResDto sendAIMessage(AIMessageReqDto aiMessageReqDto) throws IOException, SlackApiException {
+    public MessageResDto sendAIMessage(AIMessageReqDto request) throws IOException, SlackApiException {
+        // 주문 정보를 기반으로 AI에 질문할 문자열 생성
+        String aiQuestion = String.format(
+                "다음 고객 주문 정보를 바탕으로 물류 시스템을 고려해서 업체의 발송 시한을 계산해서 알려주세요 (발송시한만 답변):\n" +
+                        "배송 담당자 근무시간:  09 - 18 \n" +
+                        "주문 ID: %s\n" +
+                        "제품명: %s\n" +
+                        "제품 수량: %s\n" +
+                        "요구사항: %s\n" +
+                        "공급업체 허브 ID: %s\n" +
+                        "수신자 허브 ID: %s\n" +
+                        "발송자 이메일: %s\n" +
+                        "수신자 이메일: %s",
+                request.getOrderId(),
+                request.getProductName(),
+                request.getProductQuantity(),
+                request.getRequirement(),
+                request.getSupplierHubId(),
+                request.getRecipientHubId(),
+                request.getShipperEmail(),
+                request.getRecipientEmail()
+        );
+
         // AI 응답 생성
-        String question = aiMessageReqDto.getAi();
-        String aiResponse = aiService.generateResponse(question);
+        String aiResponse = aiService.generateResponse(aiQuestion);
 
         // AI 엔티티 저장
         AI ai = AI.builder()
                 .aiName("Gemini")
-                .question(question)
+                .question(aiQuestion)
                 .answer(aiResponse)
                 .build();
 
         aiRepository.save(ai);
 
         // 슬랙 메시지 전송
-        String slackId = aiMessageReqDto.getSlackId();
+        String slackId = request.getRecipientSlackId();
         sendMessage(aiResponse, slackId);
+
+        // 공급업체 허브의 매니저에게도 메시지 전송
+        if (request.getSupplierHubId() != null) {
+            sendMessageToHubManager(request.getSupplierHubId(), aiResponse);
+        }
 
         // 메시지 엔티티 저장
         Message message = Message.builder()
@@ -72,8 +104,24 @@ public class MessageService {
                 .slackId(slackId)
                 .build();
 
-        Message savedmessage = messageRepository.save(message);
+        Message savedMessage = messageRepository.save(message);
 
-        return MessageResDto.from(savedmessage);
+        return MessageResDto.from(savedMessage);
+    }
+    
+    public void sendMessageToHubManager(UUID hubId, String messageContent) throws IOException, SlackApiException {
+        // 허브 정보 조회
+        HubDto hub = hubClient.getHubById(hubId);
+        
+        if (hub != null && hub.getManagerId() != null) {
+            // 매니저 정보 조회
+            UserDto manager = userClient.getUserById(hub.getManagerId());
+            
+            if (manager != null && manager.getSlackId() != null) {
+                // 매니저의 Slack ID로 메시지 전송
+                sendMessage("허브 관련 알림: " + messageContent, manager.getSlackId());
+            }
+        }
     }
 }
+
