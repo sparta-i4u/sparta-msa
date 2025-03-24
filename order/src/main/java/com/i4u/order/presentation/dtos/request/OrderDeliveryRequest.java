@@ -29,6 +29,9 @@ public class OrderDeliveryRequest {
 	private String requirement;
 
 	// 상품명
+	private UUID productId;
+
+	// 상품명
 	private String productName;
 
 	// 상품 수량

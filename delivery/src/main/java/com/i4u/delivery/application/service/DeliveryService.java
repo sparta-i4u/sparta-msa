@@ -30,10 +30,12 @@ import com.i4u.delivery.domain.entity.DeliveryState;
 import com.i4u.delivery.domain.repository.DeliveryRepository;
 import com.i4u.delivery.presentation.client.MessageClient;
 import com.i4u.delivery.presentation.client.OrderClient;
+import com.i4u.delivery.presentation.client.ProductClient;
 import com.i4u.delivery.presentation.dtos.request.DeliveryOrderStateUpdateRequest;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryHubUpdateResponse;
 import com.i4u.delivery.presentation.dtos.response.DeliveryShipperResponse;
+import com.i4u.delivery.presentation.dtos.response.OrderProductResponse;
 import com.i4u.shipper.application.service.ShipperClient;
 import com.i4u.shipper.presentation.dtos.request.MessageRequest;
 import com.i4u.shipper.presentation.dtos.response.ConfirmUserResponse;
@@ -53,6 +55,7 @@ public class DeliveryService {
 	private final OrderClient orderClient;
 	private final ShipperClient shipperClient;
 	private final MessageClient messageClient;
+	private final ProductClient productClient;
 
 	private final RabbitTemplate rabbitTemplate;
 
@@ -60,7 +63,7 @@ public class DeliveryService {
 	private String orderErrorQueue;
 
 	/**
-	 * 배송 생성
+	 * 배송 재생성 요청
 	 *
 	 * @param request : 생성할 배송 내용
 	 * @return : 생성된 배송 내용
@@ -77,7 +80,14 @@ public class DeliveryService {
 				throw new DeliveryException("배송할 수 있는 허브가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 			}
 
-			// 2. [userClient] 수령인 슬랙 ID 받아오기
+			// 2. [productClient] 상품 재확인 요청 전송
+			OrderProductResponse responseProduct = productClient.confirmProduct(request.getProductId(), request.getProductQuantity());
+
+			if (responseProduct.getIsDeleted()) {
+				throw new DeliveryException("상품의 재고가 없어 배송할 수 없습니다.", HttpStatus.BAD_REQUEST);
+			}
+
+			// 3. [userClient] 수령인 슬랙 ID 받아오기
 			System.out.println("수령인 ID : " + request.getRecipientId());
 			ConfirmUserResponse responseUser = authClient.confirmUser(request.getRecipientId());
 
@@ -85,7 +95,7 @@ public class DeliveryService {
 				throw new DeliveryException("수령인이 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
 			}
 
-			// 3. [shipperClient]  배송 담당자 배정 요청
+			// 4. [shipperClient]  배송 담당자 배정 요청
 			System.out.println("recipientHubId From DeliveryService: " + request.getRecipientHubId());
 			DeliveryShipperResponse responseShipper = shipperClient.assignShipper(
 				request.getRecipientHubId());
@@ -108,13 +118,6 @@ public class DeliveryService {
 
 			return response;
 		} catch (Exception e) {
-			Map<String, Object> errorMessage = new HashMap<>();
-			errorMessage.put("orderId", request.getOrderId());
-			errorMessage.put("errorMessage", e.getMessage());
-			errorMessage.put("errorCode", "DELIVERY_ERROR");
-
-			rabbitTemplate.convertAndSend(orderErrorQueue, errorMessage);
-
 			return null;
 		}
 	}

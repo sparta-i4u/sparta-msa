@@ -1,5 +1,6 @@
 package com.i4u.order.presentation.client;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.cloud.openfeign.FeignClient;
@@ -24,10 +25,11 @@ public interface ProductClient {
 	@GetMapping("/api/v1/products/orders/{productId}/{productQuantity}")
 	OrderProductResponse confirmProduct(@PathVariable UUID productId, @PathVariable Integer productQuantity);
 
-	@PatchMapping("/api/v1/products/{productId}/update-product")
-	ResponseEntity<CommonResponse<OrderProductUpdateResponse>> confirmProductUpdate(@RequestBody OrderProductUpdateRequest request);
+	@PatchMapping("/api/v1/products/orders/{beforeProductId}/{beforeProductQuantity}/{afterProductId}/{afterProductQuentity}")
+	Map<String, Object> confirmProductUpdate(@PathVariable UUID beforeProductId, @PathVariable Integer beforeProductQuantity,
+		@PathVariable UUID afterProductId, @PathVariable Integer afterProductQuantity);
 
-	@PatchMapping("/api/v1/products/{productId}/update-product")
-	ResponseEntity<CommonResponse> updateProductState(@RequestBody OrderProductStateUpdateRequest request);
+	@PatchMapping("/api/v1/products/orders/canceled/{productId}/{productQuantity}")
+	void updateProductState(@PathVariable UUID productId, @PathVariable Integer productQuantity);
 
 }
