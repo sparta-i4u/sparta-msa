@@ -15,6 +15,7 @@ import com.i4u.hub.application.service.HubClientService;
 import com.i4u.hub.presentation.dtos.request.DeliveryHubUpdateRequest;
 import com.i4u.hub.presentation.dtos.response.DeliveryHubCreateResponse;
 import com.i4u.hub.presentation.dtos.response.DeliveryHubUpdateResponse;
+import com.i4u.hub.presentation.dtos.response.HubDto;
 import com.i4u.hub.presentation.dtos.response.ShipperHubResponse;
 import com.i4u.hub.presentation.dtos.request.DeliveryHubCreateRequest;
 
@@ -81,6 +82,12 @@ public class HubEndpoint {
 	public Mono<Map<String, Object>> confirmHubFromShippers(@PathVariable UUID hubId) {
 		Map<String, Object> response = hubClientService.confirmHubFromShippers(hubId);
 		return Mono.just(response);
+	}
+
+	@GetMapping("/messges/{supplierHubId}/{recipientHubId}")
+	public CommonResponse<HubDto> getHubInfos(@PathVariable UUID supplierHubId, @PathVariable UUID recipientHubId) {
+		HubDto response = hubClientService.confirmHubFromMessages(supplierHubId, recipientHubId);
+		return CommonResponse.success(response, "성공");
 	}
 
 

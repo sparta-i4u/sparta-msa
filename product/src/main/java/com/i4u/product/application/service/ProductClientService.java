@@ -5,6 +5,8 @@ import com.i4u.product.domain.Product;
 import com.i4u.product.domain.repository.ProductQueryRepository;
 import com.i4u.product.domain.repository.ProductRepository;
 import com.i4u.product.exception.ProductNotFoundException;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class ProductClientService {
     private final ProductRepository productRepository;
 
     // 초반 요청이 들어왔을 때, 상품을 검증하는 메서드
+    @Transactional
     public OrderProductResponse confirmProduct(UUID productId, Integer productQuantity) {
         // 상품 조회
         Product product = productRepository.findById(productId).orElse(null);
@@ -59,6 +62,7 @@ public class ProductClientService {
 
 
     // 중간에 주문 변경 요청이 들어왔을 때, 상품을 검증하는 메서드
+    @Transactional
     public Map<String, Object> confirmProductUpdate(UUID beforeProductId, Integer beforeProductQuantity, UUID afterProductId, Integer afterProductQuantity) {
         // 처음 주문했던 상품의 재고는 증가시킴 (예외 없이 실행)
         Product beforeProduct = productRepository.findById(beforeProductId)
@@ -87,6 +91,7 @@ public class ProductClientService {
         return productResponse;
     }
 
+    @Transactional
     public void reduceProductState(UUID productId, Integer productQuantity) {
         // 상품의 재고를 증가시키는 로직 (주문이 취소됨)
         Product product = productRepository.findById(productId).orElseThrow(
