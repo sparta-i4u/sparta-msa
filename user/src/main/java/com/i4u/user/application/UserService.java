@@ -36,7 +36,7 @@ public class UserService {
         }
     }
 
-    // ✅ 신규 사용자 생성 메서드
+    // ✅ 신규 사용자 정보저장 메서드
     @Transactional
     public UserDetailResponseDto createUser(UserCreateRequestDto requestDTO, String encodedPassword) {
         if (userRepository.findBySlackIdAndIsDeletedFalse(requestDTO.getSlackId()).isPresent()) {

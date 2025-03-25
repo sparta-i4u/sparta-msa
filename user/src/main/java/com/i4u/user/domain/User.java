@@ -75,4 +75,5 @@ public class User extends Basic {
         }
         this.role = newRole;
     }
+
 }
