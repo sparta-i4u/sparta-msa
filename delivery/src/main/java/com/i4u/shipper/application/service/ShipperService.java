@@ -59,7 +59,7 @@ public class ShipperService {
 		if (responseUser.getIsDeleted()) {
 			throw new ShipperException("존재하지 않는 사용자입니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (! responseUser.getUserRole().equals("DELIVERY_MANAGER")) {
+		if (! responseUser.getUserRole().contains("DELIVERY")) {
 			throw new ShipperException("권한이 배송 담당자가 아니므로 배송 담당자로 지정할 수 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
