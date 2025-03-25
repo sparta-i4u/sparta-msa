@@ -183,13 +183,16 @@ public class OrderService {
 		// 1. orderId에 해당하는 Order 검색
 		Order order = findOrder(orderId);
 
-		// 2. 권한 검증 필수
-		if (! ( role.equals("HUB_MANAGER") &&
-				confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())) ) {
-			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
+		// 2. 권한 검증 필수: MASTER 또는 HUB_MANAGER가 포함되지 않으면 예외 발생
+		System.out.println("role : " + role);
+		if (!(role.equals("MASTER") || role.equals("HUB_MANAGER"))) {
+			throw new OrderException("수정 권한이 없습니다.", HttpStatus.UNAUTHORIZED);
 		}
-		if (!role.equals("ROLE_MASTER")) {
-			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
+
+		if (role.contains("HUB_MANAGER")) {
+			if (confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())){
+				throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
+			}
 		}
 
 		// 3. 현재 주문의 상태가 결제 완료인 경우만 수정 가능하도록 설정하기 (배송 ID가 배정되어버리면 변경 불가능)
@@ -243,11 +246,11 @@ public class OrderService {
 		Order order = findOrder(orderId);
 
 		// 2. 권한 검증 필수
-		if (! ( role.equals("HUB_MANAGER") &&
+		if (! ( role.contains("HUB_MANAGER") &&
 				confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (!role.equals("MASTER") || !role.equals("HUB_MANAGER")) {
+		if (!role.contains("MASTER") || !role.contains("HUB_MANAGER")) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 
@@ -301,11 +304,11 @@ public class OrderService {
 		Order order = findOrder(orderId);
 
 		// 2. 권한 검증 필수
-		if (( role.equals("HUB_MANAGER") &&
+		if (( role.contains("HUB_MANAGER") &&
 				! confirmHubId(userId, order.getRecipientHubId(), order.getSupplierHubId())) ) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
-		if (!role.equals("MASTER")) {
+		if (!role.contains("MASTER")) {
 			throw new OrderException("수정 권한이 없습니다.", HttpStatus.BAD_REQUEST);
 		}
 

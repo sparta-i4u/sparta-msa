@@ -32,6 +32,9 @@ public class OrderCreateResponse {
 	// 주문 상태
 	public String orderState;
 
+	//
+	public UUID deliveryId;
+
 	public static OrderCreateResponse fromOrder(Order order) {
 		// 생성 직후에는 Delivery ID 없이 반환
 		return OrderCreateResponse.builder()
@@ -42,6 +45,7 @@ public class OrderCreateResponse {
 			.productQuantity(order.getProductQuantity())
 			.requirement(order.getRequirement())
 			.orderState(order.getOrderStatus().toString())
+			.deliveryId(order.getDeliveryId()!=null ? order.getDeliveryId() : null)
 			.build();
 	}
 }
