@@ -237,6 +237,27 @@
 
 <br>
 
+## Discussion
+
+- MSA 프로젝트 초기 구조 [→ WIKI 보기](https://github.com/sparta-i4u/sparta-msa/wiki/%5BDiscussion%5D-MSA-Project-%EC%B4%88%EA%B8%B0-%EA%B5%AC%EC%A1%B0)
+
+- MSA 설계에 따른 역할 분리 [→ WIKI 보기](https://github.com/sparta-i4u/sparta-msa/wiki/%5BDiscussion%5D-MSA%EC%84%A4%EA%B3%84%EC%97%90-%EB%94%B0%EB%A5%B8-%EC%97%AD%ED%95%A0%EB%B6%84%EB%A6%AC)
+
+- 프로젝트 관리 및 협업 (JIRA) [→ WIKI 보기](https://github.com/sparta-i4u/sparta-msa/wiki/%5BDiscussion%5D-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B4%80%EB%A6%AC-%EB%B0%8F-%ED%98%91%EC%97%85-%E2%80%90-JIRA)
+
+- Docker Compose 기반 인프라 구성 [→ WIKI 보기](https://github.com/sparta-i4u/sparta-msa/wiki/%5BDiscussion%5D-%F0%9F%90%B3-Docker-Compose-%EA%B8%B0%EB%B0%98-%EC%9D%B8%ED%94%84%EB%9D%BC-%EA%B5%AC%EC%84%B1)
+
+<br>
+
+## Trouble Shooting
+
+- MSA Project 초기 구조 구성 문제 [→ WIKI 보기](https://github.com/sparta-i4u/sparta-msa/wiki/%5BTrouble-Shooting%5D-MSA-Project-%EC%B4%88%EA%B8%B0-%EA%B5%AC%EC%A1%B0-%EA%B5%AC%EC%84%B1-%EB%AC%B8%EC%A0%9C)
+
+- 메시지 브로커 적용하기 [→ WIKI 보기](https://github.com/sparta-i4u/sparta-msa/wiki/%5BTrouble-Shooting%5D-%EB%A9%94%EC%8B%9C%EC%A7%80-%EB%B8%8C%EB%A1%9C%EC%BB%A4-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0)
+
+- Hub 데이터 초기 삽입 문제 [→ WIKI 보기](https://github.com/sparta-i4u/sparta-msa/wiki/%5BTrouble-Shooting%5D%C2%A0hub-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%B4%88%EA%B8%B0-%EC%82%BD%EC%9E%85-%EB%AC%B8%EC%A0%9C)
+
+<br>
 
 ## API 명세서
 [API 명세서](https://www.notion.so/teamsparta/API-1b22dc3ef5148002b6ceccd511db7b16)
