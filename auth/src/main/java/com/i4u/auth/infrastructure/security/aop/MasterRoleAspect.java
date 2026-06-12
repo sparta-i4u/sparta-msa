@@ -22,7 +22,7 @@ public class MasterRoleAspect {
 
     private final UserClient userClient;
 
-    @Around("@annotation(com.i4u.user.infrastructure.security.aop.RequiresMasterRole)")
+    @Around("@annotation(com.i4u.common.security.aop.RequiresMasterRole)")
     public Object checkMasterRole(ProceedingJoinPoint joinPoint) throws Throwable {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

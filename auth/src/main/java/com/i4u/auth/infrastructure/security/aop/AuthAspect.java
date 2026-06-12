@@ -19,7 +19,7 @@ import java.util.UUID;
 @Slf4j
 public class AuthAspect {
 
-    @Around("@annotation(com.i4u.user.infrastructure.security.aop.RequiresAuth)")
+    @Around("@annotation(com.i4u.common.security.aop.RequiresAuth)")
     public Object checkAuthentication(ProceedingJoinPoint joinPoint) throws Throwable {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

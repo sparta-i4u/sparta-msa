@@ -9,7 +9,7 @@ import com.i4u.user.domain.User;
 import com.i4u.user.domain.UserRole;
 import com.i4u.user.domain.repository.UserRepository;
 import com.i4u.user.application.exception.UserException;
-import com.i4u.user.infrastructure.security.aop.RequiresMasterRole;
+import com.i4u.common.security.aop.RequiresMasterRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
