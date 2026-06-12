@@ -1,7 +1,7 @@
 package com.i4u.user.infrastructure.config;
 
 import com.i4u.user.domain.User;
-import com.i4u.user.domain.UserRole;
+import com.i4u.common.domain.UserRole;
 import com.i4u.user.domain.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;

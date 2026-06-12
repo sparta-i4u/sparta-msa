@@ -1,8 +1,8 @@
 package com.i4u.auth.infrastructure.client;
 
 import com.i4u.auth.application.dtos.response.AuthUserInfoResponseDto;
-import com.i4u.user.application.dtos.request.UserCreateRequestDto;
-import com.i4u.user.application.dtos.response.UserDetailResponseDto;
+import com.i4u.common.application.dtos.request.UserCreateRequestDto;
+import com.i4u.common.application.dtos.response.UserDetailResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
