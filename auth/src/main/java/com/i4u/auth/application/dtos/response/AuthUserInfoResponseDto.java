@@ -1,7 +1,7 @@
 package com.i4u.auth.application.dtos.response;
 
 import com.i4u.auth.domain.AuthUserRole;
-import com.i4u.user.application.dtos.response.UserDetailResponseDto;
+import com.i4u.common.application.dtos.response.UserDetailResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
