@@ -1,5 +1,6 @@
 package com.i4u.user.domain;
 
+import com.i4u.common.domain.UserRole;
 import com.i4u.common.entity.Basic;
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,7 +1,7 @@
 package com.i4u.user.domain.repository;
 
 import com.i4u.user.domain.User;
-import com.i4u.user.domain.UserRole;
+import com.i4u.common.domain.UserRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

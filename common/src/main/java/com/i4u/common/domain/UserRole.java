@@ -1,6 +1,5 @@
-package com.i4u.user.domain;
+package com.i4u.common.domain;
 
-import com.i4u.user.application.exception.UserException;
 import lombok.Getter;
 
 @Getter
@@ -18,13 +17,12 @@ public enum UserRole {
 
     public static UserRole fromString(String role) {
         if (role == null || role.isBlank()) {
-            throw new UserException(UserException.UserErrorType.INVALID_ROLE);
+            throw new IllegalArgumentException("유효하지 않은 역할입니다.");
         }
-
         try {
             return UserRole.valueOf(role.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new UserException(UserException.UserErrorType.INVALID_ROLE);
+            throw new IllegalArgumentException("존재하지 않는 역할입니다: " + role);
         }
     }
 

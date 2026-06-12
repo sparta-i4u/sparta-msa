@@ -2,7 +2,7 @@ package com.i4u.user.infrastructure;
 
 import com.i4u.user.domain.QUser;
 import com.i4u.user.domain.User;
-import com.i4u.user.domain.UserRole;
+import com.i4u.common.domain.UserRole;
 import com.i4u.user.domain.repository.UserRepositoryCustom;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;

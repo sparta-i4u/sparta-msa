@@ -8,7 +8,7 @@ import com.i4u.user.application.dtos.request.UserSearchRequestDto;
 import com.i4u.user.application.dtos.response.UserDetailResponseDto;
 import com.i4u.user.application.dtos.response.UserListResponseDto;
 import com.i4u.user.application.exception.UserException;
-import com.i4u.user.domain.UserRole;
+import com.i4u.common.domain.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;

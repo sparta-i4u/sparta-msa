@@ -1,6 +1,6 @@
 package com.i4u.user.application.dtos.request;
 
-import com.i4u.user.domain.UserRole;
+import com.i4u.common.domain.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
