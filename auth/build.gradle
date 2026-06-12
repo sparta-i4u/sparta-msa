@@ -32,9 +32,6 @@ dependencies {
 	// common 추가
 	implementation project(':common')
 
-	// User 모듈 참조 추가
-	implementation project(':user')
-
 	// Zipkin'
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
