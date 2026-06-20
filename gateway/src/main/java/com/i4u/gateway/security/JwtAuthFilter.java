@@ -33,7 +33,10 @@ public class JwtAuthFilter implements GlobalFilter {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private final List<String> excludedRoutes = List.of("/api/v1/auth/sign-in", "/api/v1/auth/sign-up", "/api/v1/users");
+    @Value("${gateway.internal-secret}")
+    private String internalSecret;
+
+    private final List<String> excludedRoutes = List.of("/api/v1/auth/sign-in", "/api/v1/auth/sign-up");
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -70,12 +73,12 @@ public class JwtAuthFilter implements GlobalFilter {
 
                 log.info("인증된 사용자: ID={}, Email={}, 역할={}", userId, userEmail, userRole);
 
-                // 기존 헤더 확인 후 중복 추가 방지 (더 최적화)
                 ServerHttpRequest modifiedRequest = request.mutate()
                         .headers(httpHeaders -> {
                             httpHeaders.add("X-User-Id", userId);
                             httpHeaders.add("X-User-Email", userEmail);
                             httpHeaders.add("X-User-Role", userRole);
+                            httpHeaders.add("X-Gateway-Token", internalSecret);
                         })
                         .build();
 
@@ -89,7 +92,11 @@ public class JwtAuthFilter implements GlobalFilter {
                 return onError(response, "JWT 검증 실패: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
             }
         }
-        return chain.filter(exchange);
+        // 인증 제외 경로도 X-Gateway-Token 추가 (Auth sign-in/up 등 내부 서비스 전달)
+        ServerHttpRequest gatewayTagged = exchange.getRequest().mutate()
+                .headers(h -> h.add("X-Gateway-Token", internalSecret))
+                .build();
+        return chain.filter(exchange.mutate().request(gatewayTagged).build());
     }
 
     // 인증 오류 응답을 JSON 형식으로 반환하는 메서드

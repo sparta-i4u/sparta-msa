@@ -82,6 +82,9 @@ dependencies {
     // JSON
     implementation 'org.json:json:20230227'
 
+    // AOP
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
     // Spring Security (Auth 모듈과 연동 시 필요)
     implementation 'org.springframework.boot:spring-boot-starter-security'
 

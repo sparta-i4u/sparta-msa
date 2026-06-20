@@ -6,7 +6,7 @@
 //import com.i4u.user.application.dtos.request.UserUpdateRequestDto;
 //import com.i4u.user.application.dtos.response.UserDetailResponseDto;
 //import com.i4u.user.application.dtos.response.UserListResponseDto;
-//import com.i4u.user.domain.UserRole;
+//import com.i4u.common.domain.UserRole;
 //import com.i4u.user.testconfig.UserControllerIntegrationTestConfig;
 //import org.junit.jupiter.api.DisplayName;
 //import org.junit.jupiter.api.Test;

@@ -6,7 +6,7 @@
 //import com.i4u.user.application.dtos.response.UserDetailResponseDto;
 //import com.i4u.user.application.dtos.response.UserListResponseDto;
 //import com.i4u.user.domain.User;
-//import com.i4u.user.domain.UserRole;
+//import com.i4u.common.domain.UserRole;
 //import com.i4u.user.domain.repository.UserRepository;
 //import com.i4u.user.application.exception.UserException;
 //import org.junit.jupiter.api.BeforeEach;

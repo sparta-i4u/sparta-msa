@@ -31,6 +31,7 @@ dependencies {
     // common 추가
     implementation(project(':common')) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-security'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-web'
     }
     // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -44,8 +45,6 @@ dependencies {
 //    implementation 'org.springframework.boot:spring-boot-starter-security'
 //    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
-    implementation 'org.springframework.boot:spring-boot-starter-parent:3.1.2' // 최신 버전으로 변경
-    implementation 'org.springframework.cloud:spring-cloud-dependencies:2022.0.3' // Spring Cloud 최신 버전 적용
 
     // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
@@ -59,8 +58,10 @@ dependencies {
     // Open Feign
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
-    // Validation
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // Validation (spring-webmvc 제외: WebFlux 전용 Gateway와 충돌 방지)
+    implementation('org.springframework.boot:spring-boot-starter-validation') {
+        exclude group: 'org.springframework', module: 'spring-webmvc'
+    }
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'

@@ -6,13 +6,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
 @Builder
 @AllArgsConstructor
-public class UserDetailResponseDto {
+public class UserDetailResponseDto implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private final UUID userId;
     private final String username;
