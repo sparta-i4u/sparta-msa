@@ -52,11 +52,6 @@ project(':user') {
         implementation project(':common')
     }
 }
-project(':auth') {
-    dependencies {
-        implementation project(':user')
-    }
-}
 
     project(':company') {
         dependencies {

@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import java.util.*;
 
 @Service
@@ -98,6 +99,7 @@ public class UserService {
     }
 
     // ✅ 사용자 정보 업데이트 (관리자 권한 필요 여부 체크 포함)
+    @CacheEvict(value = "userCache", allEntries = true)
     public UserDetailResponseDto updateUser(UUID adminUserId, UUID userId, UserUpdateRequestDto requestDto) {
         User adminUser = userRepository.findByUserIdAndIsDeletedFalse(adminUserId)
                 .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
@@ -117,6 +119,7 @@ public class UserService {
 
     // ✅ 사용자 역할 변경 (MASTER 권한 필요)
     @RequiresMasterRole
+    @CacheEvict(value = "userCache", allEntries = true)
     public UserDetailResponseDto updateUserRole(UUID adminUserId, UUID targetUserId, String newRole) {
         User targetUser = userRepository.findByUserIdAndIsDeletedFalse(targetUserId)
                 .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
@@ -129,6 +132,7 @@ public class UserService {
 
     // ✅ 사용자 논리 삭제 (Soft Delete, MASTER 권한 필요)
     @RequiresMasterRole
+    @CacheEvict(value = "userCache", allEntries = true)
     public UserDetailResponseDto deleteUser(UUID adminUserId, UUID userId, UUID deletedBy) {
         User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new UserException(UserException.UserErrorType.USER_NOT_FOUND));
