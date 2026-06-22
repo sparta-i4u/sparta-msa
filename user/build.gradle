@@ -32,9 +32,6 @@ dependencies {
     // 공통 모듈 추가
     implementation project(':common')
 
-    // redis
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.data:spring-data-redis'
     // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     // Swagger

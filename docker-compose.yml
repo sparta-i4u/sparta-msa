@@ -102,8 +102,6 @@ services:
       USER_DB: ${USER_DB}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:19090/eureka/
       ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
     depends_on:
       - eureka-server
       - gateway
@@ -438,4 +436,3 @@ volumes:
   delivery-data:
   hub-data:
   message-data:
-

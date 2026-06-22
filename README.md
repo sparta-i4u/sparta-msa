@@ -78,13 +78,11 @@
 
 - **기능**:
   - Slack ID와 User ID로 유저 정보를 조회
-  - `@Cacheable`과 Redis를 활용하여 반복되는 유저 상세 조회의 DB 접근 감소
   - PostgreSQL에 유저 정보 저장
 
 - **서비스 동작**:
-  - **조회 캐시**: `userId`·Slack ID 기반 상세 조회 결과를 Redis에 저장합니다.
-  - **캐시 정합성**: 사용자 정보·역할 변경과 삭제 시 캐시를 무효화합니다.
-  - **적용 범위**: Redis는 User 조회 캐시이며 Gateway의 JWT 검증이나 권한 판단에는 사용하지 않습니다.
+  - **사용자 관리**: 사용자 정보·역할 변경과 논리 삭제를 PostgreSQL에 반영합니다.
+  - **인증과 분리**: User 상세 조회는 Gateway의 JWT 검증·권한 판단과 별개입니다.
 
 </div>
 </details>
@@ -231,7 +229,7 @@
 > 주문 정보와 최종 발송시한 전송을 위해 AI 와 Slack API를 통합하여 메시지를 전달했습니다.
 
 ◻️ Redis
-> User 상세 정보의 반복 조회를 캐싱해 DB 접근을 줄이기 위해 적용했습니다. 인증 검증은 Redis가 아니라 Gateway의 JWT 검증으로 처리합니다.
+> 배송 담당자 배정 순번을 원자적으로 관리하기 위해 Delivery 도메인에서 사용합니다. Auth·User·Gateway 인증 흐름에는 사용하지 않습니다.
 
 ◻️ RabbitMQ
 > 마이크로서비스 간 비동기 메시지 처리와 안정적인 이벤트 라우팅을 위해 RabbitMQ를 활용했습니다.
@@ -264,5 +262,4 @@
 [API 명세서](https://www.notion.so/teamsparta/API-1b22dc3ef5148002b6ceccd511db7b16)
 
 <br>
-
 
