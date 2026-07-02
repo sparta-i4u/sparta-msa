@@ -1,6 +1,9 @@
 # 3M-B2B Introduce
 ## 물류 관리 및 배송 시스템을 위한 MSA 기반 플랫폼
 
+3M-B2B는 물류 관리, 허브, 주문, 배송, 업체·상품 관리를 MSA 구조로 분리한 B2B 플랫폼입니다.
+서비스별 책임을 분리하고 Gateway, Eureka, Docker Compose 기반 실행 환경을 구성해 로컬에서 서비스 간 연동을 재현할 수 있도록 구성했습니다.
+
 <br>
 
 ## 우리 팀
@@ -9,6 +12,21 @@
 |[@dbp-jack](https://github.com/dbp-jack)|[@sall6550](https://github.com/sall6550)|[@greenblueredgreen](https://github.com/greenblueredgreen)|[@azuressu](https://github.com/azuressu)|
 |사용자, 게이트웨이, 인프라|허브, 메시지, AI|주문, 배송, 배송 담당자|업체, 상품|
 
+## 역할별 주요 작업 요약
+
+| 담당자 | 담당 영역 | 주요 작업 |
+|---|---|---|
+| 정민수 | User, Auth, Gateway, 인프라 | Auth → User 직접 참조 제거, Feign 기반 서비스 통신, Gateway JWT 검증 및 `X-User-*` 헤더 전달, `@RequiresMasterRole` AOP 권한 검증, Docker Compose 기반 통합 실행 환경 구성 |
+| 박준혁 | Hub, Message, AI | 허브 관리, 메시지 발송, AI와 Slack API를 활용한 최종 발송 시한 안내 |
+| 이수연 | Order, Delivery, 배송 담당자 | 주문·배송·배송 담당자 관리, 배송 담당자 배정 순번 관리, 메시지 브로커 적용 |
+| 정아현 | Company, Product | 업체·상품 관리, 권한 기반 담당 여부 확인, 상품/업체 도메인 기능 구현 |
+
+### 민수 담당 문서
+
+- [인증 구조 설계와 서비스 경계 분리](https://github.com/sparta-i4u/sparta-msa/wiki/%5BTrouble-Shooting%5D%5B%EB%AF%BC%EC%88%98%E2%80%90User,-Auth,-Gateway-%EB%8F%84%EB%A9%94%EC%9D%B8%5D-%EC%9D%B8%EC%A6%9D-%EA%B5%AC%EC%A1%B0-%EC%84%A4%EA%B3%84%EC%99%80-%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B2%BD%EA%B3%84-%EB%B6%84%EB%A6%AC)
+- [MSA 설계에 따른 역할 분리](https://github.com/sparta-i4u/sparta-msa/wiki/%5BDiscussion%5D%5B%EB%AF%BC%EC%88%98%E2%80%90User,-Auth,-Gateway-%EB%8F%84%EB%A9%94%EC%9D%B8%5D-MSA%EC%84%A4%EA%B3%84%EC%97%90-%EB%94%B0%EB%A5%B8-%EC%97%AD%ED%95%A0%EB%B6%84%EB%A6%AC)
+- [Docker Compose 기반 인프라 구성](https://github.com/sparta-i4u/sparta-msa/wiki/%5BDiscussion%5D%5B%EB%AF%BC%EC%88%98%E2%80%90%EC%A0%84%EC%B2%B4-%EB%8F%84%EB%A9%94%EC%9D%B8%5D-%F0%9F%90%B3-Docker-Compose-%EA%B8%B0%EB%B0%98-%EC%9D%B8%ED%94%84%EB%9D%BC-%EA%B5%AC%EC%84%B1)
+- [Auth·User·Gateway 통합 테스트 결과](https://github.com/sparta-i4u/sparta-msa/wiki/%5BTest-Report%5D%5B%EB%AF%BC%EC%88%98%E2%80%90User,-Auth,-Gateway-%EB%8F%84%EB%A9%94%EC%9D%B8%5D-%ED%86%B5%ED%95%A9-%ED%85%8C%EC%8A%A4%ED%8A%B8-%EA%B2%B0%EA%B3%BC-%EB%B3%B4%EA%B3%A0%EC%84%9C)
 
 ### ⇒ [팀 노션 바로가기](https://www.notion.so/teamsparta/16-I-4-U-1b12dc3ef51480a1b684c3c0a8489ad0)
 ### ⇒ [프로젝트 노션 바로가기](https://www.notion.so/teamsparta/I4U-MMM-1c02dc3ef5148075843af1bd8b3314bf)
@@ -101,7 +119,7 @@
 - **서비스 동작**:
   - **Gateway 중심 인증**: Gateway가 JWT를 검증하고 `X-User-*` 헤더로 사용자 컨텍스트를 전달합니다.
   - **무상태(stateless) 인증**: 일반 요청의 권한 판단은 JWT claim을 사용하므로 매 요청마다 User 서비스를 재조회하지 않습니다.
-  - **명시적 한계**: 역할 변경과 탈퇴 상태는 기존 access token 만료 전까지 즉시 반영되지 않습니다.
+  - **운영 고려사항**: 역할 변경과 탈퇴 상태는 access token 갱신·만료 정책과 함께 관리합니다.
 
 </div>
 </details>
@@ -262,4 +280,3 @@
 [API 명세서](https://www.notion.so/teamsparta/API-1b22dc3ef5148002b6ceccd511db7b16)
 
 <br>
-
